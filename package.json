@@ -1,0 +1,62 @@
+{
+  "name": "github-actions",
+  "version": "0.0.1",
+  "description": " Provides supporting operations for github action builds.",
+  "typings": "./dist/index.d.ts",
+  "main": "./dist/index.js",
+  "prettier": "@checkdigit/prettier-config",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/checkdigit/github-actions.git"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "author": "Check Digit, LLC",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/checkdigit/github-actions/issues"
+  },
+  "homepage": "https://github.com/checkdigit/github-actions#readme",
+  "bin": {
+    "action": "bin/action"
+  },
+  "dependencies": {
+    "@octokit/rest": "^19.0.4",
+    "debug": "^4.3.4"
+  },
+  "devDependencies": {
+    "@checkdigit/eslint-config": "^7.2.2",
+    "@checkdigit/jest-config": "^1.0.1",
+    "@checkdigit/prettier-config": "^3.0.0",
+    "@checkdigit/typescript-config": "^3.1.0",
+    "@types/debug": "^4.1.7",
+    "@types/uuid": "^8.3.4",
+    "nock": "^13.2.9",
+    "rimraf": "^3.0.2",
+    "undici": "^5.10.0",
+    "uuid": "^9.0.0"
+  },
+  "scripts": {
+    "dist": "rimraf dist && tsc --outDir dist && rimraf dist/*.spec.*",
+    "prepublishOnly": "npm run dist && rimraf .github src test typings .eslintrc .gitignore tsconfig.json",
+    "lint": "eslint -f unix --ext .js,.ts src/**",
+    "lint:fix": "eslint -f unix --ext .js,.ts src/** --fix",
+    "prettier": "prettier --list-different .",
+    "prettier:fix": "prettier --write .",
+    "test": "npm run ci:compile && npm run ci:test && npm run ci:lint && npm run ci:style",
+    "ci:compile": "tsc --noEmit",
+    "ci:test": "jest --coverage=false",
+    "ci:coverage": "jest --coverage=true",
+    "ci:lint": "npm run lint",
+    "ci:style": "npm run prettier"
+  },
+  "jest": {
+    "preset": "@checkdigit/jest-config"
+  },
+  "eslintConfig": {
+    "extends": [
+      "@checkdigit/eslint-config"
+    ]
+  }
+}
