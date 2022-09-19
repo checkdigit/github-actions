@@ -6,7 +6,6 @@ import path from 'node:path';
 import { mkdir, rmdir, writeFile } from 'node:fs/promises';
 import process from 'node:process';
 import { v4 as uuid } from 'uuid';
-// import { setGlobalDispatcher } from 'undici';
 
 import gitHubNock from './nocks/github.test';
 import { publishComment } from './github';
