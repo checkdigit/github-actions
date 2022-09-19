@@ -28,8 +28,6 @@ jobs:
         run: npm ci --ignore-scripts
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Prepare
-        run: npm run prepare
       - name: Calculate Code Coverage
         run: npm run ci:coverage
       - name: Create Coverage Report for base branch
@@ -37,7 +35,7 @@ jobs:
           mv coverage/lcov.info coverage/lcov_head.info
           git fetch
           git checkout origin/${{ github.event.pull_request.base.ref }}
-          npm ci --ignore-scripts && npm run prepare && npm run ci:coverage
+          npm ci --ignore-scripts && npm run ci:coverage
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Post Coverage Report
