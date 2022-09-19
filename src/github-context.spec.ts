@@ -14,6 +14,7 @@ describe('github context', () => {
   afterAll(async () => rmdir(path.join(tmpdir(), 'actioncontexttest'), { recursive: true }));
 
   it('no environment variable', async () => {
+    process.env['GITHUB_EVENT_PATH'] = '';
     const result = await getPullRequestContext();
     assert.equal(result, undefined);
   });
