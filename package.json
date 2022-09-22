@@ -21,6 +21,10 @@
   "bin": {
     "action": "bin/action"
   },
+  "files": [
+    "/dist/",
+    "/bin/"
+  ],
   "dependencies": {
     "@octokit/rest": "^19.0.4",
     "debug": "^4.3.4"
@@ -39,11 +43,11 @@
   },
   "scripts": {
     "dist": "rimraf dist && tsc --outDir dist && rimraf dist/*.spec.*",
-    "prepublishOnly": "npm run dist && rimraf .github src test typings .eslintrc .gitignore tsconfig.json",
+    "prepublishOnly": "npm run dist",
     "lint": "eslint -f unix --ext .js,.ts src/**",
     "lint:fix": "eslint -f unix --ext .js,.ts src/** --fix",
-    "prettier": "prettier --list-different .",
-    "prettier:fix": "prettier --write .",
+    "prettier": "prettier --ignore-path .gitignore --list-different .",
+    "prettier:fix": "prettier --ignore-path .gitignore --write .",
     "test": "npm run ci:compile && npm run ci:test && npm run ci:lint && npm run ci:style",
     "ci:compile": "tsc --noEmit",
     "ci:test": "jest --coverage=false",

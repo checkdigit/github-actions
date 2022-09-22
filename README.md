@@ -4,14 +4,14 @@ Tools for use with gitub-actions
 
 ## Commands:
 
-### `npx action isAPI`
+### `npx action is-api`
 
 Identifies if a project contains a `src/api` folder structure and returns GitHub action compatible output.
 
 - If TRUE returns `::set-output name=IS_API::true`
 - If FALSE returns `::set-output name=IS_API::false`
 
-### `npx action generateBetaVersion`
+### `npx action generate-beta-version`
 
 Generates a beta version string for the project and updates the package.json to this.
 
@@ -22,7 +22,7 @@ Result is then written to the projects package.json file that is located on the 
 
 New version is output in the GitHub action compatible output including the Package name `::set-output name=NEW_VERSION::@checkdigit/examplePackage@1.2.3-beta.aBc4d`
 
-### `npx action publishComment`
+### `npx action publish-comment`
 
 Writes a comment into the Pull Request that contains the new version and the npm command to install it.
 

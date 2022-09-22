@@ -11,17 +11,17 @@ export default async function (input: string[] | undefined): Promise<void | bool
   const command = input?.[2];
   log('Action starts:', command);
 
-  if (command === 'publishComment' && process.env['NEW_PACKAGE_VERSION']) {
+  if (command === 'publish-comment' && process.env['NEW_PACKAGE_VERSION']) {
     return publishComment(process.env['NEW_PACKAGE_VERSION']);
   }
 
-  if (command === 'isAPI') {
+  if (command === 'is-api') {
     return isPackageAnAPI(process.cwd());
   }
 
-  if (command === 'generateBetaVersion') {
+  if (command === 'generate-beta-version') {
     return packageJSONUpdate(process.cwd());
   }
-  log('No valid command received: action-beta-publish [isAPI | generateBetaVersion]');
+  log('No valid command received: action-beta-publish [is-api | generate-beta-version | publish-comment]');
   throw new Error('no valid command');
 }
