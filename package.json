@@ -42,7 +42,7 @@
     "uuid": "^9.0.0"
   },
   "scripts": {
-    "dist": "rimraf dist && tsc --outDir dist && rimraf dist/*.spec.*",
+    "dist": "rimraf dist && tsc --outDir dist && rimraf dist/*.spec.* dist/nocks",
     "prepublishOnly": "npm run dist",
     "lint": "eslint -f unix --ext .js,.ts src/**",
     "lint:fix": "eslint -f unix --ext .js,.ts src/** --fix",
