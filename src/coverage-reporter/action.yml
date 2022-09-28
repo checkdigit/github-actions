@@ -20,9 +20,9 @@ inputs:
     required: false
     default: false
   working-directory:
-    description: Set working directory if project is not in root folder  
+    description: Set working directory if project is not in root folder
     required: false
-    default: "./"
+    default: './'
   title:
     description: Title to add to the comment
     required: false
