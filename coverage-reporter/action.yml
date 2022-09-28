@@ -28,5 +28,5 @@ inputs:
     required: false
 runs:
   using: node16
-  pre: 'setup.mjs'
+  pre: '../setup.mjs'
   main: build/coverage-reporter/index.js
