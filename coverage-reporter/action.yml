@@ -22,11 +22,11 @@ inputs:
   working-directory:
     description: Set working directory if project is not in root folder
     required: false
-    default: './'
+    default: '../'
   title:
     description: Title to add to the comment
     required: false
 runs:
   using: node16
-  pre: '../setup.mjs'
+  pre: 'setup.mjs'
   main: build/coverage-reporter/index.js
