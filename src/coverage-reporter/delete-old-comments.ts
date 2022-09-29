@@ -5,7 +5,7 @@
  * https://github.com/romeovs/lcov-reporter-action
  */
 
-import * as core from '@actions/core';
+import { debug } from '@actions/core';
 import type { context, getOctokit } from '@actions/github';
 
 import type { Options } from './options';
@@ -53,7 +53,7 @@ export async function deleteOldComments(
 ): Promise<void> {
   const existingComments = await getExistingComments(githubClient, options, githubContext);
   for (const comment of existingComments) {
-    core.debug(`Deleting comment: ${comment.id}`);
+    debug(`Deleting comment: ${comment.id}`);
     try {
       // eslint-disable-next-line no-await-in-loop
       await githubClient.rest.issues.deleteComment({

@@ -6,6 +6,7 @@
  */
 
 import path from 'node:path';
+
 import type { Options } from './options';
 
 export function normalisePath(file: string): string {
