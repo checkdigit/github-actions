@@ -6,4 +6,5 @@ console.log('__dirname', __dirname);
 
 console.log('CWD: ' + process.cwd());
 const exec = util.promisify(childProcess.exec);
+await exec('npm ci', {cwd: __dirname});
 await exec('tsc', {cwd: __dirname});
