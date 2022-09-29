@@ -1,4 +1,4 @@
-// short-id.ts
+// publish-beta/short-id.ts
 const SHORT_ID_LENGTH = 5;
 export default function (): string {
   let text = '';

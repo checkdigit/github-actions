@@ -1,4 +1,4 @@
-// package.ts
+// publish-beta/package.ts
 
 import path from 'node:path';
 import { readFile, stat, writeFile } from 'node:fs/promises';

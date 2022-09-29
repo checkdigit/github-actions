@@ -1,8 +1,8 @@
-// index.ts
+// publish-beta/index.ts
 import process from 'node:process';
 
 import command from './command';
-command(process.argv)
+command()
   .then(() => {
     process.stdin.destroy();
     // eslint-disable-next-line unicorn/no-process-exit

@@ -1,4 +1,4 @@
-// github.ts
+// publish-beta/github.ts
 import process from 'node:process';
 import { readFile } from 'node:fs/promises';
 import { debug } from 'debug';
