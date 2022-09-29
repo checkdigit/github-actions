@@ -7,7 +7,8 @@
 
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import core from '@actions/core';
+
+import { getInput, setFailed } from '@actions/core';
 import { context, getOctokit } from '@actions/github';
 
 import { parse } from './lcov';
@@ -20,14 +21,14 @@ import { normalisePath } from './util';
 const MAX_COMMENT_CHARS = 65_536;
 
 async function main() {
-  const token = core.getInput('github-token');
+  const token = getInput('github-token');
   const githubClient = getOctokit(token);
-  const workingDirectory = core.getInput('working-directory') || './';
-  const lcovFile = path.join(workingDirectory, core.getInput('lcov-file') || './coverage/lcov.info');
-  const baseFile = core.getInput('lcov-base');
-  const shouldFilterChangedFiles = core.getInput('filter-changed-files').toLowerCase() === 'true';
-  const shouldDeleteOldComments = core.getInput('delete-old-comments').toLowerCase() === 'true';
-  const title = core.getInput('title');
+  const workingDirectory = getInput('working-directory') || './';
+  const lcovFile = path.join(workingDirectory, getInput('lcov-file') || './coverage/lcov.info');
+  const baseFile = getInput('lcov-base');
+  const shouldFilterChangedFiles = getInput('filter-changed-files').toLowerCase() === 'true';
+  const shouldDeleteOldComments = getInput('delete-old-comments').toLowerCase() === 'true';
+  const title = getInput('title');
 
   const raw = await fs.readFile(lcovFile, 'utf8').catch(() => null);
   if (!raw) {
@@ -97,5 +98,5 @@ async function main() {
 main().catch((error) => {
   // eslint-disable-next-line no-console
   console.log(error);
-  core.setFailed((error as { message: string }).message);
+  setFailed((error as { message: string }).message);
 });
