@@ -29,4 +29,4 @@ inputs:
 runs:
   using: node16
   pre: '../setup.mjs'
-  main: build/coverage-reporter/index.js
+  main: ../build/coverage-reporter/index.js
