@@ -1,4 +1,4 @@
-// short-id.spec.ts
+// publish-beta/short-id.spec.ts
 
 import { strict as assert } from 'node:assert';
 import shortId from './short-id';

@@ -1,9 +1,9 @@
-// github-context.spec.ts
+// publish-beta/github-context.spec.ts
 
 import { strict as assert } from 'node:assert';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { mkdir, rmdir, writeFile } from 'node:fs/promises';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
 import process from 'node:process';
 import { v4 as uuid } from 'uuid';
 
@@ -11,7 +11,7 @@ import { getPullRequestContext } from './github';
 
 describe('github context', () => {
   beforeAll(async () => mkdir(path.join(tmpdir(), 'actioncontexttest')));
-  afterAll(async () => rmdir(path.join(tmpdir(), 'actioncontexttest'), { recursive: true }));
+  afterAll(async () => rm(path.join(tmpdir(), 'actioncontexttest'), { recursive: true }));
 
   it('no environment variable', async () => {
     process.env['GITHUB_EVENT_PATH'] = '';

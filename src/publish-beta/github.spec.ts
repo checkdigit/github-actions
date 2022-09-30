@@ -1,4 +1,4 @@
-// github.spec.ts
+// publish-beta/github.spec.ts
 
 import { strict as assert } from 'node:assert';
 

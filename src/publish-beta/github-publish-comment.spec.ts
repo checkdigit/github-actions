@@ -1,18 +1,18 @@
-// github-publish-comment.spec.ts
+// publish-beta/github-publish-comment.spec.ts
 
 import { strict as assert } from 'node:assert';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { mkdir, rmdir, writeFile } from 'node:fs/promises';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
 import process from 'node:process';
 import { v4 as uuid } from 'uuid';
 
-import gitHubNock from './nocks/github.test';
+import gitHubNock from '../nocks/github.test';
 import { publishComment } from './github';
 
 describe('github publish', () => {
   beforeAll(async () => mkdir(path.join(tmpdir(), 'actionpublishcommenttest')));
-  afterAll(async () => rmdir(path.join(tmpdir(), 'actionpublishcommenttest'), { recursive: true }));
+  afterAll(async () => rm(path.join(tmpdir(), 'actionpublishcommenttest'), { recursive: true }));
 
   it('no token', async () => {
     await assert.rejects(publishComment(uuid()));

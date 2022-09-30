@@ -1,0 +1,14 @@
+name: Publish Beta
+description: Publish beta version of the package
+inputs:
+  github-token:
+    description: Github token
+    required: true
+    default: ${{ github.token }}
+  command:
+    description: Publish beta command to run
+    required: true
+runs:
+  using: node16
+  pre: '../setup.mjs'
+  main: ../build/publish-beta/index.js
