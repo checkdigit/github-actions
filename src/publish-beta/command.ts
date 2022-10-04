@@ -1,28 +1,25 @@
 // publish-beta/command.ts
 
 import process from 'node:process';
+import path from 'node:path';
 import { debug } from 'debug';
-import { getInput } from '@actions/core';
+
+// import { getInput } from '@actions/core';
 
 import { publishComment } from './github';
-import { isPackageAnAPI, packageJSONUpdate } from './package';
+import { packageJSONUpdate } from './package';
+import copyNonTSFiles from './copy-files';
+import compile from './compile';
+import publish from './publish';
 
 const log = debug('action:command');
 export default async function (): Promise<void | boolean> {
-  const command = getInput('command').toLowerCase();
-  log('Action starts:', command);
+  // const command = getInput('command').toLowerCase();
+  log('Action starts:command');
 
-  if (command === 'publish-comment' && process.env['NEW_PACKAGE_VERSION']) {
-    return publishComment(process.env['NEW_PACKAGE_VERSION']);
-  }
-
-  if (command === 'is-api') {
-    return isPackageAnAPI(process.cwd());
-  }
-
-  if (command === 'generate-beta-version') {
-    return packageJSONUpdate(process.cwd());
-  }
-  log('No valid command received: action-publish-beta [is-api | generate-beta-version | publish-comment]');
-  throw new Error('no valid command');
+  await compile(process.cwd());
+  const packageNameAndBetaVersion = await packageJSONUpdate(process.cwd());
+  await copyNonTSFiles(path.join(process.cwd(), 'src'), path.join(process.cwd(), 'dist'));
+  await publish(process.cwd());
+  await publishComment(packageNameAndBetaVersion);
 }

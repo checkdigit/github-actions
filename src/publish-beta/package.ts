@@ -30,7 +30,7 @@ export function generatePackageBetaTag(): string {
   return `${prNumber}-${id}`;
 }
 
-export async function packageJSONUpdate(rootProjectDirectory: string): Promise<void> {
+export async function packageJSONUpdate(rootProjectDirectory: string): Promise<string> {
   const packageJSONPath = path.join(rootProjectDirectory, 'package.json');
   const readPackageJson = await readFile(packageJSONPath, 'utf8');
   const packageJson = JSON.parse(readPackageJson) as { version: string; name: string };
@@ -38,6 +38,5 @@ export async function packageJSONUpdate(rootProjectDirectory: string): Promise<v
   packageJson.version = newVersion;
   await writeFile(packageJSONPath, JSON.stringify(packageJson));
   log(`Updated package.json - new version is: ${packageJson.name}@${newVersion}`);
-  // eslint-disable-next-line no-console
-  console.log(`::set-output name=NEW_VERSION::${packageJson.name}@${newVersion}`);
+  return `${packageJson.name}@${newVersion}`;
 }
