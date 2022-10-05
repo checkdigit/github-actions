@@ -11,12 +11,14 @@ import { generatePackageBetaTag, isPackageAnAPI, packageJSONUpdate } from './pac
 describe('package', () => {
   beforeAll(async () => {
     await mkdir(path.join(tmpdir(), 'packageUpdate'), { recursive: true });
+    await mkdir(path.join(tmpdir(), 'packageUpdate2'), { recursive: true });
     await mkdir(path.join(tmpdir(), 'hasAPI', 'src/api'), { recursive: true });
     await mkdir(path.join(tmpdir(), 'noAPI', 'src/'), { recursive: true });
   });
 
   afterAll(async () => {
     await rm(path.join(tmpdir(), 'packageUpdate'), { recursive: true });
+    await rm(path.join(tmpdir(), 'packageUpdate2'), { recursive: true });
     await rm(path.join(tmpdir(), 'hasAPI'), { recursive: true });
     await rm(path.join(tmpdir(), 'noAPI'), { recursive: true });
   });
@@ -39,10 +41,19 @@ describe('package', () => {
     process.env['GITHUB_REF'] = '/ref/87/branch';
     await writeFile(
       path.join(tmpdir(), 'packageUpdate/package.json'),
-      JSON.stringify({ name: 'testpackage', version: '1.2.10' })
+      JSON.stringify({ name: 'testpackage', version: '1.2.10', files: ['/dist/'] })
     );
     await packageJSONUpdate(path.join(tmpdir(), 'packageUpdate'));
     const rawUpdatedFile = await readFile(filePath, 'utf8');
     assert.ok(JSON.parse(rawUpdatedFile).version.startsWith('1.2.10-beta.87-'));
+  });
+
+  it('Test with files property missing', async () => {
+    process.env['GITHUB_REF'] = '/ref/87/branch';
+    await writeFile(
+      path.join(tmpdir(), 'packageUpdate2/package.json'),
+      JSON.stringify({ name: 'testpackage', version: '1.2.10', files: ['/dist/'] })
+    );
+    await assert.rejects(packageJSONUpdate(path.join(tmpdir(), 'packageUpdate')));
   });
 });

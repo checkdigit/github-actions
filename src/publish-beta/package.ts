@@ -30,9 +30,18 @@ export function generatePackageBetaTag(): string {
   return `${prNumber}-${id}`;
 }
 
+function checkFilesPropertyExists(packageJSON: string): void {
+  const packageJSONObject = JSON.parse(packageJSON) as { files?: string[] };
+  if (!packageJSONObject.files) {
+    log('Error - missing files: [] property in package.json');
+    throw new Error('package.json does not have a files property');
+  }
+}
+
 export async function packageJSONUpdate(rootProjectDirectory: string): Promise<string> {
   const packageJSONPath = path.join(rootProjectDirectory, 'package.json');
   const readPackageJson = await readFile(packageJSONPath, 'utf8');
+  checkFilesPropertyExists(readPackageJson);
   const packageJson = JSON.parse(readPackageJson) as { version: string; name: string };
   const newVersion = `${packageJson.version}-beta.${generatePackageBetaTag()}`;
   packageJson.version = newVersion;
