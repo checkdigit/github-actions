@@ -33,8 +33,7 @@ export function generatePackageBetaTag(): string {
 function checkFilesPropertyExists(packageJSON: string): void {
   const packageJSONObject = JSON.parse(packageJSON) as { files?: string[] };
   if (!packageJSONObject.files) {
-    log('Error - missing files: [] property in package.json');
-    throw new Error('package.json does not have a files property');
+    throw new Error('package.json does not have a files: [] property');
   }
 }
 
