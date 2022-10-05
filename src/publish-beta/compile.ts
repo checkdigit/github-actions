@@ -9,6 +9,6 @@ const log = debug('action:compile');
 const exec = util.promisify(childProcess.exec);
 export default async function (directory: string): Promise<void> {
   log('compile starting');
-  await exec('tsc --outDir dist', { cwd: directory });
+  await exec('tsc --outDir dist --sourceMap true --declarationMap true', { cwd: directory });
   log('compile completed');
 }
