@@ -52,8 +52,11 @@ describe('package', () => {
     process.env['GITHUB_REF'] = '/ref/87/branch';
     await writeFile(
       path.join(tmpdir(), 'packageUpdate2/package.json'),
-      JSON.stringify({ name: 'testpackage', version: '1.2.10', files: ['/dist/'] })
+      JSON.stringify({ name: 'testpackage', version: '1.2.10' })
     );
-    await assert.rejects(packageJSONUpdate(path.join(tmpdir(), 'packageUpdate')));
+    await assert.rejects(
+      packageJSONUpdate(path.join(tmpdir(), 'packageUpdate2')),
+      '[Error: package.json does not have a files: [] property]'
+    );
   });
 });
