@@ -6,7 +6,7 @@ import path from 'node:path';
 import { tmpdir } from 'node:os';
 import process from 'node:process';
 
-import { generatePackageBetaTag, isPackageAnAPI, packageJSONUpdate } from './package';
+import { generatePackageBetaTag, packageJSONUpdate } from './package';
 
 describe('package', () => {
   beforeAll(async () => {
@@ -27,13 +27,6 @@ describe('package', () => {
     process.env['GITHUB_REF'] = '/ref/2406/branch';
     const packageBetaTag = generatePackageBetaTag();
     assert.ok(packageBetaTag.startsWith('2406-'));
-  });
-
-  it('hasAPI', async () => {
-    assert.equal(await isPackageAnAPI(path.join(tmpdir(), 'hasAPI')), true);
-  });
-  it('noAPI', async () => {
-    assert.equal(await isPackageAnAPI(path.join(tmpdir(), 'noAPI')), false);
   });
 
   it('packageJSONUpdate', async () => {

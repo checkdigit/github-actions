@@ -4,8 +4,6 @@ import process from 'node:process';
 import path from 'node:path';
 import { debug } from 'debug';
 
-// import { getInput } from '@actions/core';
-
 import { publishComment } from './github';
 import { packageJSONUpdate } from './package';
 import copyNonTSFiles from './copy-files';
@@ -14,7 +12,6 @@ import publish from './publish';
 
 const log = debug('action:command');
 export default async function (): Promise<void | boolean> {
-  // const command = getInput('command').toLowerCase();
   log('Action starts:command');
 
   await compile(process.cwd());
