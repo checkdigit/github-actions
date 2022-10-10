@@ -1,8 +1,7 @@
-// publish-beta/copy-files.ts
+// publish-beta/files.ts
 import path from 'node:path';
 import fs from 'node:fs/promises';
 
-// copy all non .ts files from src to dist directory recursively
 export default async function copyNonTSFiles(sourceDirectory: string, destinationDirectory: string): Promise<void> {
   const files = await fs.readdir(sourceDirectory, { withFileTypes: true });
   await Promise.all(
@@ -16,6 +15,22 @@ export default async function copyNonTSFiles(sourceDirectory: string, destinatio
       }
       if (!item.name.endsWith('.ts')) {
         await fs.copyFile(sourceItem, destinationItem);
+      }
+    })
+  );
+}
+
+export async function removeNonTSFiles(sourceDirectory: string): Promise<void> {
+  const files = await fs.readdir(sourceDirectory, { withFileTypes: true });
+  await Promise.all(
+    files.map(async (item) => {
+      const sourceItem = path.join(sourceDirectory, item.name);
+      if (item.isDirectory()) {
+        await removeNonTSFiles(sourceItem);
+        return;
+      }
+      if (!item.name.endsWith('.ts') || item.name.endsWith('.spec.ts') || item.name.endsWith('.test.ts')) {
+        await fs.rm(sourceItem);
       }
     })
   );

@@ -6,7 +6,7 @@ import { debug } from 'debug';
 
 import { publishComment } from './github';
 import { packageJSONUpdate } from './package';
-import copyNonTSFiles from './copy-files';
+import copyNonTSFiles from './files';
 import compile from './compile';
 import publish from './publish';
 

@@ -29,16 +29,19 @@ describe('package', () => {
     assert.ok(packageBetaTag.startsWith('2406-'));
   });
 
-  it('packageJSONUpdate', async () => {
+  it('test packageJSON Update and add /src/ to files', async () => {
     const filePath = path.join(tmpdir(), 'packageUpdate/package.json');
     process.env['GITHUB_REF'] = '/ref/87/branch';
     await writeFile(
       path.join(tmpdir(), 'packageUpdate/package.json'),
       JSON.stringify({ name: 'testpackage', version: '1.2.10', files: ['/dist/'] })
     );
+    await mkdir(path.join(tmpdir(), 'packageUpdate/src'), { recursive: true });
+
     await packageJSONUpdate(path.join(tmpdir(), 'packageUpdate'));
     const rawUpdatedFile = await readFile(filePath, 'utf8');
     assert.ok(JSON.parse(rawUpdatedFile).version.startsWith('1.2.10-beta.87-'));
+    assert.deepEqual(JSON.parse(rawUpdatedFile).files.sort(), ['/dist/', '/src/'].sort());
   });
 
   it('Test with files property missing', async () => {
