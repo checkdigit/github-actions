@@ -29,10 +29,11 @@ function checkFilesPropertyExists(packageJSON: string): void {
   }
 }
 
-function addSourceToFilesProperty(input: PackageJSON) {
+function addSourceToFilesProperty(input: PackageJSON): string[] {
   if (!input.files.includes('/src/')) {
-    input.files.push('/src/');
+    return [...input.files, '/src/'];
   }
+  return input.files;
 }
 
 export async function packageJSONUpdate(rootProjectDirectory: string): Promise<string> {
@@ -40,12 +41,13 @@ export async function packageJSONUpdate(rootProjectDirectory: string): Promise<s
   const readPackageJson = await readFile(packageJSONPath, 'utf8');
   checkFilesPropertyExists(readPackageJson);
   const packageJson = JSON.parse(readPackageJson) as PackageJSON;
-  addSourceToFilesProperty(packageJson);
 
   await removeNonTSFiles(path.join(rootProjectDirectory, 'src'));
 
+  const files = addSourceToFilesProperty(packageJson);
   const newVersion = `${packageJson.version}-beta.${generatePackageBetaTag()}`;
   packageJson.version = newVersion;
+  packageJson.files = files;
   await writeFile(packageJSONPath, JSON.stringify(packageJson));
   log(`Updated package.json - new version is: ${packageJson.name}@${newVersion}`);
   return `${packageJson.name}@${newVersion}`;
