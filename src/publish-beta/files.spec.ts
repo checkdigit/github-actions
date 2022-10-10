@@ -61,7 +61,8 @@ describe('copy', () => {
     await removeNonTSFiles(sourceDirectory);
 
     const files = await readdir(sourceDirectory, { withFileTypes: true });
-    assert.equal(files.length, 1);
-    assert.equal(files[0]?.name, 'test.ts');
+    assert.equal(files.length, 2);
+    assert.ok(files.some((item) => item.name === 'test.ts'));
+    assert.ok(files.some((item) => item.name === 'swagger.yml'));
   });
 });

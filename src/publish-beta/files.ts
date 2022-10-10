@@ -29,7 +29,7 @@ export async function removeNonTSFiles(sourceDirectory: string): Promise<void> {
         await removeNonTSFiles(sourceItem);
         return;
       }
-      if (!item.name.endsWith('.ts') || item.name.endsWith('.spec.ts') || item.name.endsWith('.test.ts')) {
+      if (item.name.endsWith('.ts') && (item.name.endsWith('.spec.ts') || item.name.endsWith('.test.ts'))) {
         await fs.rm(sourceItem);
       }
     })
