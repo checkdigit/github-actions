@@ -8,7 +8,7 @@ import shortId from './short-id';
 import { getPRNumber } from './github';
 import { removeNonTSFiles } from './files';
 
-const log = debug('action:package');
+const log = debug('publish-beta:package');
 
 interface PackageJSON {
   name: string;

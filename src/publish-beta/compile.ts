@@ -4,7 +4,7 @@ import childProcess from 'node:child_process';
 import util from 'node:util';
 import debug from 'debug';
 
-const log = debug('action:compile');
+const log = debug('publish-beta:compile');
 
 const exec = util.promisify(childProcess.exec);
 export default async function (directory: string): Promise<void> {

@@ -9,7 +9,7 @@ export interface GithubConfigurationResponse {
   number: number;
   repo: string;
 }
-const log = debug('action:github');
+const log = debug('publish-beta:github');
 
 export function getPRNumber(): string {
   const prNumberSearch = process.env['GITHUB_REF']?.match(/[0-9]+/gu);
