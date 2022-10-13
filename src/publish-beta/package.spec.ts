@@ -6,17 +6,19 @@ import path from 'node:path';
 import { tmpdir } from 'node:os';
 import process from 'node:process';
 
-import { generatePackageBetaTag, isPackageAnAPI, packageJSONUpdate } from './package';
+import { generatePackageBetaTag, packageJSONUpdate } from './package';
 
 describe('package', () => {
   beforeAll(async () => {
     await mkdir(path.join(tmpdir(), 'packageUpdate'), { recursive: true });
+    await mkdir(path.join(tmpdir(), 'packageUpdate2'), { recursive: true });
     await mkdir(path.join(tmpdir(), 'hasAPI', 'src/api'), { recursive: true });
     await mkdir(path.join(tmpdir(), 'noAPI', 'src/'), { recursive: true });
   });
 
   afterAll(async () => {
     await rm(path.join(tmpdir(), 'packageUpdate'), { recursive: true });
+    await rm(path.join(tmpdir(), 'packageUpdate2'), { recursive: true });
     await rm(path.join(tmpdir(), 'hasAPI'), { recursive: true });
     await rm(path.join(tmpdir(), 'noAPI'), { recursive: true });
   });
@@ -27,22 +29,30 @@ describe('package', () => {
     assert.ok(packageBetaTag.startsWith('2406-'));
   });
 
-  it('hasAPI', async () => {
-    assert.equal(await isPackageAnAPI(path.join(tmpdir(), 'hasAPI')), true);
-  });
-  it('noAPI', async () => {
-    assert.equal(await isPackageAnAPI(path.join(tmpdir(), 'noAPI')), false);
-  });
-
-  it('packageJSONUpdate', async () => {
+  it('test packageJSON Update and add /src/ to files', async () => {
     const filePath = path.join(tmpdir(), 'packageUpdate/package.json');
     process.env['GITHUB_REF'] = '/ref/87/branch';
     await writeFile(
       path.join(tmpdir(), 'packageUpdate/package.json'),
-      JSON.stringify({ name: 'testpackage', version: '1.2.10' })
+      JSON.stringify({ name: 'testpackage', version: '1.2.10', files: ['/dist/'] })
     );
+    await mkdir(path.join(tmpdir(), 'packageUpdate/src'), { recursive: true });
+
     await packageJSONUpdate(path.join(tmpdir(), 'packageUpdate'));
     const rawUpdatedFile = await readFile(filePath, 'utf8');
     assert.ok(JSON.parse(rawUpdatedFile).version.startsWith('1.2.10-beta.87-'));
+    assert.deepEqual(JSON.parse(rawUpdatedFile).files.sort(), ['/dist/', '/src/'].sort());
+  });
+
+  it('Test with files property missing', async () => {
+    process.env['GITHUB_REF'] = '/ref/87/branch';
+    await writeFile(
+      path.join(tmpdir(), 'packageUpdate2/package.json'),
+      JSON.stringify({ name: 'testpackage', version: '1.2.10' })
+    );
+    await assert.rejects(
+      packageJSONUpdate(path.join(tmpdir(), 'packageUpdate2')),
+      '[Error: package.json does not have a files: [] property]'
+    );
   });
 });
