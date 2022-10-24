@@ -9,7 +9,6 @@ const log = debug('publish-beta:publish');
 
 const exec = util.promisify(childProcess.exec);
 
-// function to add .npmrc file to root of project if it doesn't exist
 export async function addNPMRCFile(rootProjectDirectory: string): Promise<void> {
   const npmrcPath = `${rootProjectDirectory}/.npmrc`;
   try {
