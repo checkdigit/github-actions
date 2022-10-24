@@ -21,6 +21,7 @@ export async function addNPMRCFile(rootProjectDirectory: string): Promise<void> 
 
 export default async function (directory: string): Promise<void> {
   log('publish starting');
+  await addNPMRCFile(directory);
   await exec('npm publish --tag beta', { cwd: directory });
   log('publish completed');
 }
