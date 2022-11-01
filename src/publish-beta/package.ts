@@ -4,7 +4,6 @@ import path from 'node:path';
 import { readFile, writeFile } from 'node:fs/promises';
 import { debug } from 'debug';
 
-import shortId from './short-id';
 import { getPRNumber } from './github';
 import { removeNonTSFiles } from './files';
 
@@ -16,10 +15,16 @@ interface PackageJSON {
   files: string[];
 }
 
+const NUMBER_OF_CHARS_TO_USE_FROM_COMMIT_SHA = 4;
+
 export function generatePackageBetaTag(): string {
-  const id = shortId();
+  const commentSha = process.env['GITHUB_SHA'];
+  if (!commentSha) {
+    throw new Error('Unable to get GITHUB_SHA');
+  }
+  const id = commentSha.slice(-NUMBER_OF_CHARS_TO_USE_FROM_COMMIT_SHA, commentSha.length);
   const prNumber = getPRNumber();
-  return `${prNumber}-${id}`;
+  return `PR.${prNumber}-${id}`;
 }
 
 function checkFilesPropertyExists(packageJSON: string): void {
@@ -45,7 +50,7 @@ export async function packageJSONUpdate(rootProjectDirectory: string): Promise<s
   await removeNonTSFiles(path.join(rootProjectDirectory, 'src'));
 
   const files = addSourceToFilesProperty(packageJson);
-  const newVersion = `${packageJson.version}-beta.${generatePackageBetaTag()}`;
+  const newVersion = `${packageJson.version}-${generatePackageBetaTag()}`;
   packageJson.version = newVersion;
   packageJson.files = files;
   await writeFile(packageJSONPath, JSON.stringify(packageJson));
