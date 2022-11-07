@@ -25,13 +25,15 @@ describe('package', () => {
 
   it('generatePackageBetaTag', async () => {
     process.env['GITHUB_REF'] = '/ref/2406/branch';
+    process.env['GITHUB_SHA'] = '1234';
     const packageBetaTag = generatePackageBetaTag();
-    assert.ok(packageBetaTag.startsWith('2406-'));
+    assert.ok(packageBetaTag.startsWith('PR.2406-'));
   });
 
   it('test packageJSON Update and add /src/ to files', async () => {
     const filePath = path.join(tmpdir(), 'packageUpdate/package.json');
     process.env['GITHUB_REF'] = '/ref/87/branch';
+    process.env['GITHUB_SHA'] = '12345678ad90';
     await writeFile(
       path.join(tmpdir(), 'packageUpdate/package.json'),
       JSON.stringify({ name: 'testpackage', version: '1.2.10', files: ['/dist/'] })
@@ -40,7 +42,7 @@ describe('package', () => {
 
     await packageJSONUpdate(path.join(tmpdir(), 'packageUpdate'));
     const rawUpdatedFile = await readFile(filePath, 'utf8');
-    assert.ok(JSON.parse(rawUpdatedFile).version.startsWith('1.2.10-beta.87-'));
+    assert.ok(JSON.parse(rawUpdatedFile).version === '1.2.10-PR.87-ad90');
     assert.deepEqual(JSON.parse(rawUpdatedFile).files.sort(), ['/dist/', '/src/'].sort());
   });
 
