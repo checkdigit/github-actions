@@ -22,9 +22,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-      - name: Check for banned packages
-        uses: checkdigit/github-actions/package-denier@add-package-denier-action
-      - name: Install dependencies
+      - name: Install Dependencies
         run: npm ci --ignore-scripts
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -56,9 +54,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-      - name: Check for banned packages
-        uses: checkdigit/github-actions/package-denier@add-package-denier-action
-      - name: Install dependencies
+      - name: Install Dependencies
         run: npm ci --ignore-scripts
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
