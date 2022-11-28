@@ -1,5 +1,5 @@
 name: Package Denier
-description: Inspects package-lock for packages not allowed
+description: Check for banned packages
 runs:
   using: node16
   pre: '../setup.mjs'
