@@ -3,8 +3,13 @@
 import process from 'node:process';
 import { debug } from 'debug';
 
-import { Descriptor, getPackageLock, getPackageNameFromKey, isInList } from './package-lock-file-util';
-import notAllowed from './not-allowed';
+import {
+  Descriptor,
+  getPackageLock,
+  getPackageNameFromKey,
+  isPackageAndVersionIncludedInRule,
+} from './package-lock-file-util';
+import rules from './rules';
 
 const log = debug('package-denier');
 export async function main(): Promise<void | boolean> {
@@ -17,8 +22,12 @@ export async function main(): Promise<void | boolean> {
     if (Object.hasOwn(packages, key)) {
       const version = (packages[key] as Descriptor).version;
       const packageName = getPackageNameFromKey(key);
-      if (isInList(packageName, version, notAllowed)) {
-        throw new Error(`Package ${key}@${version} is not allowed`);
+
+      for (const rule of rules) {
+        if (isPackageAndVersionIncludedInRule(packageName, version, rule)) {
+          log(`Package ${packageName}@${version} is not allowed because of rule ${JSON.stringify(rule)}.`);
+          return true;
+        }
       }
     }
   }

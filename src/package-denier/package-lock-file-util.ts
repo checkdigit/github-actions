@@ -2,6 +2,7 @@
 
 import path from 'node:path';
 import { readFile } from 'node:fs/promises';
+import type { Rule } from './rules';
 
 export interface Descriptor {
   version: string;
@@ -76,31 +77,28 @@ function isMatchingName(nameA: string, nameB: string): boolean {
   return nameA === nameB;
 }
 
-export function isInList(packageName: string, version: string, list: [string, string, string][]): boolean {
-  for (const item of list) {
-    if (isMatchingName(item[0], packageName)) {
-      const versionComparison = compareSemverVersions(version, item[2]);
+export function isPackageAndVersionIncludedInRule(packageName: string, version: string, rule: Rule): boolean {
+  if (isMatchingName(rule[0], packageName)) {
+    const versionComparison = compareSemverVersions(version, rule[2]);
 
-      if (item[1] === '=' && versionComparison === 0) {
-        return true;
+    switch (rule[1]) {
+      case '=': {
+        return versionComparison === 0;
       }
-
-      switch (item[1]) {
-        case '>': {
-          return versionComparison === 1;
-        }
-        case '>=': {
-          return versionComparison === 1 || versionComparison === 0;
-        }
-        case '<': {
-          return versionComparison === -1;
-        }
-        case '<=': {
-          return versionComparison === -1 || versionComparison === 0;
-        }
-        default:
-        // Do nothing
+      case '>': {
+        return versionComparison === 1;
       }
+      case '>=': {
+        return versionComparison === 1 || versionComparison === 0;
+      }
+      case '<': {
+        return versionComparison === -1;
+      }
+      case '<=': {
+        return versionComparison === -1 || versionComparison === 0;
+      }
+      default:
+      // Do nothing because this should not happen
     }
   }
   return false;
