@@ -32,7 +32,6 @@
     "debug": "^4.3.4"
   },
   "devDependencies": {
-    "@aws-sdk/client-sts": "^3.218.0",
     "@checkdigit/eslint-config": "^7.2.2",
     "@checkdigit/jest-config": "^1.0.1",
     "@checkdigit/prettier-config": "^3.0.0",
