@@ -22,8 +22,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-      - name: Inspect package-lock for packages not allowed
-        uses: checkdigit/github-actions/package-denier@add-package-denier-action
+      - name: Check for banned packages
+        uses: checkdigit/github-actions/package-denier
       - name: Install dependencies
         run: npm ci --ignore-scripts
         env:
@@ -56,8 +56,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-      - name: Inspect package-lock for packages not allowed
-        uses: checkdigit/github-actions/package-denier@add-package-denier-action
+      - name: Check for banned packages
+        uses: checkdigit/github-actions/package-denier
       - name: Install dependencies
         run: npm ci --ignore-scripts
         env:
