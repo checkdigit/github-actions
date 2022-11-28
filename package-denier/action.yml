@@ -1,9 +1,5 @@
 name: Package Denier
-description: Inspects package-lock for packages that are not allowed
-inputs:
-  command:
-    description: Package Denier command to run
-    required: true
+description: Inspects package-lock for packages not allowed
 runs:
   using: node16
   pre: '../setup.mjs'
