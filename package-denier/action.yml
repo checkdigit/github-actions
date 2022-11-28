@@ -1,0 +1,14 @@
+name: Package Denier
+description: Inspects package-lock for packages that are not allowed
+inputs:
+  github-token:
+    description: Github token
+    required: true
+    default: ${{ github.token }}
+  command:
+    description: Package Denier command to run
+    required: true
+runs:
+  using: node16
+  pre: '../setup.mjs'
+  main: ../build/package-denier/index.js
