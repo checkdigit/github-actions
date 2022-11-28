@@ -25,8 +25,7 @@ export async function main(): Promise<void | boolean> {
 
       for (const rule of rules) {
         if (isPackageAndVersionIncludedInRule(packageName, version, rule)) {
-          log(`Package ${packageName}@${version} is not allowed because of rule ${JSON.stringify(rule)}.`);
-          return true;
+          throw new Error(`Package ${packageName}@${version} is not allowed because of rule ${JSON.stringify(rule)}.`);
         }
       }
     }

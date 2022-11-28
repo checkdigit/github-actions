@@ -6,7 +6,11 @@ import path from 'node:path';
 import { tmpdir } from 'node:os';
 
 import example from './example-package-lock.json';
-import { getPackageLock, getPackageNameFromKey, isPackageAndVersionIncludedInRule } from './package-lock-file-util';
+import {
+  getPackageLock,
+  getPackageNameFromKey,
+  isPackageAndVersionIncludedInRule as shouldDeny,
+} from './package-lock-file-util';
 
 describe('package', () => {
   beforeAll(async () => {
@@ -42,90 +46,36 @@ describe('package', () => {
     assert.deepEqual(names, ['@aws-sdk/client-sts', 'fast-xml-parser']);
   });
 
-  it('can check if a package name and version is inclued in a rule', () => {
+  it('can check if a package name and version is included in a rule', () => {
     // matching package name different versions
-    assert.equal(
-      isPackageAndVersionIncludedInRule('@aws-sdk/client-sts', '3.2.0', ['@aws-sdk/client-sts', '>', '3.1.0']),
-      true
-    );
-    assert.equal(
-      isPackageAndVersionIncludedInRule('@aws-sdk/client-sts', '3.1.0', ['@aws-sdk/client-sts', '>', '3.1.0']),
-      false
-    );
+    assert.equal(shouldDeny('@aws-sdk/client-sts', '3.2.0', ['@aws-sdk/client-sts', '>', '3.1.0']), true);
+    assert.equal(shouldDeny('@aws-sdk/client-sts', '3.1.0', ['@aws-sdk/client-sts', '>', '3.1.0']), false);
 
-    assert.equal(
-      isPackageAndVersionIncludedInRule('@aws-sdk/client-sts', '4.0.0', ['@aws-sdk/client-sts', '>=', '3.1.0']),
-      true
-    );
-    assert.equal(
-      isPackageAndVersionIncludedInRule('@aws-sdk/client-sts', '3.1.0', ['@aws-sdk/client-sts', '>=', '3.1.0']),
-      true
-    );
-    assert.equal(
-      isPackageAndVersionIncludedInRule('@aws-sdk/client-sts', '2.1.0', ['@aws-sdk/client-sts', '>=', '3.1.0']),
-      false
-    );
-    assert.equal(
-      isPackageAndVersionIncludedInRule('@aws-sdk/client-sts', '3.1.0', ['@aws-sdk/client-sts', '=', '3.1.0']),
-      true
-    );
-    assert.equal(
-      isPackageAndVersionIncludedInRule('@aws-sdk/client-sts', '3.0.0', ['@aws-sdk/client-sts', '=', '3.1.0']),
-      false
-    );
+    assert.equal(shouldDeny('@aws-sdk/client-sts', '4.0.0', ['@aws-sdk/client-sts', '>=', '3.1.0']), true);
+    assert.equal(shouldDeny('@aws-sdk/client-sts', '3.1.0', ['@aws-sdk/client-sts', '>=', '3.1.0']), true);
+    assert.equal(shouldDeny('@aws-sdk/client-sts', '2.1.0', ['@aws-sdk/client-sts', '>=', '3.1.0']), false);
+    assert.equal(shouldDeny('@aws-sdk/client-sts', '3.1.0', ['@aws-sdk/client-sts', '=', '3.1.0']), true);
+    assert.equal(shouldDeny('@aws-sdk/client-sts', '3.0.0', ['@aws-sdk/client-sts', '=', '3.1.0']), false);
 
-    assert.equal(
-      isPackageAndVersionIncludedInRule('@aws-sdk/client-sts', '3.1.0', ['@aws-sdk/client-sts', '<=', '3.1.0']),
-      true
-    );
-    assert.equal(
-      isPackageAndVersionIncludedInRule('@aws-sdk/client-sts', '3.0.0', ['@aws-sdk/client-sts', '<=', '3.1.0']),
-      true
-    );
-    assert.equal(
-      isPackageAndVersionIncludedInRule('@aws-sdk/client-sts', '3.2.0', ['@aws-sdk/client-sts', '<=', '3.1.0']),
-      false
-    );
+    assert.equal(shouldDeny('@aws-sdk/client-sts', '3.1.0', ['@aws-sdk/client-sts', '<=', '3.1.0']), true);
+    assert.equal(shouldDeny('@aws-sdk/client-sts', '3.0.0', ['@aws-sdk/client-sts', '<=', '3.1.0']), true);
+    assert.equal(shouldDeny('@aws-sdk/client-sts', '3.2.0', ['@aws-sdk/client-sts', '<=', '3.1.0']), false);
 
-    assert.equal(
-      isPackageAndVersionIncludedInRule('@aws-sdk/client-sts', '3.2.0', ['@aws-sdk/client-sts', '>', '3.1.0']),
-      true
-    );
-    assert.equal(
-      isPackageAndVersionIncludedInRule('@aws-sdk/client-sts', '3.1.0', ['@aws-sdk/client-sts', '>', '3.1.0']),
-      false
-    );
+    assert.equal(shouldDeny('@aws-sdk/client-sts', '3.2.0', ['@aws-sdk/client-sts', '>', '3.1.0']), true);
+    assert.equal(shouldDeny('@aws-sdk/client-sts', '3.1.0', ['@aws-sdk/client-sts', '>', '3.1.0']), false);
 
     // star notion for listed package
-    assert.equal(
-      isPackageAndVersionIncludedInRule('@aws-sdk/client-sts', '3.2.0', ['@aws-sdk/client-*', '>', '3.1.0']),
-      true
-    );
-    assert.equal(
-      isPackageAndVersionIncludedInRule('@aws-sdk/client-sts', '3.1.0', ['@aws-sdk/client-*', '>', '3.1.0']),
-      false
-    );
-    assert.equal(isPackageAndVersionIncludedInRule('@aws-sdk', '3.2.0', ['@aws-sdk/client-*', '>', '3.1.0']), false);
+    assert.equal(shouldDeny('@aws-sdk/client-sts', '3.2.0', ['@aws-sdk/client-*', '>', '3.1.0']), true);
+    assert.equal(shouldDeny('@aws-sdk/client-sts', '3.1.0', ['@aws-sdk/client-*', '>', '3.1.0']), false);
+    assert.equal(shouldDeny('@aws-sdk', '3.2.0', ['@aws-sdk/client-*', '>', '3.1.0']), false);
 
     // star notion for incoming package
-    assert.equal(
-      isPackageAndVersionIncludedInRule('@aws-sdk/client-*', '3.2.0', ['@aws-sdk/client-sts', '>', '3.1.0']),
-      true
-    );
-    assert.equal(
-      isPackageAndVersionIncludedInRule('@aws-sdk/client-*', '3.1.0', ['@aws-sdk/client-sts', '>', '3.1.0']),
-      false
-    );
-    assert.equal(isPackageAndVersionIncludedInRule('@aws-sdk/client-*', '3.2.0', ['@aws-sdk', '>', '3.1.0']), false);
+    assert.equal(shouldDeny('@aws-sdk/client-*', '3.2.0', ['@aws-sdk/client-sts', '>', '3.1.0']), true);
+    assert.equal(shouldDeny('@aws-sdk/client-*', '3.1.0', ['@aws-sdk/client-sts', '>', '3.1.0']), false);
+    assert.equal(shouldDeny('@aws-sdk/client-*', '3.2.0', ['@aws-sdk', '>', '3.1.0']), false);
 
     // star notion for both
-    assert.equal(
-      isPackageAndVersionIncludedInRule('@aws-sdk/client-*', '3.2.0', ['@aws-sdk/client-*', '>', '3.1.0']),
-      true
-    );
-    assert.equal(
-      isPackageAndVersionIncludedInRule('@aws-sdk/client-*', '3.1.0', ['@aws-sdk/client-*', '>', '3.1.0']),
-      false
-    );
+    assert.equal(shouldDeny('@aws-sdk/client-*', '3.2.0', ['@aws-sdk/client-*', '>', '3.1.0']), true);
+    assert.equal(shouldDeny('@aws-sdk/client-*', '3.1.0', ['@aws-sdk/client-*', '>', '3.1.0']), false);
   });
 });
