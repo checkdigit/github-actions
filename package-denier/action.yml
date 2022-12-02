@@ -1,6 +1,0 @@
-name: Package Denier
-description: Check for banned packages
-runs:
-  using: node16
-  pre: '../setup.mjs'
-  main: ../build/package-denier/index.js

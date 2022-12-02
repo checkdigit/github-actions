@@ -1,17 +1,12 @@
-// package-denier/index.ts
+// check-imports/index.ts
 
 import process from 'node:process';
 import { debug } from 'debug';
 
-import {
-  Descriptor,
-  getPackageLock,
-  getPackageNameFromKey,
-  isPackageAndVersionIncludedInRule,
-} from './package-lock-file-util';
-import rules from './rules';
+import { Descriptor, extractPackageName, getPackageLock, satisfiesNameAndRange } from './package-lock-file-util';
+import notAllowed from './packages-not-allowed';
 
-const log = debug('package-denier');
+const log = debug('check-imports');
 export async function main(): Promise<void | boolean> {
   log('Action starting');
 
@@ -20,12 +15,16 @@ export async function main(): Promise<void | boolean> {
   log('Reviewing package-lock');
   for (const key in packages) {
     if (Object.hasOwn(packages, key)) {
-      const version = (packages[key] as Descriptor).version;
-      const packageName = getPackageNameFromKey(key);
+      const packageVersion = (packages[key] as Descriptor).version;
+      const packageName = extractPackageName(key);
 
-      for (const rule of rules) {
-        if (isPackageAndVersionIncludedInRule(packageName, version, rule)) {
-          throw new Error(`Package ${packageName}@${version} is not allowed because of rule ${JSON.stringify(rule)}.`);
+      for (const [name, range] of notAllowed) {
+        if (satisfiesNameAndRange(packageName, packageVersion, [name, range])) {
+          throw new Error(
+            `Package ${packageName}@${packageVersion} is not allowed to be imported because it is included in ${JSON.stringify(
+              [name, range]
+            )}.`
+          );
         }
       }
     }
