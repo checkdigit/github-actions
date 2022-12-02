@@ -17,7 +17,7 @@ describe('package lock file utilities', () => {
     await rm(path.join(tmpdir(), 'temporaryDirectory'), { recursive: true });
   });
 
-  it('can gets a package-lock file', async () => {
+  it('can get a package-lock file', async () => {
     await writeFile(path.join(tmpdir(), 'temporaryDirectory/package-lock.json'), JSON.stringify(examplePackageLock));
     const packageLock = await getPackageLock(path.join(tmpdir(), 'temporaryDirectory'));
     assert.ok(packageLock.name === '@checkdigit/github-actions');
