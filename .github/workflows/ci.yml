@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-      - name: Install dependencies
+      - name: Install Dependencies
         run: npm ci --ignore-scripts
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -54,7 +54,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-      - name: Install dependencies
+      - name: Install Dependencies
         run: npm ci --ignore-scripts
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
