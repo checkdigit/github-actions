@@ -9,6 +9,6 @@ inputs:
     description: Publish beta command to run
     required: true
 runs:
-  using: node18
+  using: node16
   pre: '../setup.mjs'
   main: ../build/publish-beta/index.js
