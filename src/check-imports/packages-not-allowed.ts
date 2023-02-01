@@ -14,7 +14,7 @@ const notAllowed: NameAndRange[] = [
   ['@aws-sdk/smithy-client', '>3.193.0'],
   ['@aws-sdk/types', '>3.193.0'],
   ['got', '>=12.0.0'],
-  ['get-port', '>5.1.1'],
+  ['get-port', '>=6.0.0'],
   ['antlr4', '>4.9.3'],
 ];
 
