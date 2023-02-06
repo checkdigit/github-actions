@@ -8,14 +8,14 @@ import debug from 'debug';
 import { publishComment } from './github';
 import { packageJSONUpdate } from './package';
 import copyNonTSFiles from './files';
-import compile from './compile';
+// import compile from './compile';
 import publish from './publish';
 
 const log = debug('publish-beta');
 export async function main(): Promise<void | boolean> {
   log('Action start');
 
-  await compile(process.cwd());
+  // await compile(process.cwd());
   const packageNameAndBetaVersion = await packageJSONUpdate(process.cwd());
   await copyNonTSFiles(path.join(process.cwd(), 'src'), path.join(process.cwd(), 'dist'));
   await publish(process.cwd());
