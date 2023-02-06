@@ -3,7 +3,7 @@
 import process from 'node:process';
 import { debug } from 'debug';
 
-import { Descriptor, extractPackageName, getPackageLock, satisfiesNameAndRange } from './package-lock-file-util';
+import { type Descriptor, extractPackageName, getPackageLock, satisfiesNameAndRange } from './package-lock-file-util';
 import notAllowed from './packages-not-allowed';
 
 const log = debug('check-imports');

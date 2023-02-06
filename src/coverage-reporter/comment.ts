@@ -7,7 +7,7 @@
 
 import { b, details, fragment, h2, summary, table, tbody, th, tr } from './html';
 
-import { Lcov, percentage } from './lcov';
+import { type Lcov, percentage } from './lcov';
 import type { Options } from './options';
 import { tabulate } from './tabulate';
 

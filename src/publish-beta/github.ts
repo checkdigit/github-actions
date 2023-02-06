@@ -1,7 +1,8 @@
 // publish-beta/github.ts
 import process from 'node:process';
 import { readFile } from 'node:fs/promises';
-import { debug } from 'debug';
+
+import debug from 'debug';
 import { Octokit } from '@octokit/rest';
 
 export interface GithubConfigurationResponse {

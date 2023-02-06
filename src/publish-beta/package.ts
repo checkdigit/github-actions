@@ -2,7 +2,7 @@
 
 import path from 'node:path';
 import { readFile, writeFile } from 'node:fs/promises';
-import { debug } from 'debug';
+import debug from 'debug';
 
 import { getPRNumber } from './github';
 import { removeNonTSFiles } from './files';

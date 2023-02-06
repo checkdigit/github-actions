@@ -1,8 +1,35 @@
 {
-  "extends": "@checkdigit/typescript-config",
   "compilerOptions": {
-    "rootDir": "src",
-    "outDir": "build"
+    "module": "esnext",
+    "target": "es2022",
+    "moduleResolution": "node",
+    "lib": ["esnext", "dom", "webworker"],
+    "sourceMap": true,
+    "outDir": "build",
+    "declaration": true,
+    "removeComments": false,
+    "rootDir": "./src",
+    "noLib": false,
+    "noEmitOnError": false,
+    "skipLibCheck": true,
+    "strict": true,
+    "preserveConstEnums": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "alwaysStrict": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "noUncheckedIndexedAccess": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "allowUnusedLabels": false,
+    "noImplicitOverride": true,
+    "useUnknownInCatchVariables": true,
+    "exactOptionalPropertyTypes": true
   },
-  "exclude": ["node_modules", "build", "dist"]
+  "exclude": ["node_modules", "build"]
 }
