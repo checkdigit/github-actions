@@ -5,6 +5,10 @@ inputs:
     description: Github token
     required: true
     default: ${{ github.token }}
+  node-options:
+    description: Node options
+    required: false
+    default: '--experimental-vm-modules'
   command:
     description: Publish beta command to run
     required: true

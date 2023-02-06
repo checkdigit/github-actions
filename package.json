@@ -12,6 +12,7 @@
   "engines": {
     "node": ">=16"
   },
+  "type": "module",
   "author": "Check Digit, LLC",
   "license": "MIT",
   "bugs": {
