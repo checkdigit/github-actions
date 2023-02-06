@@ -36,10 +36,13 @@
     "@checkdigit/eslint-config": "^7.5.0",
     "@checkdigit/prettier-config": "^3.2.0",
     "@types/debug": "^4.1.7",
+    "@types/jest": "^29.4.0",
     "@types/semver": "^7.3.13",
     "@types/uuid": "^9.0.0",
+    "jest": "^29.4.1",
     "nock": "^13.3.0",
     "rimraf": "^4.1.2",
+    "ts-jest": "^29.0.5",
     "undici": "^5.18.0",
     "uuid": "^9.0.0"
   },
@@ -88,6 +91,7 @@
     ]
   },
   "peerDependencies": {
+    "@types/node": ">=18",
     "typescript": "^5.0.0-beta"
   },
   "overrides": {
