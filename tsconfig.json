@@ -1,8 +1,7 @@
 {
   "compilerOptions": {
-    "module": "esnext",
+    "module": "commonjs",
     "target": "es2022",
-    "moduleResolution": "node",
     "lib": ["esnext", "dom", "webworker"],
     "sourceMap": true,
     "outDir": "build",
@@ -18,6 +17,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "alwaysStrict": true,
+    "importsNotUsedAsValues": "error",
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
     "emitDecoratorMetadata": true,
@@ -29,7 +29,8 @@
     "allowUnusedLabels": false,
     "noImplicitOverride": true,
     "useUnknownInCatchVariables": true,
-    "exactOptionalPropertyTypes": true
+    "exactOptionalPropertyTypes": true,
+    "ignoreDeprecations": "5.0"
   },
   "exclude": ["node_modules", "build"]
 }

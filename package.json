@@ -12,7 +12,6 @@
   "engines": {
     "node": ">=16"
   },
-  "type": "module",
   "author": "Check Digit, LLC",
   "license": "MIT",
   "bugs": {
@@ -62,19 +61,12 @@
     "ci:style": "npm run prettier"
   },
   "jest": {
-    "extensionsToTreatAsEsm": [
-      ".ts"
-    ],
-    "moduleNameMapper": {
-      "^(\\.{1,2}/.*)\\.js$": "$1"
-    },
     "transform": {
       "^.+\\.ts$": [
         "ts-jest",
         {
           "isolatedModules": true,
-          "diagnostics": false,
-          "useESM": true
+          "diagnostics": false
         }
       ]
     },
