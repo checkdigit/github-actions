@@ -5,7 +5,7 @@ import { mkdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
 
-import examplePackageLock from './example-package-lock.json' assert { type: 'json' };
+import examplePackageLock from './example-package-lock.json';
 import { extractPackageName, getPackageLock, satisfiesNameAndRange } from './package-lock-file-util';
 
 describe('package lock file utilities', () => {
