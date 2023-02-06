@@ -17,7 +17,6 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "alwaysStrict": true,
-    "importsNotUsedAsValues": "error",
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
     "emitDecoratorMetadata": true,
@@ -29,8 +28,7 @@
     "allowUnusedLabels": false,
     "noImplicitOverride": true,
     "useUnknownInCatchVariables": true,
-    "exactOptionalPropertyTypes": true,
-    "ignoreDeprecations": "5.0"
+    "exactOptionalPropertyTypes": true
   },
   "exclude": ["node_modules", "build"]
 }
