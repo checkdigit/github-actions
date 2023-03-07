@@ -81,39 +81,47 @@ export function parse(input: string): Lcov {
     let function_: string[];
 
     switch (parts[0].toUpperCase()) {
-      case 'TN':
+      case 'TN': {
         item.title = parts[1].trim();
         break;
-      case 'SF':
+      }
+      case 'SF': {
         item.file = parts.slice(1).join(':').trim();
         break;
-      case 'FNF':
+      }
+      case 'FNF': {
         item.functions.found = Number(parts[1].trim());
         break;
-      case 'FNH':
+      }
+      case 'FNH': {
         item.functions.hit = Number(parts[1].trim());
         break;
-      case 'LF':
+      }
+      case 'LF': {
         item.lines.found = Number(parts[1].trim());
         break;
-      case 'LH':
+      }
+      case 'LH': {
         item.lines.hit = Number(parts[1].trim());
         break;
-      case 'DA':
+      }
+      case 'DA': {
         lines = parts[1].split(',');
         item.lines.details.push({
           line: Number(lines[0]),
           hit: Number(lines[1]),
         });
         break;
-      case 'FN':
+      }
+      case 'FN': {
         function_ = parts[1].split(',') as [string, string];
         item.functions.details.push({
           name: function_[1] as string,
           line: Number(function_[0]),
         });
         break;
-      case 'FNDA':
+      }
+      case 'FNDA': {
         function_ = parts[1].split(',');
         // eslint-disable-next-line no-loop-func
         item.functions.details.some((lcovFunction, index) => {
@@ -124,7 +132,8 @@ export function parse(input: string): Lcov {
           return false;
         });
         break;
-      case 'BRDA':
+      }
+      case 'BRDA': {
         function_ = parts[1].split(',');
         item.branches.details.push({
           line: Number(function_[0]),
@@ -134,12 +143,15 @@ export function parse(input: string): Lcov {
           taken: function_[3] === '-' ? 0 : Number(function_[3]),
         });
         break;
-      case 'BRF':
+      }
+      case 'BRF': {
         item.branches.found = Number(parts[1]);
         break;
-      case 'BRH':
+      }
+      case 'BRH': {
         item.branches.hit = Number(parts[1]);
         break;
+      }
     }
 
     if (line.includes('end_of_record')) {
