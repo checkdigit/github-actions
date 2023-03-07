@@ -18,12 +18,12 @@ export async function main(): Promise<void | boolean> {
       const packageVersion = (packages[key] as Descriptor).version;
       const packageName = extractPackageName(key);
 
-      for (const [name, range] of notAllowed) {
+      for (const [name, range, reason] of notAllowed) {
         if (satisfiesNameAndRange(packageName, packageVersion, [name, range])) {
           throw new Error(
             `Package ${packageName}@${packageVersion} is not allowed to be imported because it is included in ${JSON.stringify(
               [name, range]
-            )}.`
+            )}. Package ${name}@${range} is not allowed for the following reason: ${reason}`
           );
         }
       }

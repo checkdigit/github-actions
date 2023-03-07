@@ -141,7 +141,7 @@ export function tabulate(lcov: Lcov, options: Options): string {
   for (const file of filterAndNormaliseLcov(lcov, options)) {
     const parts = file.file.replace(options.prefix, '').split('/');
     const folder = parts.slice(0, -1).join('/');
-    folders[folder] = folders[folder] ?? [];
+    folders[folder] ??= [];
     (folders[folder] as LcovFile[]).push(file);
   }
 
