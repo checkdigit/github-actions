@@ -3,7 +3,7 @@
 import path from 'node:path';
 import { readFile } from 'node:fs/promises';
 import satisfies from 'semver/functions/satisfies';
-import type { NameAndRange } from './packages-not-allowed';
+import type { Name, Range } from './packages-not-allowed';
 
 export interface Descriptor {
   version: string;
@@ -57,7 +57,7 @@ export function isMatchingName(nameA: string, nameB: string): boolean {
 export function satisfiesNameAndRange(
   packageName: string,
   packageVersion: string,
-  [name, range]: NameAndRange
+  [name, range]: [Name, Range]
 ): boolean {
   return isMatchingName(packageName, name) && satisfies(packageVersion, range);
 }
