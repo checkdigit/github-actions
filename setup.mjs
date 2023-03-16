@@ -5,5 +5,4 @@ import { URL } from 'node:url';
 const cwd = new URL('.', import.meta.url).pathname;
 const exec = util.promisify(childProcess.exec);
 await exec('npm ci', { cwd });
-await exec('npx tsc --version', { cwd });
 await exec('npx tsc', { cwd });
