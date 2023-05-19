@@ -6,7 +6,7 @@ import path from 'node:path';
 import { tmpdir } from 'node:os';
 
 import { v4 as uuid } from 'uuid';
-import copyNonTSFiles, { removeNonTSFiles } from './files';
+import copyNonTSFiles, { removeTestFilesFromSource } from './files';
 
 describe('copy', () => {
   beforeAll(async () => {
@@ -56,9 +56,10 @@ describe('copy', () => {
     await Promise.all([
       writeFile(path.join(sourceDirectory, 'test.ts'), 'test'),
       writeFile(path.join(sourceDirectory, 'test.spec.ts'), 'test'),
+      writeFile(path.join(sourceDirectory, 'test.spec.mts'), 'testmjs'),
       writeFile(path.join(sourceDirectory, 'swagger.yml'), 'test'),
     ]);
-    await removeNonTSFiles(sourceDirectory);
+    await removeTestFilesFromSource(sourceDirectory);
 
     const files = await readdir(sourceDirectory, { withFileTypes: true });
     assert.equal(files.length, 2);
