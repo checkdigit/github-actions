@@ -29,7 +29,12 @@ export async function removeTestFilesFromSource(sourceDirectory: string): Promis
         await removeTestFilesFromSource(sourceItem);
         return;
       }
-      if (item.name.endsWith('.spec.ts') || item.name.endsWith('.test.ts') || item.name.endsWith('.spec.mts')) {
+      if (
+        item.name.endsWith('.spec.ts') ||
+        item.name.endsWith('.test.ts') ||
+        item.name.endsWith('.spec.mts') ||
+        item.name.endsWith('.test.mts')
+      ) {
         await fs.rm(sourceItem);
       }
     })

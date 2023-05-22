@@ -57,6 +57,7 @@ describe('copy', () => {
       writeFile(path.join(sourceDirectory, 'test.ts'), 'test'),
       writeFile(path.join(sourceDirectory, 'test.spec.ts'), 'test'),
       writeFile(path.join(sourceDirectory, 'test.spec.mts'), 'testmjs'),
+      writeFile(path.join(sourceDirectory, 'favorite.test.mts'), 'testmjs'),
       writeFile(path.join(sourceDirectory, 'swagger.yml'), 'test'),
     ]);
     await removeTestFilesFromSource(sourceDirectory);
