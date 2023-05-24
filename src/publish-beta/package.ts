@@ -5,7 +5,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { debug } from 'debug';
 
 import { getPRNumber } from './github';
-import { removeNonTSFiles } from './files';
+import { removeTestFilesFromSource } from './files';
 
 const log = debug('publish-beta:package');
 
@@ -47,7 +47,7 @@ export async function packageJSONUpdate(rootProjectDirectory: string): Promise<s
   checkFilesPropertyExists(readPackageJson);
   const packageJson = JSON.parse(readPackageJson) as PackageJSON;
 
-  await removeNonTSFiles(path.join(rootProjectDirectory, 'src'));
+  await removeTestFilesFromSource(path.join(rootProjectDirectory, 'src'));
 
   const files = addSourceToFilesProperty(packageJson);
   const newVersion = `${packageJson.version}-${generatePackageBetaTag()}`;

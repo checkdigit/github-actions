@@ -20,16 +20,21 @@ export default async function copyNonTSFiles(sourceDirectory: string, destinatio
   );
 }
 
-export async function removeNonTSFiles(sourceDirectory: string): Promise<void> {
+export async function removeTestFilesFromSource(sourceDirectory: string): Promise<void> {
   const files = await fs.readdir(sourceDirectory, { withFileTypes: true });
   await Promise.all(
     files.map(async (item) => {
       const sourceItem = path.join(sourceDirectory, item.name);
       if (item.isDirectory()) {
-        await removeNonTSFiles(sourceItem);
+        await removeTestFilesFromSource(sourceItem);
         return;
       }
-      if (item.name.endsWith('.ts') && (item.name.endsWith('.spec.ts') || item.name.endsWith('.test.ts'))) {
+      if (
+        item.name.endsWith('.spec.ts') ||
+        item.name.endsWith('.test.ts') ||
+        item.name.endsWith('.spec.mts') ||
+        item.name.endsWith('.test.mts')
+      ) {
         await fs.rm(sourceItem);
       }
     })
