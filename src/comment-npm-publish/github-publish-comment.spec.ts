@@ -24,7 +24,6 @@ describe('github publish', () => {
   });
 
   it('publish comment - no existing comments', async () => {
-    // setGlobalDispatcher(gitHubNock);
     gitHubNock();
     process.env['GITHUB_REPOSITORY'] = 'checkdigit/nocomments';
     process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
@@ -44,7 +43,6 @@ describe('github publish', () => {
   });
 
   it('publish comment - with existing comments', async () => {
-    // setGlobalDispatcher(gitHubNock);
     gitHubNock();
     process.env['GITHUB_REPOSITORY'] = 'checkdigit/comments';
     process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
