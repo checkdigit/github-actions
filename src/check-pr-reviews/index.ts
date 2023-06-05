@@ -1,22 +1,19 @@
-// comment-npm-publish/index.ts
+// check-pr-reviews/index.ts
 
 import process from 'node:process';
 import { debug } from 'debug';
-import { getInput } from '@actions/core';
+import { setFailed } from '@actions/core';
 
-import { publishCommentAndRemovePrevious } from '../github-api';
+import { reviewedCorrectly } from '../github-api';
 
-const log = debug('comment-npm-publish');
+const log = debug('check-pr-reviews');
 export async function main(): Promise<void | boolean> {
   log('Action start');
 
-  const packageNameAndBetaVersion = getInput('betaPackage');
-  log('Package Name and Version obtained: ', packageNameAndBetaVersion);
-  await publishCommentAndRemovePrevious(
-    `Beta Published - Install Command: \`npm install ${packageNameAndBetaVersion}\` `.replaceAll('"', ''),
-    'Beta Published - Install Command: '
-  );
-  log('Action end');
+  const result = await reviewedCorrectly();
+  if (!result) {
+    setFailed('PR has not been reviewed correctly');
+  }
 }
 
 main()

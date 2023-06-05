@@ -4,7 +4,7 @@ import path from 'node:path';
 import { readFile, writeFile } from 'node:fs/promises';
 import { debug } from 'debug';
 
-import { getPRNumber } from './github';
+import { getPRNumber } from '../github-api';
 import { removeTestFilesFromSource } from './files';
 
 const log = debug('publish-beta:package');

@@ -1,8 +1,8 @@
-// prepare-beta/github.spec.ts
+// github-api/index.spec.ts
 
 import { strict as assert } from 'node:assert';
 
-import { getPRNumber } from './github';
+import { getPRNumber } from './index';
 
 describe('github', () => {
   it('getPRNumber', async () => {

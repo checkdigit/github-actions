@@ -4,7 +4,7 @@ import process from 'node:process';
 import path from 'node:path';
 import { debug } from 'debug';
 
-import { publishComment } from './github';
+import { publishCommentAndRemovePrevious } from '../github-api';
 import { packageJSONUpdate } from './package';
 import copyNonTSFiles from './files';
 import compile from './compile';
@@ -18,7 +18,10 @@ export async function main(): Promise<void | boolean> {
   const packageNameAndBetaVersion = await packageJSONUpdate(process.cwd());
   await copyNonTSFiles(path.join(process.cwd(), 'src'), path.join(process.cwd(), 'dist'));
   await publish(process.cwd());
-  await publishComment(packageNameAndBetaVersion);
+  await publishCommentAndRemovePrevious(
+    `Beta Published - Install Command: \`npm install ${packageNameAndBetaVersion}\` `.replaceAll('"', ''),
+    'Beta Published - Install Command: '
+  );
 }
 
 main()
