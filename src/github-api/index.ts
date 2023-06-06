@@ -100,10 +100,20 @@ export async function publishCommentAndRemovePrevious(
 }
 
 async function haveAllReviewersReviewed(): Promise<boolean> {
+  // eslint-disable-next-line no-console
+  console.log('haveAllReviewersReviewed start');
+  // eslint-disable-next-line no-console
+  console.log(process.env['GITHUB_TOKEN']);
+  // eslint-disable-next-line no-console
+  console.log('-----');
+  // eslint-disable-next-line no-console
+  console.log(process.env);
   if (!process.env['GITHUB_TOKEN']) {
     log('GITHUB_TOKEN is not set - check action configuration');
     throw new Error(THROW_ACTION_ERROR_MESSAGE);
   }
+  // eslint-disable-next-line no-console
+  console.log('haveAllReviewersReviewed after throw');
   const octokat = new Octokit({ auth: process.env['GITHUB_TOKEN'] });
 
   const githubContext = await getPullRequestContext();
