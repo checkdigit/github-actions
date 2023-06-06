@@ -14,7 +14,7 @@ export async function main(): Promise<void | boolean> {
   const allReviewersHaveReviewed = await haveAllReviewersReviewed();
   if (allReviewersHaveReviewed > 0) {
     await publishCommentAndRemovePrevious(
-      `PR review status - has ${allReviewersHaveReviewed} reviewers outstanding`,
+      `PR review status - has ${allReviewersHaveReviewed} reviewer/s outstanding :x:`,
       PULL_REQUEST_MESSAGE_PREFIX
     );
     setFailed('PR has not been reviewed correctly - has reviewers outstanding');
@@ -25,7 +25,7 @@ export async function main(): Promise<void | boolean> {
 
   if (reviews.approvedReviews < reviews.totalReviewers) {
     await publishCommentAndRemovePrevious(
-      'PR review status - not all reviewers have approved',
+      `PR review status - not all reviewers have approved ${reviews.approvedReviews} / ${reviews.totalReviewers} :x:`,
       PULL_REQUEST_MESSAGE_PREFIX
     );
     setFailed('PR has not been reviewed correctly - not all reviewers have approved');
@@ -33,7 +33,7 @@ export async function main(): Promise<void | boolean> {
   }
 
   await publishCommentAndRemovePrevious(
-    'PR review status - All reviews completed and approved!',
+    'PR review status - All reviews completed and approved! :white_check_mark:',
     PULL_REQUEST_MESSAGE_PREFIX
   );
 }
