@@ -8,7 +8,7 @@ import process from 'node:process';
 import { v4 as uuid } from 'uuid';
 
 import gitHubNock from '../nocks/github.test';
-import { reviewedCorrectly } from './index';
+import { approvedReviews, haveAllReviewersReviewed } from './index';
 
 const actionFolderName = 'actionreviewtest';
 
@@ -32,11 +32,11 @@ describe('github review', () => {
       })
     );
     process.env['GITHUB_EVENT_PATH'] = filePath;
-    const result = await reviewedCorrectly();
-    assert.equal(result, false);
+    const result = await haveAllReviewersReviewed();
+    assert.equal(result, 2);
   });
 
-  it('No outstanding reviwers', async () => {
+  it('No outstanding reviewers and all approved reviews', async () => {
     // setGlobalDispatcher(gitHubNock);
     gitHubNock();
     process.env['GITHUB_REPOSITORY'] = 'checkdigit/prview';
@@ -52,7 +52,7 @@ describe('github review', () => {
       })
     );
     process.env['GITHUB_EVENT_PATH'] = filePath;
-    const result = await reviewedCorrectly();
-    assert.equal(result, true);
+    const result = await approvedReviews();
+    assert.deepStrictEqual(result, { approvedReviews: 2, totalReviewers: 2 });
   });
 });

@@ -12,6 +12,12 @@ export interface GithubConfigurationResponse {
   number: number;
   repo: string;
 }
+
+export interface GithubReviewStatus {
+  approvedReviews: number;
+  totalReviewers: number;
+}
+
 const log = debug('publish-beta:github');
 
 export function getPRNumber(): string {
@@ -99,21 +105,11 @@ export async function publishCommentAndRemovePrevious(
   });
 }
 
-async function haveAllReviewersReviewed(): Promise<boolean> {
-  // eslint-disable-next-line no-console
-  console.log('haveAllReviewersReviewed start');
-  // eslint-disable-next-line no-console
-  console.log(process.env['GITHUB_TOKEN']);
-  // eslint-disable-next-line no-console
-  console.log('-----');
-  // eslint-disable-next-line no-console
-  console.log(process.env);
+export async function haveAllReviewersReviewed(): Promise<number> {
   if (!process.env['GITHUB_TOKEN']) {
     log('GITHUB_TOKEN is not set - check action configuration');
     throw new Error(THROW_ACTION_ERROR_MESSAGE);
   }
-  // eslint-disable-next-line no-console
-  console.log('haveAllReviewersReviewed after throw');
   const octokat = new Octokit({ auth: process.env['GITHUB_TOKEN'] });
 
   const githubContext = await getPullRequestContext();
@@ -129,10 +125,10 @@ async function haveAllReviewersReviewed(): Promise<boolean> {
     // eslint-disable-next-line camelcase
     pull_number: githubContext.number,
   });
-  return requestedReviewers.data.users.length <= 0;
+  return requestedReviewers.data.users.length;
 }
 
-async function allReviewsPassed(): Promise<boolean> {
+export async function approvedReviews(): Promise<GithubReviewStatus> {
   if (!process.env['GITHUB_TOKEN']) {
     log('GITHUB_TOKEN is not set - check action configuration');
     throw new Error(THROW_ACTION_ERROR_MESSAGE);
@@ -155,7 +151,7 @@ async function allReviewsPassed(): Promise<boolean> {
 
   if (requestedReviewers.data.length === 0) {
     log('No reviews on this PR');
-    return false;
+    throw new Error('No reviews on this PR');
   }
 
   const pullRequestState = await octokat.rest.pulls.get({
@@ -168,13 +164,12 @@ async function allReviewsPassed(): Promise<boolean> {
 
   for (const review of requestedReviewers.data) {
     if (!review?.user?.login) {
-      return false;
+      throw new Error(THROW_ACTION_ERROR_MESSAGE);
     }
     // skip if the user is the one who created the PR makes a comment - that is not a review
     if (pullRequestState?.data?.user?.login === review.user.login && review.state === 'COMMENTED') {
       continue;
     }
-
     const userState = reviewState[review.user.login];
     if (userState) {
       userState.push(review.state);
@@ -183,23 +178,10 @@ async function allReviewsPassed(): Promise<boolean> {
     }
   }
 
-  return Object.keys(reviewState).every((user) => {
+  const approvedReviewsList = Object.keys(reviewState).filter((user) => {
     const reviews = reviewState[user];
     return reviews && reviews.includes('APPROVED');
   });
-}
 
-export async function reviewedCorrectly(): Promise<boolean> {
-  const allReviewersReviewed = await haveAllReviewersReviewed();
-  if (!allReviewersReviewed) {
-    log('Not all reviewers have reviewed');
-    return false;
-  }
-
-  const allReviewsHavePassed = await allReviewsPassed();
-  if (!allReviewsHavePassed) {
-    log('Not all reviews have passed');
-    return false;
-  }
-  return true;
+  return { approvedReviews: approvedReviewsList.length, totalReviewers: Object.keys(reviewState).length };
 }
