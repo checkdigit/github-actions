@@ -34,13 +34,6 @@ function checkFilesPropertyExists(packageJSON: string): void {
   }
 }
 
-function addSourceToFilesProperty(input: PackageJSON): string[] {
-  if (!input.files.includes('/src/')) {
-    return [...input.files, '/src/'];
-  }
-  return input.files;
-}
-
 export async function packageJSONUpdate(rootProjectDirectory: string): Promise<string> {
   const packageJSONPath = path.join(rootProjectDirectory, 'package.json');
   const readPackageJson = await readFile(packageJSONPath, 'utf8');
@@ -49,10 +42,8 @@ export async function packageJSONUpdate(rootProjectDirectory: string): Promise<s
 
   await removeTestFilesFromSource(path.join(rootProjectDirectory, 'src'));
 
-  const files = addSourceToFilesProperty(packageJson);
   const newVersion = `${packageJson.version}-${generatePackageBetaTag()}`;
   packageJson.version = newVersion;
-  packageJson.files = files;
   await writeFile(packageJSONPath, JSON.stringify(packageJson));
   log(`Updated package.json - new version is: ${packageJson.name}@${newVersion}`);
   return `${packageJson.name}@${newVersion}`;

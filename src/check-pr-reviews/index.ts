@@ -11,24 +11,33 @@ const log = debug('check-pr-reviews');
 export async function main(): Promise<void | boolean> {
   log('Action start');
 
-  const allReviewersHaveReviewed = await haveAllReviewersReviewed();
-  if (allReviewersHaveReviewed > 0) {
+  const yetToReview = await haveAllReviewersReviewed();
+  if (yetToReview > 0) {
+    const reviewOutstandingMessage =
+      yetToReview === 1 ? `has ${yetToReview} reviewer outstanding` : `has ${yetToReview} reviewers outstanding`;
     await publishCommentAndRemovePrevious(
-      `:x: PR review status - has ${allReviewersHaveReviewed} reviewer/s outstanding`,
+      `:x: PR review status - ${reviewOutstandingMessage}`,
       PULL_REQUEST_MESSAGE_KEYWORD
     );
-    setFailed('PR has not been reviewed correctly - has reviewers outstanding');
-    throw new Error('PR has not been reviewed correctly');
+    setFailed(`PR has not been reviewed correctly - ${reviewOutstandingMessage}`);
+    throw new Error(`PR has not been reviewed correctly - ${reviewOutstandingMessage}`);
   }
 
   const reviews = await approvedReviews();
 
   if (reviews.approvedReviews < reviews.totalReviewers) {
+    const approvedReviewsOutstandingMessage =
+      reviews.totalReviewers === 1
+        ? `reviewer has not approved`
+        : `not all reviewers have approved - ${reviews.approvedReviews} approved - ${
+            reviews.totalReviewers - reviews.approvedReviews
+          } outstanding`;
+
     await publishCommentAndRemovePrevious(
-      `:x: PR review status - not all reviewers have approved ${reviews.approvedReviews} / ${reviews.totalReviewers}`,
+      `:x: PR review status - ${approvedReviewsOutstandingMessage}`,
       PULL_REQUEST_MESSAGE_KEYWORD
     );
-    setFailed('PR has not been reviewed correctly - not all reviewers have approved');
+    setFailed(`PR has not been reviewed correctly - ${approvedReviewsOutstandingMessage}`);
     throw new Error('PR has not been reviewed correctly - not all reviewers have approved');
   }
 
