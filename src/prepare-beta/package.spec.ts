@@ -1,4 +1,4 @@
-// publish-beta/package.spec.ts
+// prepare-beta/package.spec.ts
 
 import { strict as assert } from 'node:assert';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
@@ -44,17 +44,5 @@ describe('package', () => {
     const rawUpdatedFile = await readFile(filePath, 'utf8');
     assert.ok(JSON.parse(rawUpdatedFile).version === '1.2.10-PR.87-ad90');
     assert.deepEqual(JSON.parse(rawUpdatedFile).files.sort(), ['/dist/'].sort());
-  });
-
-  it('Test with files property missing', async () => {
-    process.env['GITHUB_REF'] = '/ref/87/branch';
-    await writeFile(
-      path.join(tmpdir(), 'packageUpdate2/package.json'),
-      JSON.stringify({ name: 'testpackage', version: '1.2.10' })
-    );
-    await assert.rejects(
-      packageJSONUpdate(path.join(tmpdir(), 'packageUpdate2')),
-      '[Error: package.json does not have a files: [] property]'
-    );
   });
 });

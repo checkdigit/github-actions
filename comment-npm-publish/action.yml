@@ -1,0 +1,14 @@
+name: Comment NPM Publish
+description: Put a comment in for an NPM publish operation
+inputs:
+  github-token:
+    description: Github token
+    required: true
+    default: ${{ github.token }}
+  command:
+    description: Comment on npm publish
+    required: true
+runs:
+  using: node16
+  pre: '../setup.mjs'
+  main: ../build/comment-npm-publish/index.js

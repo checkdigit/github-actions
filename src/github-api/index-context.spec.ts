@@ -1,4 +1,4 @@
-// publish-beta/github-context.spec.ts
+// github-api/index-context.spec.ts
 
 import { strict as assert } from 'node:assert';
 import { tmpdir } from 'node:os';
@@ -7,7 +7,7 @@ import { mkdir, rm, writeFile } from 'node:fs/promises';
 import process from 'node:process';
 import { v4 as uuid } from 'uuid';
 
-import { getPullRequestContext } from './github';
+import { getPullRequestContext } from './index';
 
 describe('github context', () => {
   beforeAll(async () => mkdir(path.join(tmpdir(), 'actioncontexttest')));

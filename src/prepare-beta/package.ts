@@ -1,11 +1,10 @@
-// publish-beta/package.ts
+// prepare-beta/package.ts
 
 import path from 'node:path';
 import { readFile, writeFile } from 'node:fs/promises';
 import { debug } from 'debug';
 
 import { getPRNumber } from '../github-api';
-import { removeTestFilesFromSource } from './files';
 
 const log = debug('publish-beta:package');
 
@@ -27,20 +26,10 @@ export function generatePackageBetaTag(): string {
   return `PR.${prNumber}-${id}`;
 }
 
-function checkFilesPropertyExists(packageJSON: string): void {
-  const packageJSONObject = JSON.parse(packageJSON) as { files?: string[] };
-  if (!packageJSONObject.files) {
-    throw new Error('package.json does not have a files: [] property');
-  }
-}
-
 export async function packageJSONUpdate(rootProjectDirectory: string): Promise<string> {
   const packageJSONPath = path.join(rootProjectDirectory, 'package.json');
   const readPackageJson = await readFile(packageJSONPath, 'utf8');
-  checkFilesPropertyExists(readPackageJson);
   const packageJson = JSON.parse(readPackageJson) as PackageJSON;
-
-  await removeTestFilesFromSource(path.join(rootProjectDirectory, 'src'));
 
   const newVersion = `${packageJson.version}-${generatePackageBetaTag()}`;
   packageJson.version = newVersion;
