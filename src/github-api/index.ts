@@ -52,6 +52,60 @@ export async function getPullRequestContext(): Promise<GithubConfigurationRespon
   }
 }
 
+export async function getFileFromMain(): Promise<string | undefined> {
+  if (!process.env['GITHUB_TOKEN']) {
+    log('getFileFromMain - GITHUB_TOKEN is not set - check action configuration');
+    throw new Error(THROW_ACTION_ERROR_MESSAGE);
+  }
+  const octokat = new Octokit({ auth: process.env['GITHUB_TOKEN'] });
+
+  const githubContext = await getPullRequestContext();
+  if (!githubContext) {
+    log('getFileFromMain Error - unable to get github context');
+    throw new Error(THROW_UNABLE_TO_GET_CONTEXT);
+  }
+
+  // get the labels attached to the PR
+  const { data } = (await octokat.rest.repos.getContent({
+    owner: githubContext.owner,
+    repo: githubContext.repo,
+    path: 'package.json',
+    ref: 'main',
+    mediaType: {
+      format: 'raw',
+    },
+  })) as { data: { content?: string } };
+
+  if (!data.content) {
+    return;
+  }
+  return Buffer.from(data.content, 'base64').toString('utf8');
+}
+
+export async function getLabelsOnPR(): Promise<string[]> {
+  if (!process.env['GITHUB_TOKEN']) {
+    log('getLabelsOnPR - GITHUB_TOKEN is not set - check action configuration');
+    throw new Error(THROW_ACTION_ERROR_MESSAGE);
+  }
+  const octokat = new Octokit({ auth: process.env['GITHUB_TOKEN'] });
+
+  const githubContext = await getPullRequestContext();
+  if (!githubContext) {
+    log('getLabelsOnPR Error - unable to get github context');
+    throw new Error(THROW_UNABLE_TO_GET_CONTEXT);
+  }
+
+  // get the labels attached to the PR
+  const pullReqeust = await octokat.rest.pulls.get({
+    owner: githubContext.owner,
+    repo: githubContext.repo,
+    // eslint-disable-next-line camelcase
+    pull_number: githubContext.number,
+  });
+
+  return pullReqeust.data.labels.map((label) => label.name);
+}
+
 export async function publishCommentAndRemovePrevious(
   message: string,
   prefixOfPreviousMessageToRemove?: string

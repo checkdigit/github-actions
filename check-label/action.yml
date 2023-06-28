@@ -1,0 +1,14 @@
+name: Check Label
+description: Check package.json version bump matches label
+inputs:
+  github-token:
+    description: Github token
+    required: true
+    default: ${{ github.token }}
+  command:
+    description: command to run
+    required: true
+runs:
+  using: node16
+  pre: '../setup.mjs'
+  main: ../build/check-label/index.js
