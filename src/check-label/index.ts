@@ -18,8 +18,8 @@ interface PackageJSON {
   files: string[];
 }
 
-async function getLocalPackageJsonVersion(): Promise<string> {
-  const packageJSONPath = path.join(process.cwd(), 'package.json');
+async function getLocalPackageJsonVersion(fileName: string): Promise<string> {
+  const packageJSONPath = path.join(process.cwd(), fileName);
   const readPackageJson = await readFile(packageJSONPath, 'utf8');
   const packageJson = JSON.parse(readPackageJson) as PackageJSON;
 
@@ -36,8 +36,8 @@ export async function main(): Promise<void | boolean> {
   const label = labelsPullRequest[0]?.toLowerCase();
   assert(label, 'Unable to get label from PR');
 
-  const branchPackageJsonVersion = await getLocalPackageJsonVersion();
-  const mainPackageJsonVersionRaw = await getFileFromMain();
+  const branchPackageJsonVersion = await getLocalPackageJsonVersion('package.json');
+  const mainPackageJsonVersionRaw = await getFileFromMain('package.json');
 
   if (!mainPackageJsonVersionRaw) {
     throw new Error('Unable to get package.json from main branch');
@@ -61,6 +61,9 @@ export async function main(): Promise<void | boolean> {
     setFailed(`PR has not had the package.json updated correctly`);
     throw new Error('PR has not had the package.json updated correctly');
   }
+
+  const branchLockFile = await getLocalPackageJsonVersion('package-lock.json');
+  assert.equal(branchLockFile, branchPackageJsonVersion, 'package.json and package-lock.json versions do not match');
 }
 
 main()

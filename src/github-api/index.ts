@@ -52,7 +52,7 @@ export async function getPullRequestContext(): Promise<GithubConfigurationRespon
   }
 }
 
-export async function getFileFromMain(): Promise<string | undefined> {
+export async function getFileFromMain(filename: string): Promise<string | undefined> {
   if (!process.env['GITHUB_TOKEN']) {
     log('getFileFromMain - GITHUB_TOKEN is not set - check action configuration');
     throw new Error(THROW_ACTION_ERROR_MESSAGE);
@@ -69,7 +69,7 @@ export async function getFileFromMain(): Promise<string | undefined> {
   const { data } = (await octokat.rest.repos.getContent({
     owner: githubContext.owner,
     repo: githubContext.repo,
-    path: 'package.json',
+    path: filename,
     ref: 'main',
     mediaType: {
       format: 'raw',
