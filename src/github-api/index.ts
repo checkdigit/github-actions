@@ -74,14 +74,14 @@ export async function getFileFromMain(): Promise<string | undefined> {
     mediaType: {
       format: 'raw',
     },
-  })) as { data: { content?: string } };
+  })) as unknown as { data: string };
 
   log('getFileFromMain - data', data);
 
-  if (!data.content) {
+  if (!data) {
     return;
   }
-  return Buffer.from(data.content, 'base64').toString('utf8');
+  return Buffer.from(data, 'base64').toString('utf8');
 }
 
 export async function getLabelsOnPR(): Promise<string[]> {
