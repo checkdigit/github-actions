@@ -81,7 +81,7 @@ export async function getFileFromMain(): Promise<string | undefined> {
   if (!data) {
     return;
   }
-  return Buffer.from(data, 'base64').toString('utf8');
+  return data;
 }
 
 export async function getLabelsOnPR(): Promise<string[]> {
