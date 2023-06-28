@@ -76,6 +76,8 @@ export async function getFileFromMain(): Promise<string | undefined> {
     },
   })) as { data: { content?: string } };
 
+  log('getFileFromMain - data', data);
+
   if (!data.content) {
     return;
   }
