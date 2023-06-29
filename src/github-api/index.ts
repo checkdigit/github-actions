@@ -97,7 +97,6 @@ export async function getLabelsOnPR(): Promise<string[]> {
     throw new Error(THROW_UNABLE_TO_GET_CONTEXT);
   }
 
-  // get the labels attached to the PR
   const pullReqeust = await octokat.rest.pulls.get({
     owner: githubContext.owner,
     repo: githubContext.repo,

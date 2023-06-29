@@ -1,7 +1,10 @@
 // nocks/github.test.ts
 import nock from 'nock';
 
-export default function (): void {
+export interface GithubNock {
+  labelPackageVersionMain?: string;
+}
+export default function (options?: GithubNock): void {
   nock('https://api.github.com/').persist().get('/repos/checkdigit/nocomments/issues/10/comments').reply(200);
   nock('https://api.github.com/').persist().post('/repos/checkdigit/nocomments/issues/10/comments').reply(200);
 
@@ -101,6 +104,37 @@ export default function (): void {
         login: 'commituser1',
       },
     }));
+
+  // return label
+  nock('https://api.github.com/')
+    .persist()
+    .get('/repos/checkdigit/testlabel/pulls/10')
+    .reply(200, () => ({
+      labels: [{ name: 'patch' }],
+    }));
+
+  nock('https://api.github.com/')
+    .persist()
+    .get('/repos/checkdigit/testlabel/pulls/11')
+    .reply(200, () => ({
+      labels: [{ name: 'major' }],
+    }));
+
+  // return a raw package json file
+  nock('https://api.github.com/')
+    .persist()
+    .get('/repos/checkdigit/testlabel/contents/package.json?ref=main')
+    .reply(200, () => {
+      if (options?.labelPackageVersionMain) {
+        return `{"version": "${options.labelPackageVersionMain}"}`;
+      }
+      return '{"version": "1.0.0"}';
+    });
+
+  nock('https://api.github.com/')
+    .persist()
+    .get('/repos/checkdigit/testlabel/contents/package-lock.json?ref=main')
+    .reply(200, () => '{"version": "1.0.0"}');
 
   // allow delete operations to the two comments that should be deleted
   nock('https://api.github.com/').persist().delete('/repos/checkdigit/comments/issues/comments/1').reply(200);
