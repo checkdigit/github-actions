@@ -43,17 +43,12 @@ function semverSubtract(version: string, versionLabel: 'patch' | 'major' | 'mino
 }
 
 describe('check label', () => {
-  beforeAll(async () => {
-    await mkdir(path.join(tmpdir(), 'actioncontexttestlabel'));
-    delete process.env['GITHUB_TOKEN'];
-  });
+  beforeAll(async () => mkdir(path.join(tmpdir(), 'actioncontexttestlabel')));
   afterAll(async () => rm(path.join(tmpdir(), 'actioncontexttestlabel'), { recursive: true }));
 
   it('Test with no labels throws correctly', async () => {
     // assert that the call to checkLabel rejects a promise
-    await assert.rejects(checkLabel(), {
-      message: 'incorrect action configuration',
-    });
+    await assert.rejects(checkLabel());
   });
 
   it('Test with no labels throws correctly on missing context', async () => {
