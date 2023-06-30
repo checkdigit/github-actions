@@ -25,6 +25,25 @@ async function getLocalPackageJsonVersion(fileName: string): Promise<string> {
 
   return packageJson.version;
 }
+
+export function validateVersionCompareMatchesSemver(
+  branchPackageJsonVersion: string,
+  mainPackageJsonVersion: string
+): semver.ReleaseType | null {
+  const semVersionDiff = semver.diff(branchPackageJsonVersion, mainPackageJsonVersion);
+  const newVersionList = branchPackageJsonVersion.split('.');
+
+  if (semVersionDiff === 'minor' && Number(newVersionList[2]) !== 0) {
+    throw new Error('Minor version bump but patch version is not 0');
+  }
+
+  if (semVersionDiff === 'major' && (Number(newVersionList[1]) !== 0 || Number(newVersionList[2]) !== 0)) {
+    throw new Error('Major version bump but minor and patch version is not 0');
+  }
+
+  return semVersionDiff;
+}
+
 export default async function (): Promise<void> {
   log('Action start');
 
@@ -43,7 +62,10 @@ export default async function (): Promise<void> {
   }
   const mainPackageJsonVersion = JSON.parse(mainPackageJsonVersionRaw) as PackageJSON;
 
-  const packageVersionDiff = semver.diff(branchPackageJsonVersion, mainPackageJsonVersion.version);
+  const packageVersionDiff = validateVersionCompareMatchesSemver(
+    branchPackageJsonVersion,
+    mainPackageJsonVersion.version
+  );
   if (packageVersionDiff !== label) {
     log(
       `Main branch version: ${
