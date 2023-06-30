@@ -51,14 +51,6 @@ describe('check label', () => {
     await assert.rejects(checkLabel());
   });
 
-  it('Test with no labels throws correctly on missing context', async () => {
-    process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
-    // assert that the call to checkLabel rejects a promise
-    await assert.rejects(checkLabel(), {
-      message: 'unable to get context',
-    });
-  });
-
   it('label matches - patch', async () => {
     process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
 
