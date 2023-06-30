@@ -43,7 +43,10 @@ function semverSubtract(version: string, versionLabel: 'patch' | 'major' | 'mino
 }
 
 describe('check label', () => {
-  beforeAll(async () => mkdir(path.join(tmpdir(), 'actioncontexttestlabel')));
+  beforeAll(async () => {
+    await mkdir(path.join(tmpdir(), 'actioncontexttestlabel'));
+    delete process.env['GITHUB_TOKEN'];
+  });
   afterAll(async () => rm(path.join(tmpdir(), 'actioncontexttestlabel'), { recursive: true }));
 
   it('Test with no labels throws correctly', async () => {
