@@ -28,9 +28,11 @@ async function getVersionFromNPM(packageName: string): Promise<string> {
 export async function main(): Promise<void | boolean> {
   log('Action starting');
   const mainPackageJson = await getLocalPackageJson('package.json');
+  log(`Main package.json - name ${mainPackageJson.name} - version ${mainPackageJson.version}`);
 
   // run npm show to get the latest version published
   const latestVersion = await getVersionFromNPM(mainPackageJson.name);
+  log(`Latest version published - ${latestVersion}`);
 
   if (mainPackageJson.version !== latestVersion) {
     log('Action failed - version published does not match');
