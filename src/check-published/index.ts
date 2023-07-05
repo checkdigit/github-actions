@@ -7,6 +7,8 @@ import { promisify } from 'node:util';
 import { exec } from 'node:child_process';
 import { debug } from 'debug';
 
+import slackPost from './slack';
+
 const execAsync = promisify(exec);
 
 const log = debug('check-published');
@@ -36,6 +38,7 @@ export async function main(): Promise<void | boolean> {
 
   if (mainPackageJson.version !== latestVersion) {
     log('Action failed - version published does not match');
+    await slackPost(mainPackageJson.name, mainPackageJson.version, latestVersion);
     throw new Error(`Version published does not match - ${mainPackageJson.version} !== ${latestVersion}`);
   }
 }
