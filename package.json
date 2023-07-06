@@ -30,7 +30,8 @@
     "@actions/github": "^5.1.1",
     "@octokit/rest": "^19.0.7",
     "debug": "^4.3.4",
-    "semver": "^7.3.8"
+    "semver": "^7.3.8",
+    "undici": "^5.21.0"
   },
   "devDependencies": {
     "@checkdigit/eslint-config": "^7.5.0",
@@ -42,7 +43,6 @@
     "@types/uuid": "^9.0.1",
     "nock": "^13.3.0",
     "rimraf": "^4.4.0",
-    "undici": "^5.21.0",
     "uuid": "^9.0.0"
   },
   "scripts": {
