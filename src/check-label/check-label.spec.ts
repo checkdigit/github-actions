@@ -80,7 +80,7 @@ describe('check label', () => {
     // assert that the call to checkLabel rejects a promise
 
     await assert.rejects(checkLabel(), {
-      message: 'PR has not had the package.json updated correctly',
+      message: 'Version is incorrect based on Pull Request label',
     });
   });
 });
