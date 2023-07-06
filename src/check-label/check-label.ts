@@ -2,10 +2,9 @@
 
 import process from 'node:process';
 import path from 'node:path';
-import assert from 'node:assert';
+import { strict as assert } from 'node:assert';
 import { readFile } from 'node:fs/promises';
 import { debug } from 'debug';
-import { setFailed } from '@actions/core';
 import semver from 'semver';
 
 import { getFileFromMain, getLabelsOnPR } from '../github-api';
@@ -26,22 +25,34 @@ async function getLocalPackageJsonVersion(fileName: string): Promise<string> {
   return packageJson.version;
 }
 
-export function validateVersionCompareMatchesSemver(
+export function validateVersion(
   branchPackageJsonVersion: string,
-  mainPackageJsonVersion: string
-): semver.ReleaseType | null {
-  const semVersionDiff = semver.diff(branchPackageJsonVersion, mainPackageJsonVersion);
-  const newVersionList = branchPackageJsonVersion.split('.');
-
-  if (semVersionDiff === 'minor' && Number(newVersionList[2]) !== 0) {
-    throw new Error('Minor version bump but patch version is not 0');
+  mainPackageJsonVersion: string,
+  prLabel: string
+): true {
+  if (semver.gt(mainPackageJsonVersion, branchPackageJsonVersion)) {
+    log(`Main branch version: ${mainPackageJsonVersion} vs branch version: ${branchPackageJsonVersion}`);
+    throw new Error('main version is ahead of branch version');
   }
 
-  if (semVersionDiff === 'major' && (Number(newVersionList[1]) !== 0 || Number(newVersionList[2]) !== 0)) {
-    throw new Error('Major version bump but minor and patch version is not 0');
+  const mainVersionSplit = mainPackageJsonVersion.split('.');
+
+  if (prLabel === 'patch') {
+    mainVersionSplit[2] = (Number(mainVersionSplit[2]) + 1).toString();
+  } else if (prLabel === 'minor') {
+    mainVersionSplit[1] = (Number(mainVersionSplit[1]) + 1).toString();
+    mainVersionSplit[2] = '0';
+  } else if (prLabel === 'major') {
+    mainVersionSplit[0] = (Number(mainVersionSplit[0]) + 1).toString();
+    mainVersionSplit[1] = '0';
+    mainVersionSplit[2] = '0';
+  } else {
+    throw new Error('Invalid label');
   }
 
-  return semVersionDiff;
+  const expectedVersion = mainVersionSplit.join('.');
+  assert.equal(expectedVersion, branchPackageJsonVersion, 'Version is incorrect based on Pull Request label');
+  return true;
 }
 
 export default async function (): Promise<void> {
@@ -62,26 +73,7 @@ export default async function (): Promise<void> {
   }
   const mainPackageJsonVersion = JSON.parse(mainPackageJsonVersionRaw) as PackageJSON;
 
-  const packageVersionDiff = validateVersionCompareMatchesSemver(
-    branchPackageJsonVersion,
-    mainPackageJsonVersion.version
-  );
-  if (packageVersionDiff !== label) {
-    log(
-      `Main branch version: ${
-        mainPackageJsonVersion.version
-      } vs branch version: ${branchPackageJsonVersion} - diff: ${String(packageVersionDiff)} - git label ${label}`
-    );
-    setFailed(`PR has not had the package.json updated correctly`);
-    throw new Error('PR has not had the package.json updated correctly');
-  }
-
-  if (semver.gt(mainPackageJsonVersion.version, branchPackageJsonVersion)) {
-    log('Main branch version is greater than branch version');
-    log(`Main branch version: ${mainPackageJsonVersion.version} vs branch version: ${branchPackageJsonVersion}`);
-    setFailed(`PR has not had the package.json updated correctly`);
-    throw new Error('PR has not had the package.json updated correctly');
-  }
+  validateVersion(branchPackageJsonVersion, mainPackageJsonVersion.version, label);
 
   const branchLockFile = await getLocalPackageJsonVersion('package-lock.json');
   assert.equal(branchLockFile, branchPackageJsonVersion, 'package.json and package-lock.json versions do not match');
