@@ -7,7 +7,7 @@ import { promisify } from 'node:util';
 import { exec } from 'node:child_process';
 import { debug } from 'debug';
 
-import slackPost from './slack';
+import slackPost, { postErrorToSlack } from './slack';
 
 const execAsync = promisify(exec);
 
@@ -29,11 +29,28 @@ async function getVersionFromNPM(packageName: string): Promise<string> {
 
 export async function main(): Promise<void | boolean> {
   log('Action starting');
-  const mainPackageJson = await getLocalPackageJson('package.json');
+  let mainPackageJson: PackageJSON;
+  try {
+    mainPackageJson = await getLocalPackageJson('package.json');
+  } catch {
+    const errorMessage = 'Action failed - could not read package.json';
+    await postErrorToSlack(errorMessage);
+    log(errorMessage);
+    throw new Error(errorMessage);
+  }
+
   log(`Main package.json - name ${mainPackageJson.name} - version ${mainPackageJson.version}`);
 
   // run npm show to get the latest version published
-  const latestVersion = await getVersionFromNPM(mainPackageJson.name);
+  let latestVersion: string;
+  try {
+    latestVersion = await getVersionFromNPM(mainPackageJson.name);
+  } catch {
+    const errorMessage = `Action failed - could not get latest version from npm - name: ${mainPackageJson.name}`;
+    await postErrorToSlack(errorMessage);
+    throw new Error(errorMessage);
+  }
+
   log(`Latest version published - ${latestVersion}`);
 
   if (mainPackageJson.version !== latestVersion) {
