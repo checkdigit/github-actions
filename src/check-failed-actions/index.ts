@@ -18,10 +18,10 @@ export async function main(): Promise<void | boolean> {
     return;
   }
 
-  log('Context', JSON.stringify(githubContext));
-
   const actionName = getInput('actionName');
   log('Action Name', actionName);
+
+  log('GITHUB_WORKFLOW', process.env['GITHUB_WORKFLOW']);
 
   const statusInput = getInput('failed');
   log('Status received', statusInput);
