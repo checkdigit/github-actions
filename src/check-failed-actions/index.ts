@@ -2,11 +2,10 @@
 
 import process from 'node:process';
 import { debug } from 'debug';
-// import { Octokit } from '@octokit/rest';
+import { getInput } from '@actions/core';
 
 import { getPullRequestContext } from '../github-api';
 import slackPost from './slack';
-import { getInput } from '@actions/core';
 
 const log = debug('check-failed-actions');
 
@@ -20,7 +19,10 @@ export async function main(): Promise<void | boolean> {
   }
 
   const statusInput = getInput('status');
-  log(statusInput);
+  log('Status received', statusInput);
+  if (statusInput === 'failure') {
+    await slackPost(`${githubContext.owner}/${githubContext.repo}`);
+  }
 
   // const shouldDeleteOldComments = getInput('delete-old-comments').toLowerCase() === 'true';
 
@@ -30,8 +32,6 @@ export async function main(): Promise<void | boolean> {
   // workFlows.data.workflows.forEach((flow) => {
   //   flow.
   // });
-
-  await slackPost(`${githubContext.owner}/${githubContext.repo}}`);
 }
 
 main()
