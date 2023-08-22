@@ -18,7 +18,7 @@ export interface SlackMessage {
 
 async function postSlackMessage(slackMessage: SlackMessage): Promise<void> {
   try {
-    const slackUrl = process.env['SLACK_PUBLISH_MISMATCH'];
+    const slackUrl = process.env['SLACK_FAILED_URL'];
     assert(slackUrl);
     log('slack HTTP POST request options: ', JSON.stringify(slackMessage));
     await fetch(slackUrl, {
