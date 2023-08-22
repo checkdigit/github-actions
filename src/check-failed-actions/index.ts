@@ -23,20 +23,11 @@ export async function main(): Promise<void | boolean> {
 
   const branch = process.env['GITHUB_REF'] ?? 'unknown';
 
-  const statusInput = getInput('failed');
-  log('Status received', statusInput);
-  if (statusInput === 'true') {
+  const failedJob = getInput('failed');
+  log('Status received', failedJob);
+  if (failedJob === 'true') {
     await slackPost(`${githubContext.owner}/${githubContext.repo}`, branch, workFlowName);
   }
-
-  // const shouldDeleteOldComments = getInput('delete-old-comments').toLowerCase() === 'true';
-
-  // const octokat = new Octokit({ auth: process.env['GITHUB_TOKEN'] });
-
-  // const workFlows = await octokat.actions.listRepoWorkflows({ owner: githubContext.owner, repo: githubContext.repo });
-  // workFlows.data.workflows.forEach((flow) => {
-  //   flow.
-  // });
 }
 
 main()

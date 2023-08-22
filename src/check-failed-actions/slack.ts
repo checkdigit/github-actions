@@ -38,7 +38,7 @@ export default async function (repoName: string, branch: string, actionName: str
     attachments: [
       {
         color: 'danger',
-        text: `*Details* \n - Action ${actionName} in ${repoName} in the ${branch} branch has failed*`,
+        text: `*Details* \n - Action ${actionName} in ${repoName} in ${branch} has failed*`,
       },
     ],
   };
