@@ -18,15 +18,13 @@ export async function main(): Promise<void | boolean> {
     return;
   }
 
-  const actionName = getInput('actionName');
-  log('Action Name', actionName);
-
-  log('GITHUB_WORKFLOW', process.env['GITHUB_WORKFLOW']);
+  const workFlowName = process.env['GITHUB_WORKFLOW'] ?? 'unknown';
+  log('GITHUB_WORKFLOW', workFlowName);
 
   const statusInput = getInput('failed');
   log('Status received', statusInput);
   if (statusInput === 'true') {
-    await slackPost(`${githubContext.owner}/${githubContext.repo}`);
+    await slackPost(`${githubContext.owner}/${githubContext.repo}`, workFlowName);
   }
 
   // const shouldDeleteOldComments = getInput('delete-old-comments').toLowerCase() === 'true';
