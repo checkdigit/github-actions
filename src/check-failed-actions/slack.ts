@@ -32,13 +32,13 @@ async function postSlackMessage(slackMessage: SlackMessage): Promise<void> {
   }
 }
 
-export default async function (repoName: string, actionName: string): Promise<void> {
+export default async function (repoName: string, branch: string, actionName: string): Promise<void> {
   const slackMessage: SlackMessage = {
     text: `*${repoName} - action failure*`,
     attachments: [
       {
         color: 'danger',
-        text: `*Details* \n - Action ${actionName} in ${repoName} / main has failed*`,
+        text: `*Details* \n - Action ${actionName} in ${repoName} in the ${branch} branch has failed*`,
       },
     ],
   };

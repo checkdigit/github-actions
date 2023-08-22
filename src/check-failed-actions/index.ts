@@ -21,10 +21,12 @@ export async function main(): Promise<void | boolean> {
   const workFlowName = process.env['GITHUB_WORKFLOW'] ?? 'unknown';
   log('GITHUB_WORKFLOW', workFlowName);
 
+  const branch = process.env['GITHUB_REF_NAME'] ?? 'unknown';
+
   const statusInput = getInput('failed');
   log('Status received', statusInput);
   if (statusInput === 'true') {
-    await slackPost(`${githubContext.owner}/${githubContext.repo}`, workFlowName);
+    await slackPost(`${githubContext.owner}/${githubContext.repo}`, branch, workFlowName);
   }
 
   // const shouldDeleteOldComments = getInput('delete-old-comments').toLowerCase() === 'true';
