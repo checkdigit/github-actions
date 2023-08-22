@@ -21,7 +21,7 @@ export async function main(): Promise<void | boolean> {
   const workFlowName = process.env['GITHUB_WORKFLOW'] ?? 'unknown';
   log('GITHUB_WORKFLOW', workFlowName);
 
-  const branch = process.env['GITHUB_REF_NAME'] ?? 'unknown';
+  const branch = process.env['GITHUB_REF'] ?? 'unknown';
 
   const statusInput = getInput('failed');
   log('Status received', statusInput);
