@@ -1,0 +1,6 @@
+name: Check Failed Actions
+description: Check for any failed actions
+runs:
+  using: node16
+  pre: '../setup.mjs'
+  main: ../build/check-failed-actions/index.js
