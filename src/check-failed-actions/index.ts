@@ -6,6 +6,7 @@ import { debug } from 'debug';
 
 import { getPullRequestContext } from '../github-api';
 import slackPost from './slack';
+import { getInput } from '@actions/core';
 
 const log = debug('check-failed-actions');
 
@@ -17,6 +18,11 @@ export async function main(): Promise<void | boolean> {
     log('Error - unable to get github context');
     return;
   }
+
+  const statusInput = getInput('status');
+  log(statusInput);
+
+  // const shouldDeleteOldComments = getInput('delete-old-comments').toLowerCase() === 'true';
 
   // const octokat = new Octokit({ auth: process.env['GITHUB_TOKEN'] });
 
