@@ -18,9 +18,9 @@ export async function main(): Promise<void | boolean> {
     return;
   }
 
-  const statusInput = getInput('status');
+  const statusInput = getInput('failed');
   log('Status received', statusInput);
-  if (statusInput === 'failure') {
+  if (statusInput === 'true') {
     await slackPost(`${githubContext.owner}/${githubContext.repo}`);
   }
 
