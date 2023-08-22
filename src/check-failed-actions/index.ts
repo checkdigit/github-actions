@@ -20,6 +20,9 @@ export async function main(): Promise<void | boolean> {
 
   log('Context', JSON.stringify(githubContext));
 
+  const actionName = getInput('actionName');
+  log('Action Name', actionName);
+
   const statusInput = getInput('failed');
   log('Status received', statusInput);
   if (statusInput === 'true') {
