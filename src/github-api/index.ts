@@ -33,6 +33,7 @@ export async function getPullRequestContext(): Promise<GithubConfigurationRespon
   try {
     log('getGithubContext Path:', process.env['GITHUB_EVENT_PATH']);
     const gitContextFile = await readFile(process.env['GITHUB_EVENT_PATH'] ?? '', { encoding: 'utf8' });
+    log('getGithubContext - raw context - gitContextFile', gitContextFile);
     const payload = JSON.parse(gitContextFile) as {
       issue?: { number: number };
       pull_request?: { number: number };
