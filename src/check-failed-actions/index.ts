@@ -7,7 +7,7 @@ import { getInput } from '@actions/core';
 import { getPullRequestContext } from '../github-api';
 import slackPost from './slack';
 
-const log = debug('check-failed-actions');
+const log = debug('check-failed-action');
 
 export async function main(): Promise<void | boolean> {
   log('Action starting');
