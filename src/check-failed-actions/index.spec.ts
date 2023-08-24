@@ -4,20 +4,12 @@ import { strict as assert } from 'node:assert';
 import os from 'node:os';
 import path from 'node:path';
 import fs from 'node:fs/promises';
-import http, { IncomingMessage, ServerResponse } from 'node:http';
+import http from 'node:http';
 import { v4 as uuid } from 'uuid';
 import getPort from 'get-port';
 
 import slackNock from './slack-nock.test';
 import { main } from './index';
-
-async function readRequestBody(request: IncomingMessage) {
-  let body = '';
-  for await (const chunk of request) {
-    body += chunk;
-  }
-  return body;
-}
 
 describe('github', () => {
   const tmpFile = path.join(os.tmpdir(), uuid());
@@ -25,19 +17,26 @@ describe('github', () => {
   let port: number;
   let lastRequest: string;
 
-  beforeAll(async () => {
-    await fs.writeFile(tmpFile, JSON.stringify({ foo: 'bar' }));
-
-    port = await getPort();
-
-    server = http
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      .createServer(async (request: IncomingMessage, response: ServerResponse) => {
-        lastRequest = await readRequestBody(request);
-        response.writeHead(200, { 'Content-Type': 'application/json' });
-        response.end();
+  function setupServer() {
+    return http
+      .createServer((req, res) => {
+        let requestBody = '';
+        req.on('data', (chunk) => {
+          requestBody += chunk;
+        });
+        req.on('end', () => {
+          lastRequest = requestBody;
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ message: 'Request body received successfully' }));
+        });
       })
       .listen(port, '::1');
+  }
+
+  beforeAll(async () => {
+    await fs.writeFile(tmpFile, JSON.stringify({ foo: 'bar' }));
+    port = await getPort();
+    server = setupServer();
   });
 
   afterAll(async () => {
