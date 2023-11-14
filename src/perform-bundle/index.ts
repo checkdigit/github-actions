@@ -11,9 +11,8 @@ import analyze from './analyze';
 
 const log = debug('perform-bundle');
 
-function bytesToKB(bytes) {
-  const kilobytes = bytes / 1024;
-  return kilobytes;
+function bytesToKB(bytes: number) {
+  return bytes / 1024;
 }
 
 async function readMetaDataFile(): Promise<Metafile> {
