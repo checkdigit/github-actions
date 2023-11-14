@@ -11,6 +11,11 @@ import analyze from './analyze';
 
 const log = debug('perform-bundle');
 
+function bytesToKB(bytes) {
+  const kilobytes = bytes / 1024;
+  return kilobytes;
+}
+
 async function readMetaDataFile(): Promise<Metafile> {
   try {
     const rawFile = await readFile('esbuild-lambda/metafile.json', 'utf8');
@@ -27,7 +32,9 @@ export async function main(): Promise<void> {
   const metaDataFile = await readMetaDataFile();
   const results = analyze(metaDataFile);
   await publishCommentAndRemovePrevious(
-    `Bundle created - Total size ${results.totalBytes} bytes - source ${results.sourceBytes} bytes - modules ${results.moduleBytes} bytes`,
+    `Bundle created - Total size ${bytesToKB(results.totalBytes)} KB - source ${bytesToKB(
+      results.sourceBytes
+    )} KB - modules ${bytesToKB(results.moduleBytes)} KB`,
     'Bundle created '
   );
 }
