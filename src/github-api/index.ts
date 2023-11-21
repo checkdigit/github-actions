@@ -221,6 +221,10 @@ export async function approvedReviews(): Promise<GithubReviewStatus> {
     if (!review?.user?.login) {
       throw new Error(THROW_ACTION_ERROR_MESSAGE);
     }
+    // skip any bots related comments on a PR (such as GitHub advanced security)
+    if (review.user.type === 'Bot') {
+      continue;
+    }
     // skip if the user is the one who created the PR makes a comment - that is not a review
     if (pullRequestState?.data?.user?.login === review.user.login && review.state === 'COMMENTED') {
       continue;
