@@ -55,4 +55,24 @@ describe('github review', () => {
     const result = await approvedReviews();
     assert.deepStrictEqual(result, { approvedReviews: 2, totalReviewers: 2 });
   });
+
+  // eslint-disable-next-line jest/no-commented-out-tests
+  // it.only('Test against real github', async () => {
+  //   // setGlobalDispatcher(gitHubNock);
+  //   process.env['GITHUB_REPOSITORY'] = 'checkdigit/tasc-user';
+  //   process.env['GITHUB_TOKEN'] = ''; // insert token here
+  //   const filePath = path.join(tmpdir(), actionFolderName, uuid());
+  //   await writeFile(
+  //     filePath,
+  //     JSON.stringify({
+  //       // eslint-disable-next-line camelcase
+  //       pull_request: {
+  //         number: 86,
+  //       },
+  //     })
+  //   );
+  //   process.env['GITHUB_EVENT_PATH'] = filePath;
+  //   const result = await approvedReviews();
+  //   assert.deepStrictEqual(result, { approvedReviews: 6, totalReviewers: 6 });
+  // });
 });
