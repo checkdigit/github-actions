@@ -223,13 +223,6 @@ export async function approvedReviews(): Promise<GithubReviewStatus> {
     log('No reviews on this PR');
     throw new Error('No reviews on this PR');
   }
-  //
-  // const pullRequestState = await octokat.rest.pulls.get({
-  //   owner: githubContext.owner,
-  //   repo: githubContext.repo,
-  //   // eslint-disable-next-line camelcase
-  //   pull_number: githubContext.number,
-  // });
 
   const pullRequestStateRequest: PullRequestState[] = await octokat.paginate(
     'GET /repos/{owner}/{repo}/pulls/{number}',
