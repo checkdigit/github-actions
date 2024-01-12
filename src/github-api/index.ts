@@ -3,7 +3,6 @@ import process from 'node:process';
 import { readFile } from 'node:fs/promises';
 import { debug } from 'debug';
 import { Octokit } from '@octokit/rest';
-import { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/parameters-and-response-types';
 
 const THROW_UNABLE_TO_GET_CONTEXT = 'unable to get context';
 const THROW_ACTION_ERROR_MESSAGE = 'incorrect action configuration';
@@ -17,6 +16,20 @@ export interface GithubConfigurationResponse {
 export interface GithubReviewStatus {
   approvedReviews: number;
   totalReviewers: number;
+}
+
+export interface RequestedReviewers {
+  user?: {
+    type?: 'Bot' | 'User';
+    login?: string;
+  };
+  state: string;
+}
+
+export interface PullRequestState {
+  user?: {
+    login: string;
+  };
 }
 
 const log = debug('publish-beta:github');
@@ -197,11 +210,14 @@ export async function approvedReviews(): Promise<GithubReviewStatus> {
     throw new Error(THROW_UNABLE_TO_GET_CONTEXT);
   }
 
-  const requestedReviewers = await octokat.paginate('GET /repos/{owner}/{repo}/pulls/{number}/reviews', {
-    owner: githubContext.owner,
-    repo: githubContext.repo,
-    number: githubContext.number,
-  });
+  const requestedReviewers: RequestedReviewers[] = await octokat.paginate(
+    'GET /repos/{owner}/{repo}/pulls/{number}/reviews',
+    {
+      owner: githubContext.owner,
+      repo: githubContext.repo,
+      number: githubContext.number,
+    }
+  );
 
   if (requestedReviewers.length === 0) {
     log('No reviews on this PR');
@@ -215,11 +231,14 @@ export async function approvedReviews(): Promise<GithubReviewStatus> {
   //   pull_number: githubContext.number,
   // });
 
-  const pullRequestStateRequest = await octokat.paginate('GET /repos/{owner}/{repo}/pulls/{number}', {
-    owner: githubContext.owner,
-    repo: githubContext.repo,
-    number: githubContext.number,
-  });
+  const pullRequestStateRequest: PullRequestState[] = await octokat.paginate(
+    'GET /repos/{owner}/{repo}/pulls/{number}',
+    {
+      owner: githubContext.owner,
+      repo: githubContext.repo,
+      number: githubContext.number,
+    }
+  );
 
   if (pullRequestStateRequest.length !== 1) {
     throw new Error('Unable to get pull request state');
