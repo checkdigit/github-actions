@@ -18,6 +18,20 @@ export interface GithubReviewStatus {
   totalReviewers: number;
 }
 
+export interface RequestedReviewers {
+  user?: {
+    type?: 'Bot' | 'User';
+    login?: string;
+  };
+  state: string;
+}
+
+export interface PullRequestState {
+  user?: {
+    login: string;
+  };
+}
+
 const log = debug('publish-beta:github');
 
 export function getPRNumber(): string {
@@ -196,28 +210,37 @@ export async function approvedReviews(): Promise<GithubReviewStatus> {
     throw new Error(THROW_UNABLE_TO_GET_CONTEXT);
   }
 
-  // list status of all reviews
-  const requestedReviewers = await octokat.rest.pulls.listReviews({
-    owner: githubContext.owner,
-    repo: githubContext.repo,
-    // eslint-disable-next-line camelcase
-    pull_number: githubContext.number,
-  });
+  const requestedReviewers: RequestedReviewers[] = await octokat.paginate(
+    'GET /repos/{owner}/{repo}/pulls/{number}/reviews',
+    {
+      owner: githubContext.owner,
+      repo: githubContext.repo,
+      number: githubContext.number,
+    }
+  );
 
-  if (requestedReviewers.data.length === 0) {
+  if (requestedReviewers.length === 0) {
     log('No reviews on this PR');
     throw new Error('No reviews on this PR');
   }
 
-  const pullRequestState = await octokat.rest.pulls.get({
-    owner: githubContext.owner,
-    repo: githubContext.repo,
-    // eslint-disable-next-line camelcase
-    pull_number: githubContext.number,
-  });
+  const pullRequestStateRequest: PullRequestState[] = await octokat.paginate(
+    'GET /repos/{owner}/{repo}/pulls/{number}',
+    {
+      owner: githubContext.owner,
+      repo: githubContext.repo,
+      number: githubContext.number,
+    }
+  );
+
+  if (pullRequestStateRequest.length !== 1) {
+    throw new Error('Unable to get pull request state');
+  }
+  const pullRequestState = pullRequestStateRequest['0'];
+
   const reviewState: { [user: string]: string[] } = {};
 
-  for (const review of requestedReviewers.data) {
+  for (const review of requestedReviewers) {
     if (!review?.user?.login) {
       throw new Error(THROW_ACTION_ERROR_MESSAGE);
     }
@@ -226,7 +249,7 @@ export async function approvedReviews(): Promise<GithubReviewStatus> {
       continue;
     }
     // skip if the user is the one who created the PR makes a comment - that is not a review
-    if (pullRequestState?.data?.user?.login === review.user.login && review.state === 'COMMENTED') {
+    if (pullRequestState?.user?.login === review.user.login && review.state === 'COMMENTED') {
       continue;
     }
     const userState = reviewState[review.user.login];
