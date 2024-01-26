@@ -1,6 +1,6 @@
 {
   "name": "@checkdigit/github-actions",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": " Provides supporting operations for github action builds.",
   "typings": "./dist/index.d.ts",
   "main": "./dist/index.js",
