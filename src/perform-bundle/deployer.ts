@@ -10,7 +10,7 @@ const log = debug('perform-bundle:deployer');
 
 export default async function (): Promise<void> {
   log('Install deployer');
-  await execAsync('npm install @checkdigit/deployer');
+  await execAsync('npm install @checkdigit/deployer@3.5.1-PR.153-6567');
   log('Install deployer complete');
   log('Execute deployer');
   await execAsync('export AWS_REGION=us-east-1 && npx deploy stage:lambda');
