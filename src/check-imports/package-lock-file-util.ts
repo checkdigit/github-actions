@@ -44,11 +44,11 @@ export function extractPackageName(key: string): string {
 
 export function isMatchingName(nameA: string, nameB: string): boolean {
   if (nameA.endsWith('*')) {
-    return nameB.startsWith(nameA.slice(0, nameA.lastIndexOf('*')));
+    return nameB.startsWith(nameA.slice(0, -1));
   }
 
   if (nameB.endsWith('*')) {
-    return nameA.startsWith(nameB.slice(0, nameB.lastIndexOf('*')));
+    return nameA.startsWith(nameB.slice(0, -1));
   }
 
   return nameA === nameB;

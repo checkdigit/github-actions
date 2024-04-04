@@ -68,7 +68,7 @@ function percentage(item: { hit: number; found: number } | undefined) {
 
   // eslint-disable-next-line no-magic-numbers
   const value = item.found === 0 ? 100 : (item.hit / item.found) * 100;
-  const rounded = value.toFixed(2).replaceAll(/\.0*$/gu, ''); // remove trailing zeros after the decimal point
+  const rounded = value.toFixed(2).replace(/\.0*$/u, ''); // remove trailing zeros after the decimal point
 
   // eslint-disable-next-line no-magic-numbers
   const tag = value === 100 ? fragment : b;

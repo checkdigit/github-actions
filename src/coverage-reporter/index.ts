@@ -7,7 +7,6 @@
 
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { strict as assert } from 'node:assert';
 
 import { getInput, setFailed } from '@actions/core';
 import { context, getOctokit } from '@actions/github';
@@ -45,11 +44,10 @@ async function main() {
     console.log(`No coverage report found at '${baseFile}', ignoring...`);
   }
 
-  const workspace = process.env['GITHUB_WORKSPACE'];
-  assert.ok(workspace, 'GITHUB_WORKSPACE is not set');
   const options = {
     repository: context.payload.repository?.full_name,
-    prefix: normalizePath(`${workspace}/`),
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    prefix: normalizePath(`${process.env['GITHUB_WORKSPACE']!}/`),
     workingDir: workingDirectory,
   } as Options;
 

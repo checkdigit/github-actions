@@ -120,7 +120,7 @@ export function parse(input: string): Lcov {
         break;
       }
       case 'FNDA': {
-        const [lineNumber, name] = parts[1].split(',') as [string, string];
+        const [lineNumber, name] = parts[1].split(',');
         item.functions.details.some((lcovFunction) => {
           if (lcovFunction.name === name && lcovFunction.hit === undefined) {
             lcovFunction.hit = Number(lineNumber);
@@ -131,7 +131,7 @@ export function parse(input: string): Lcov {
         break;
       }
       case 'BRDA': {
-        const [lineNumber, block, branch, taken] = parts[1].split(',') as [string, string, string, string];
+        const [lineNumber, block, branch, taken] = parts[1].split(',');
         item.branches.details.push({
           line: Number(lineNumber),
           block: Number(block),

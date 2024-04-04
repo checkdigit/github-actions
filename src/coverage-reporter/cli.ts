@@ -25,7 +25,7 @@ async function main() {
   const lcov = parse(content);
 
   let before;
-  if (beforeFile !== undefined) {
+  if (beforeFile !== undefined && beforeFile !== '') {
     before = parse(await fs.readFile(beforeFile, 'utf8'));
   }
 

@@ -14,17 +14,13 @@ import { tabulate } from './tabulate';
 export function comment(lcov: Lcov, options: Options): string {
   return fragment(
     options.title !== undefined && options.title !== '' ? h2(options.title) : '',
-    options.base !== undefined && options.title !== ''
+    options.base !== undefined && options.base !== ''
       ? `Coverage after merging ${b(options.head)} into ${b(options.base)} will be`
       : `Coverage for this commit`,
     table(tbody(tr(th(percentage(lcov).toFixed(2), '%')))),
     '\n\n',
     details(
-      summary(
-        options.shouldFilterChangedFiles !== undefined && options.title !== ''
-          ? 'Coverage Report for Changed Files'
-          : 'Coverage Report',
-      ),
+      summary(options.shouldFilterChangedFiles === true ? 'Coverage Report for Changed Files' : 'Coverage Report'),
       tabulate(lcov, options),
     ),
   );
@@ -43,17 +39,13 @@ export function diff(lcov: Lcov, before: Lcov | undefined, options: Options): st
 
   return fragment(
     options.title !== undefined && options.title !== '' ? h2(options.title) : '',
-    options.base !== undefined && options.title !== ''
+    options.base !== undefined && options.base !== ''
       ? `Coverage after merging ${b(options.head)} into ${b(options.base)} will be`
       : `Coverage for this commit`,
     table(tbody(tr(th(pafter.toFixed(2), '%'), th(arrow, ' ', plus, pdiff.toFixed(2), '%')))),
     '\n\n',
     details(
-      summary(
-        options.shouldFilterChangedFiles !== undefined && options.title !== ''
-          ? 'Coverage Report for Changed Files'
-          : 'Coverage Report',
-      ),
+      summary(options.shouldFilterChangedFiles === true ? 'Coverage Report for Changed Files' : 'Coverage Report'),
       tabulate(lcov, options),
     ),
   );

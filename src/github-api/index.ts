@@ -46,14 +46,12 @@ export function getPRNumber(): string {
 export async function getPullRequestContext(): Promise<GithubConfigurationResponse | undefined> {
   try {
     log('getGithubContext Path:', process.env['GITHUB_EVENT_PATH']);
-
     const gitContextFile = await readFile(process.env['GITHUB_EVENT_PATH'] ?? '', { encoding: 'utf8' });
     const payload = JSON.parse(gitContextFile) as {
       issue?: { number: number };
       pull_request?: { number: number };
       number?: { number: number };
     };
-
     const gitHubRepo = process.env['GITHUB_REPOSITORY'] ?? '';
     const [owner, repo] = gitHubRepo.split('/');
     if (owner === undefined || owner === '' || repo === undefined || repo === '') {
@@ -69,7 +67,7 @@ export async function getPullRequestContext(): Promise<GithubConfigurationRespon
 }
 
 export async function getFileFromMain(filename: string): Promise<string | undefined> {
-  if (process.env['GITHUB_TOKEN'] === undefined) {
+  if (process.env['GITHUB_TOKEN'] === undefined || process.env['GITHUB_TOKEN'] === '') {
     log('getFileFromMain - GITHUB_TOKEN is not set - check action configuration');
     throw new Error(THROW_ACTION_ERROR_MESSAGE);
   }
@@ -101,7 +99,7 @@ export async function getFileFromMain(filename: string): Promise<string | undefi
 }
 
 export async function getLabelsOnPR(): Promise<string[]> {
-  if (process.env['GITHUB_TOKEN'] === undefined) {
+  if (process.env['GITHUB_TOKEN'] === undefined || process.env['GITHUB_TOKEN'] === '') {
     log('getLabelsOnPR - GITHUB_TOKEN is not set - check action configuration');
     throw new Error(THROW_ACTION_ERROR_MESSAGE);
   }
@@ -127,7 +125,7 @@ export async function publishCommentAndRemovePrevious(
   message: string,
   prefixOfPreviousMessageToRemove?: string,
 ): Promise<void> {
-  if (process.env['GITHUB_TOKEN'] === undefined) {
+  if (process.env['GITHUB_TOKEN'] === undefined || process.env['GITHUB_TOKEN'] === '') {
     log('publishCommentAndRemovePrevious: GITHUB_TOKEN is not set - check action configuration');
     throw new Error(THROW_ACTION_ERROR_MESSAGE);
   }
@@ -153,6 +151,7 @@ export async function publishCommentAndRemovePrevious(
     for (const comment of prComments.data) {
       if (
         prefixOfPreviousMessageToRemove !== undefined &&
+        prefixOfPreviousMessageToRemove !== '' &&
         (comment.body === undefined || comment.body.includes(prefixOfPreviousMessageToRemove))
       ) {
         log('Comment removed');
@@ -174,12 +173,11 @@ export async function publishCommentAndRemovePrevious(
     owner: githubContext.owner,
     repo: githubContext.repo,
     body: message,
-    // body: `Beta Published - Install Command: \`npm install ${newBetaVersion}\` `.replaceAll('"', ''),
   });
 }
 
 export async function haveAllReviewersReviewed(): Promise<number> {
-  if (process.env['GITHUB_TOKEN'] === undefined) {
+  if (process.env['GITHUB_TOKEN'] === undefined || process.env['GITHUB_TOKEN'] === '') {
     log('GITHUB_TOKEN is not set - check action configuration');
     throw new Error(THROW_ACTION_ERROR_MESSAGE);
   }
@@ -202,7 +200,7 @@ export async function haveAllReviewersReviewed(): Promise<number> {
 }
 
 export async function approvedReviews(): Promise<GithubReviewStatus> {
-  if (process.env['GITHUB_TOKEN'] === undefined) {
+  if (process.env['GITHUB_TOKEN'] === undefined || process.env['GITHUB_TOKEN'] === '') {
     log('GITHUB_TOKEN is not set - check action configuration');
     throw new Error(THROW_ACTION_ERROR_MESSAGE);
   }
@@ -245,7 +243,7 @@ export async function approvedReviews(): Promise<GithubReviewStatus> {
   const reviewState: Record<string, string[]> = {};
 
   for (const review of requestedReviewers) {
-    if (review.user?.login === undefined) {
+    if (review.user?.login === undefined || review.user.login === '') {
       throw new Error(THROW_ACTION_ERROR_MESSAGE);
     }
     // skip any bots related comments on a PR (such as GitHub advanced security)
