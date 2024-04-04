@@ -1,23 +1,22 @@
 {
   "name": "@checkdigit/github-actions",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": " Provides supporting operations for github action builds.",
-  "typings": "./dist/index.d.ts",
-  "main": "./dist/index.js",
-  "prettier": "@checkdigit/prettier-config",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/checkdigit/github-actions.git"
-  },
-  "engines": {
-    "node": ">=16"
-  },
   "author": "Check Digit, LLC",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/checkdigit/github-actions/issues"
   },
   "homepage": "https://github.com/checkdigit/github-actions#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/checkdigit/github-actions.git"
+  },
+  "engines": {
+    "node": ">=20.11"
+  },
+  "type": "module",
+  "sideEffects": false,
   "bin": {
     "action": "bin/action"
   },
@@ -26,37 +25,37 @@
     "/bin/"
   ],
   "dependencies": {
-    "@actions/core": "^1.10.0",
-    "@actions/github": "^5.1.1",
-    "@octokit/rest": "^19.0.7",
+    "@actions/core": "^1.10.1",
+    "@actions/github": "^6.0.0",
+    "@octokit/rest": "^20.1.0",
     "debug": "^4.3.4",
-    "semver": "^7.3.8",
-    "undici": "^5.21.0"
+    "semver": "^7.6.0",
+    "undici": "^6.11.1"
   },
   "devDependencies": {
-    "@checkdigit/eslint-config": "^7.5.0",
-    "@checkdigit/jest-config": "^2.1.0",
-    "@checkdigit/prettier-config": "^3.3.0",
-    "@checkdigit/typescript-config": "^3.3.0",
-    "@types/debug": "^4.1.7",
-    "@types/semver": "^7.3.13",
-    "@types/uuid": "^9.0.1",
-    "esbuild": "^0.19.5",
-    "nock": "^13.3.0",
-    "rimraf": "^4.4.0",
-    "uuid": "^9.0.0"
+    "@checkdigit/eslint-config": "^9.2.0",
+    "@checkdigit/jest-config": "^6.0.0",
+    "@checkdigit/prettier-config": "^5.3.0",
+    "@checkdigit/typescript-config": "^7.0.1",
+    "@types/debug": "^4.1.12",
+    "@types/semver": "^7.5.8",
+    "@types/uuid": "^9.0.8",
+    "esbuild": "^0.20.2",
+    "nock": "^14.0.0-beta.5",
+    "rimraf": "^5.0.5",
+    "uuid": "^9.0.1"
   },
   "scripts": {
     "dist": "rimraf dist && tsc --outDir dist && rimraf dist/*.spec.* dist/nocks",
     "prepublishOnly": "npm run dist",
-    "lint": "eslint -f unix --ext .js,.ts src/**",
-    "lint:fix": "eslint -f unix --ext .js,.ts src/** --fix",
+    "lint": "eslint --max-warnings 0 --ignore-path .gitignore .",
+    "lint:fix": "eslint --ignore-path .gitignore . --fix",
     "prettier": "prettier --ignore-path .gitignore --list-different .",
     "prettier:fix": "prettier --ignore-path .gitignore --write .",
     "test": "npm run ci:compile && npm run ci:test && npm run ci:lint && npm run ci:style",
     "ci:compile": "tsc --noEmit",
-    "ci:test": "jest --coverage=false",
-    "ci:coverage": "jest --coverage=true",
+    "ci:test": "NODE_OPTIONS=\"--disable-warning ExperimentalWarning --experimental-vm-modules\" jest --coverage=false",
+    "ci:coverage": "NODE_OPTIONS=\"--disable-warning ExperimentalWarning --experimental-vm-modules\" jest --coverage=true",
     "ci:lint": "npm run lint",
     "ci:style": "npm run prettier"
   },
@@ -66,6 +65,10 @@
   "eslintConfig": {
     "extends": [
       "@checkdigit/eslint-config"
-    ]
-  }
+    ],
+    "rules": {
+      "n/no-process-env": "off"
+    }
+  },
+  "prettier": "@checkdigit/prettier-config"
 }

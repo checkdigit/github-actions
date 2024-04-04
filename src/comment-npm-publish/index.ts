@@ -1,20 +1,19 @@
 // comment-npm-publish/index.ts
 
-import process from 'node:process';
-import { debug } from 'debug';
+import debug from 'debug';
 import { getInput } from '@actions/core';
 
 import { publishCommentAndRemovePrevious } from '../github-api';
 
 const log = debug('comment-npm-publish');
-export async function main(): Promise<void | boolean> {
+export async function main(): Promise<void> {
   log('Action start');
 
   const packageNameAndBetaVersion = getInput('betaPackage');
   log('Package Name and Version obtained: ', packageNameAndBetaVersion);
   await publishCommentAndRemovePrevious(
     `Beta Published - Install Command: \`npm install ${packageNameAndBetaVersion}\` `.replaceAll('"', ''),
-    'Beta Published - Install Command: '
+    'Beta Published - Install Command: ',
   );
   log('Action end');
 }

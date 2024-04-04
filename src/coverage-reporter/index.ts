@@ -7,6 +7,7 @@
 
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
+import { strict as assert } from 'node:assert';
 
 import { getInput, setFailed } from '@actions/core';
 import { context, getOctokit } from '@actions/github';
@@ -16,7 +17,7 @@ import { diff } from './comment';
 import { getChangedFiles } from './get-changes';
 import { deleteOldComments } from './delete-old-comments';
 import type { Options } from './options';
-import { normalisePath } from './util';
+import { normalizePath } from './util';
 
 const MAX_COMMENT_CHARS = 65_536;
 
@@ -31,21 +32,24 @@ async function main() {
   const title = getInput('title');
 
   const raw = await fs.readFile(lcovFile, 'utf8').catch(() => null);
-  if (!raw) {
+  if (raw === null || raw === '') {
     // eslint-disable-next-line no-console
     console.log(`No coverage report found at '${lcovFile}', exiting...`);
     return;
   }
 
-  const baseRaw = baseFile && ((await fs.readFile(baseFile, 'utf8').catch(() => null)) as string);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const baseRaw = baseFile && (await fs.readFile(baseFile, 'utf8').catch(() => null))!;
   if (baseFile && !baseRaw) {
     // eslint-disable-next-line no-console
     console.log(`No coverage report found at '${baseFile}', ignoring...`);
   }
 
+  const workspace = process.env['GITHUB_WORKSPACE'];
+  assert.ok(workspace, 'GITHUB_WORKSPACE is not set');
   const options = {
     repository: context.payload.repository?.full_name,
-    prefix: normalisePath(`${process.env['GITHUB_WORKSPACE'] as string}/`),
+    prefix: normalizePath(`${workspace}/`),
     workingDir: workingDirectory,
   } as Options;
 
@@ -79,8 +83,8 @@ async function main() {
     await githubClient.rest.issues.createComment({
       repo: context.repo.repo,
       owner: context.repo.owner,
-      // eslint-disable-next-line camelcase
-      issue_number: context.payload.pull_request?.number as number,
+      // eslint-disable-next-line camelcase, @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
+      issue_number: context.payload.pull_request?.number!,
       body,
     });
   } else if (context.eventName === 'push') {

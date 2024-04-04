@@ -8,6 +8,8 @@
 
 import { strict as assert } from 'node:assert';
 
+import { describe, it } from '@jest/globals';
+
 import { parse, percentage } from './lcov';
 
 const example = `
@@ -122,7 +124,7 @@ describe('lcov', () => {
   it('percentage should calculate the correct percentage', () => {
     assert.equal(
       percentage([{ lines: { hit: 20, found: 25, details: [] } }, { lines: { hit: 10, found: 15, details: [] } }]),
-      75
+      75,
     );
   });
 });

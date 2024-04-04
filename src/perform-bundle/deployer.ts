@@ -2,7 +2,7 @@
 
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
-import { debug } from 'debug';
+import debug from 'debug';
 
 const execAsync = promisify(exec);
 

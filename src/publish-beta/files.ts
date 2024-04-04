@@ -16,7 +16,7 @@ export default async function copyNonTSFiles(sourceDirectory: string, destinatio
       if (!item.name.endsWith('.ts')) {
         await fs.copyFile(sourceItem, destinationItem);
       }
-    })
+    }),
   );
 }
 
@@ -37,6 +37,6 @@ export async function removeTestFilesFromSource(sourceDirectory: string): Promis
       ) {
         await fs.rm(sourceItem);
       }
-    })
+    }),
   );
 }

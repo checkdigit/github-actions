@@ -4,7 +4,8 @@ import { strict as assert } from 'node:assert';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
-import process from 'node:process';
+
+import { afterAll, beforeAll, describe, it } from '@jest/globals';
 
 import { generatePackageBetaTag, packageJSONUpdate } from './package';
 
@@ -36,7 +37,7 @@ describe('package', () => {
     process.env['GITHUB_SHA'] = '12345678ad90';
     await writeFile(
       path.join(tmpdir(), 'packageUpdate/package.json'),
-      JSON.stringify({ name: 'testpackage', version: '1.2.10', files: ['/dist/'] })
+      JSON.stringify({ name: 'testpackage', version: '1.2.10', files: ['/dist/'] }),
     );
     await mkdir(path.join(tmpdir(), 'packageUpdate/src'), { recursive: true });
 

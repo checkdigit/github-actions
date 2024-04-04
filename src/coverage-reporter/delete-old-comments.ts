@@ -15,7 +15,7 @@ const REQUESTED_COMMENTS_PER_PAGE = 20;
 async function getExistingComments(
   githubClient: ReturnType<typeof getOctokit>,
   options: Options,
-  githubContext: typeof context
+  githubContext: typeof context,
 ): Promise<{ id: number }[]> {
   let page = 0;
   let results: { id: number; user: Record<string, unknown> | null; body?: string }[] = [];
@@ -41,15 +41,17 @@ async function getExistingComments(
   return results.filter(
     (comment) =>
       Boolean(comment.user) &&
-      (!options.title || comment.body?.includes(options.title)) &&
-      comment.body?.includes('Coverage Report')
+      (options.title === undefined ||
+        options.title === '' ||
+        (comment.body !== undefined && comment.body.includes(options.title))) &&
+      comment.body?.includes('Coverage Report'),
   );
 }
 
 export async function deleteOldComments(
   githubClient: ReturnType<typeof getOctokit>,
   options: Options,
-  githubContext: typeof context
+  githubContext: typeof context,
 ): Promise<void> {
   const existingComments = await getExistingComments(githubClient, options, githubContext);
   for (const comment of existingComments) {

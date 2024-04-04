@@ -1,10 +1,10 @@
 // check-label/check-label.ts
 
-import process from 'node:process';
 import path from 'node:path';
 import { strict as assert } from 'node:assert';
 import { readFile } from 'node:fs/promises';
-import { debug } from 'debug';
+
+import debug from 'debug';
 import semver from 'semver';
 
 import { getFileFromMain, getLabelsOnPR } from '../github-api';
@@ -28,7 +28,7 @@ async function getLocalPackageJsonVersion(fileName: string): Promise<string> {
 export function validateVersion(
   branchPackageJsonVersion: string,
   mainPackageJsonVersion: string,
-  prLabel: string
+  prLabel: string,
 ): true {
   if (semver.gt(mainPackageJsonVersion, branchPackageJsonVersion)) {
     log(`Main branch version: ${mainPackageJsonVersion} vs branch version: ${branchPackageJsonVersion}`);
@@ -68,7 +68,7 @@ export default async function (): Promise<void> {
   const branchPackageJsonVersion = await getLocalPackageJsonVersion('package.json');
   const mainPackageJsonVersionRaw = await getFileFromMain('package.json');
 
-  if (!mainPackageJsonVersionRaw) {
+  if (mainPackageJsonVersionRaw === undefined) {
     throw new Error('Unable to get package.json from main branch');
   }
   const mainPackageJsonVersion = JSON.parse(mainPackageJsonVersionRaw) as PackageJSON;

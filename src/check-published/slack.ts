@@ -12,7 +12,7 @@ export interface SlackMessage {
     {
       color: string;
       text: string;
-    }
+    },
   ];
 }
 

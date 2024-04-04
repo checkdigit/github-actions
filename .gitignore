@@ -1,15 +1,6 @@
-logs
-*.log
-npm-debug.log*
-pids
-*.pid
-*.seed
-lib-cov
+.DS_Store
 .idea
-.code
 coverage
-.nyc_output
 build
+dist
 node_modules
-.npm
-.npmignore

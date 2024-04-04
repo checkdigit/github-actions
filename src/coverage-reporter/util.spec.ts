@@ -7,6 +7,8 @@
 
 import { strict as assert } from 'node:assert';
 
+import { describe, it } from '@jest/globals';
+
 import { createHref } from './util';
 
 describe('util', () => {

@@ -4,7 +4,8 @@ import { strict as assert } from 'node:assert';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
-import process from 'node:process';
+
+import { afterAll, beforeAll, describe, it } from '@jest/globals';
 import { v4 as uuid } from 'uuid';
 
 import gitHubNock from '../nocks/github.test';
@@ -19,7 +20,7 @@ describe('github review', () => {
   it('review two outstanding reviewers', async () => {
     // setGlobalDispatcher(gitHubNock);
     gitHubNock();
-    process.env['GITHUB_REPOSITORY'] = 'checkdigit/prviewOutstanding';
+    process.env['GITHUB_REPOSITORY'] = 'checkdigit/previewOutstanding';
     process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
     const filePath = path.join(tmpdir(), actionFolderName, uuid());
     await writeFile(
@@ -29,7 +30,7 @@ describe('github review', () => {
         pull_request: {
           number: 10,
         },
-      })
+      }),
     );
     process.env['GITHUB_EVENT_PATH'] = filePath;
     const result = await haveAllReviewersReviewed();
@@ -39,7 +40,7 @@ describe('github review', () => {
   it('No outstanding reviewers and all approved reviews', async () => {
     // setGlobalDispatcher(gitHubNock);
     gitHubNock();
-    process.env['GITHUB_REPOSITORY'] = 'checkdigit/prview';
+    process.env['GITHUB_REPOSITORY'] = 'checkdigit/preview';
     process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
     const filePath = path.join(tmpdir(), actionFolderName, uuid());
     await writeFile(
@@ -49,10 +50,10 @@ describe('github review', () => {
         pull_request: {
           number: 10,
         },
-      })
+      }),
     );
     process.env['GITHUB_EVENT_PATH'] = filePath;
     const result = await approvedReviews();
-    assert.deepStrictEqual(result, { approvedReviews: 2, totalReviewers: 2 });
+    assert.deepEqual(result, { approvedReviews: 2, totalReviewers: 2 });
   });
 });

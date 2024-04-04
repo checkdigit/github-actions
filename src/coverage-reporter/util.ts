@@ -6,18 +6,20 @@
  */
 
 import path from 'node:path';
+import { strict as assert } from 'node:assert';
 
 import type { Options } from './options';
 
-export function normalisePath(file: string): string {
-  return file.replace(/\\/gu, '/');
+export function normalizePath(file: string): string {
+  return file.replaceAll('\\', '/');
 }
 
 export function createHref(options: Options, file: { file: string }): { href: string; filename: string } {
   const relative = file.file.replace(options.prefix, '');
   const parts = relative.split('/');
-  const filename = parts[parts.length - 1] as string;
-  const url = path.join(options.repository, 'blob', options.commit, options.workingDir || './', relative);
+  const filename = parts.at(-1);
+  assert.ok(filename, 'Filename is missing');
+  const url = path.join(options.repository, 'blob', options.commit, options.workingDir ?? './', relative);
   return {
     href: `https://github.com/${url}`,
     filename,

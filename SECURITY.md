@@ -6,8 +6,8 @@ These versions of `@checkdigit/github-actions` are currently being supported wit
 
 | Version | Supported          |
 | ------- | ------------------ |
-| \>= 1.0 | :white_check_mark: |
-| \< 1.0  | :x:                |
+| \>= 2.0 | :white_check_mark: |
+| \< 2.0  | :x:                |
 
 ## Reporting a Vulnerability
 

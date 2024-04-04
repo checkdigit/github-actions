@@ -1,10 +1,11 @@
 // check-label/check-label.spec.ts
 
 import { strict as assert } from 'node:assert';
-import process from 'node:process';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+
+import { afterAll, beforeAll, describe, it } from '@jest/globals';
 import { v4 as uuid } from 'uuid';
 
 import gitHubNock from '../nocks/github.test';
@@ -20,14 +21,14 @@ async function createContext(prNumber: number) {
       pull_request: {
         number: prNumber,
       },
-    })
+    }),
   );
   process.env['GITHUB_EVENT_PATH'] = filePath;
 }
 
 function semverSubtract(version: string, versionLabel: 'patch' | 'major' | 'minor'): string {
   const versionParts = version.split('.');
-  if (versionLabel === 'major' && Number(versionParts[1]) !== 0) {
+  if (versionLabel === 'major' && Number(versionParts[0]) !== 0) {
     versionParts[0] = (Number(versionParts[0]) - 1).toString();
   }
 
@@ -58,11 +59,10 @@ describe('check label', () => {
     const packageJson = JSON.parse(packageJsonRaw);
 
     const targetVersion = semverSubtract(packageJson.version, 'patch');
-    assert(targetVersion !== null);
     gitHubNock({ labelPackageVersionMain: targetVersion });
 
     await createContext(10);
-    // assert that the call to checkLabel rejects a promise
+
     await assert.doesNotReject(checkLabel());
   });
 
@@ -73,11 +73,9 @@ describe('check label', () => {
     const packageJson = JSON.parse(packageJsonRaw);
 
     const targetVersion = semverSubtract(packageJson.version, 'patch');
-    assert(targetVersion !== null);
     gitHubNock({ labelPackageVersionMain: targetVersion });
 
     await createContext(11);
-    // assert that the call to checkLabel rejects a promise
 
     await assert.rejects(checkLabel(), {
       message: 'Version is incorrect based on Pull Request label',

@@ -1,14 +1,13 @@
 // check-pr-reviews/index.ts
 
-import process from 'node:process';
-import { debug } from 'debug';
+import debug from 'debug';
 import { setFailed } from '@actions/core';
 
 import { approvedReviews, haveAllReviewersReviewed, publishCommentAndRemovePrevious } from '../github-api';
 const PULL_REQUEST_MESSAGE_KEYWORD = 'PR review status ';
 
 const log = debug('check-pr-reviews');
-export async function main(): Promise<void | boolean> {
+export async function main(): Promise<void> {
   log('Action start');
 
   const yetToReview = await haveAllReviewersReviewed();
@@ -17,7 +16,7 @@ export async function main(): Promise<void | boolean> {
       yetToReview === 1 ? `has ${yetToReview} reviewer outstanding` : `has ${yetToReview} reviewers outstanding`;
     await publishCommentAndRemovePrevious(
       `:x: PR review status - ${reviewOutstandingMessage}`,
-      PULL_REQUEST_MESSAGE_KEYWORD
+      PULL_REQUEST_MESSAGE_KEYWORD,
     );
     setFailed(`PR has not been reviewed correctly - ${reviewOutstandingMessage}`);
     throw new Error(`PR has not been reviewed correctly - ${reviewOutstandingMessage}`);
@@ -35,7 +34,7 @@ export async function main(): Promise<void | boolean> {
 
     await publishCommentAndRemovePrevious(
       `:x: PR review status - ${approvedReviewsOutstandingMessage}`,
-      PULL_REQUEST_MESSAGE_KEYWORD
+      PULL_REQUEST_MESSAGE_KEYWORD,
     );
     setFailed(`PR has not been reviewed correctly - ${approvedReviewsOutstandingMessage}`);
     throw new Error('PR has not been reviewed correctly - not all reviewers have approved');
@@ -43,7 +42,7 @@ export async function main(): Promise<void | boolean> {
 
   await publishCommentAndRemovePrevious(
     ':white_check_mark: PR review status - All reviews completed and approved!',
-    PULL_REQUEST_MESSAGE_KEYWORD
+    PULL_REQUEST_MESSAGE_KEYWORD,
   );
 }
 

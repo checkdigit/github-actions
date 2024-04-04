@@ -4,7 +4,8 @@ import { strict as assert } from 'node:assert';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
-import process from 'node:process';
+
+import { afterAll, beforeAll, describe, it } from '@jest/globals';
 import { v4 as uuid } from 'uuid';
 
 import gitHubNock from '../nocks/github.test';
@@ -36,7 +37,7 @@ describe('github publish', () => {
         pull_request: {
           number: 10,
         },
-      })
+      }),
     );
     process.env['GITHUB_EVENT_PATH'] = filePath;
     await publishCommentAndRemovePrevious(uuid(), uuid());
@@ -56,7 +57,7 @@ describe('github publish', () => {
         pull_request: {
           number: 10,
         },
-      })
+      }),
     );
     process.env['GITHUB_EVENT_PATH'] = filePath;
     await publishCommentAndRemovePrevious(uuid(), uuid());
