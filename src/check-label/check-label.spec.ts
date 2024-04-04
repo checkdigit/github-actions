@@ -52,7 +52,10 @@ describe('check label', () => {
     await assert.rejects(checkLabel());
   });
 
-  it('label matches - patch', async () => {
+  /* -------------------- enable if the current PR label is patch -------------------- */
+
+  // eslint-disable-next-line jest/no-disabled-tests
+  it.skip('label matches - patch', async () => {
     process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
 
     const packageJsonRaw = await readFile(path.join(process.cwd(), 'package.json'), 'utf8');
@@ -66,7 +69,8 @@ describe('check label', () => {
     await assert.doesNotReject(checkLabel());
   });
 
-  it('label does not match - should be major but is patch', async () => {
+  // eslint-disable-next-line jest/no-disabled-tests
+  it.skip('label does not match - should be major but is patch', async () => {
     process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
 
     const packageJsonRaw = await readFile(path.join(process.cwd(), 'package.json'), 'utf8');
@@ -80,5 +84,36 @@ describe('check label', () => {
     await assert.rejects(checkLabel(), {
       message: 'Version is incorrect based on Pull Request label',
     });
+  });
+
+  /* -------------------- enable if the current PR label is major -------------------- */
+  it('label matches - major', async () => {
+    process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
+
+    const packageJsonRaw = await readFile(path.join(process.cwd(), 'package.json'), 'utf8');
+    const packageJson = JSON.parse(packageJsonRaw);
+
+    const targetVersion = semverSubtract(packageJson.version, 'major');
+    gitHubNock({ labelPackageVersionMain: targetVersion });
+
+    await createContext(10);
+
+    await assert.rejects(checkLabel(), {
+      message: 'Version is incorrect based on Pull Request label',
+    });
+  });
+
+  it('label does not match - should be major but is major', async () => {
+    process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
+
+    const packageJsonRaw = await readFile(path.join(process.cwd(), 'package.json'), 'utf8');
+    const packageJson = JSON.parse(packageJsonRaw);
+
+    const targetVersion = semverSubtract(packageJson.version, 'major');
+    gitHubNock({ labelPackageVersionMain: targetVersion });
+
+    await createContext(11);
+
+    await assert.doesNotReject(checkLabel());
   });
 });

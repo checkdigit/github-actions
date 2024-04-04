@@ -44,6 +44,6 @@ describe('package', () => {
     await packageJSONUpdate(path.join(tmpdir(), 'packageUpdate'));
     const rawUpdatedFile = await readFile(filePath, 'utf8');
     assert.ok(JSON.parse(rawUpdatedFile).version === '1.2.10-PR.87-ad90');
-    assert.deepEqual(JSON.parse(rawUpdatedFile).files.sort(), ['/dist/'].sort());
+    assert.deepEqual(JSON.parse(rawUpdatedFile).files, ['/dist/']);
   });
 });

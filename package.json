@@ -1,6 +1,6 @@
 {
   "name": "@checkdigit/github-actions",
-  "version": "1.0.3",
+  "version": "2.0.0",
   "description": " Provides supporting operations for github action builds.",
   "author": "Check Digit, LLC",
   "license": "MIT",
@@ -17,12 +17,23 @@
   },
   "type": "module",
   "sideEffects": false,
-  "bin": {
-    "action": "bin/action"
+  "exports": {
+    ".": {
+      "types": "./dist-types/index.d.ts",
+      "import": "./dist-mjs/index.mjs",
+      "default": "./dist-mjs/index.mjs"
+    }
   },
   "files": [
-    "/dist/",
-    "/bin/"
+    "src",
+    "dist-types",
+    "dist-mjs",
+    "!src/**/*.test.ts",
+    "!src/**/*.spec.ts",
+    "!dist-types/**/*.test.d.ts",
+    "!dist-types/**/*.spec.d.ts",
+    "!dist-mjs/**/*.test.mjs",
+    "!dist-mjs/**/*.spec.mjs"
   ],
   "dependencies": {
     "@actions/core": "^1.10.1",
@@ -46,8 +57,9 @@
     "uuid": "^9.0.1"
   },
   "scripts": {
-    "dist": "rimraf dist && tsc --outDir dist && rimraf dist/*.spec.* dist/nocks",
-    "prepublishOnly": "npm run dist",
+    "prepublishOnly": "npm run build:dist-types && npm run build:dist-mjs",
+    "build:dist-types": "rimraf dist-types && npx builder --type=types --outDir=dist-types",
+    "build:dist-mjs": "rimraf dist-mjs && npx builder --type=module --sourceMap --outDir=dist-mjs",
     "lint": "eslint --max-warnings 0 --ignore-path .gitignore .",
     "lint:fix": "eslint --ignore-path .gitignore . --fix",
     "prettier": "prettier --ignore-path .gitignore --list-different .",

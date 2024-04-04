@@ -2,5 +2,5 @@
 .idea
 coverage
 build
-dist
+dist-*
 node_modules
