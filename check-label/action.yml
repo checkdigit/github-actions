@@ -9,6 +9,6 @@ inputs:
     description: command to run
     required: true
 runs:
-  using: node20
+  using: node16
   pre: '../setup.mjs'
   main: ../build/check-label/index.js
