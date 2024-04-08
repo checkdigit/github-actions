@@ -2,7 +2,7 @@
 
 import path from 'node:path';
 import { readFile } from 'node:fs/promises';
-import satisfies from 'semver/functions/satisfies';
+import * as semver from 'semver';
 import type { Name, Range } from './packages-not-allowed';
 
 export interface Descriptor {
@@ -59,5 +59,5 @@ export function satisfiesNameAndRange(
   packageVersion: string,
   [name, range]: [Name, Range],
 ): boolean {
-  return isMatchingName(packageName, name) && satisfies(packageVersion, range);
+  return isMatchingName(packageName, name) && semver.satisfies(packageVersion, range);
 }
