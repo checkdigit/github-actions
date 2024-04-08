@@ -11,4 +11,4 @@ inputs:
 runs:
   using: node20
   pre: '../setup.mjs'
-  main: ./check-label/index.js
+  main: ../src/check-label/index.js
