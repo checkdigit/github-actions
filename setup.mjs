@@ -4,5 +4,4 @@ import childProcess from 'node:child_process';
 const cwd = new URL('.', import.meta.url).pathname;
 const exec = util.promisify(childProcess.exec);
 await exec('npm ci', { cwd });
-await exec('npx tsc', { cwd });
-await exec('export NODE_OPTIONS="--es-module-specifier-resolution=node"', { cwd });
+await exec('npm run build:dist-mjs', { cwd });
