@@ -3,4 +3,4 @@ description: Ensure version in main is published to NPM registry
 runs:
   using: node20
   pre: '../setup.mjs'
-  main: ../build/check-published/index.js
+  main: ../dist-mjs/check-published/index.js

@@ -11,4 +11,4 @@ inputs:
 runs:
   using: node20
   pre: '../setup.mjs'
-  main: ../build/perform-bundle/index.js
+  main: ../dist-mjs/perform-bundle/index.js

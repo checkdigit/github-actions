@@ -11,4 +11,4 @@ inputs:
 runs:
   using: node20
   pre: '../setup.mjs'
-  main: ../build/comment-npm-publish/index.js
+  main: ../dist-mjs/comment-npm-publish/index.js

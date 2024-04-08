@@ -61,7 +61,6 @@
     "prepublishOnly": "npm run build:dist-types && npm run build:dist-mjs",
     "build:dist-types": "rimraf dist-types && npx builder --type=types --outDir=dist-types",
     "build:dist-mjs": "rimraf dist-mjs && npx builder --type=module --sourceMap --outDir=dist-mjs",
-    "run:check-label": "NODE_OPTIONS=\"--es-module-specifier-resolution=node\" node build/check-label/index.js",
     "lint": "eslint --max-warnings 0 --ignore-path .gitignore .",
     "lint:fix": "eslint --ignore-path .gitignore . --fix",
     "prettier": "prettier --ignore-path .gitignore --list-different .",
