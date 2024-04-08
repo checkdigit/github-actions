@@ -1,12 +1,8 @@
 name: Comment NPM Publish
 description: Put a comment in for an NPM publish operation
 inputs:
-  github-token:
-    description: Github token
-    required: true
-    default: ${{ github.token }}
-  command:
-    description: Comment on npm publish
+  betaPackage:
+    description: published beta package
     required: true
 runs:
   using: node20

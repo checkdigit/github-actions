@@ -1,13 +1,5 @@
 name: Prepare Beta
 description: Prepare a source for a beta package release
-inputs:
-  github-token:
-    description: Github token
-    required: true
-    default: ${{ github.token }}
-  command:
-    description: Prepare beta command to run
-    required: true
 runs:
   using: node20
   pre: '../setup.mjs'
