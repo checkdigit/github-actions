@@ -3,4 +3,4 @@ description: Ensure imported packages are allowed for use.
 runs:
   using: node20
   pre: '../setup.mjs'
-  main: ../dist-mjs/check-imports/index.js
+  main: ../dist-mjs/check-imports/index.mjs

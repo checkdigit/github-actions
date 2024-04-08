@@ -11,4 +11,4 @@ inputs:
 runs:
   using: node20
   pre: '../setup.mjs'
-  main: ../dist-mjs/prepare-beta/index.js
+  main: ../dist-mjs/prepare-beta/index.mjs

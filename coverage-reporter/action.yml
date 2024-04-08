@@ -29,4 +29,4 @@ inputs:
 runs:
   using: node20
   pre: '../setup.mjs'
-  main: ../dist-mjs/coverage-reporter/index.js
+  main: ../dist-mjs/coverage-reporter/index.mjs

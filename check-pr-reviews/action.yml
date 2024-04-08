@@ -8,4 +8,4 @@ inputs:
 runs:
   using: node20
   pre: '../setup.mjs'
-  main: ../dist-mjs/check-pr-reviews/index.js
+  main: ../dist-mjs/check-pr-reviews/index.mjs
