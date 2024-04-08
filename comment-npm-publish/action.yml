@@ -9,6 +9,6 @@ inputs:
     description: Comment on npm publish
     required: true
 runs:
-  using: node16
+  using: node20
   pre: '../setup.mjs'
   main: ../build/comment-npm-publish/index.js

@@ -6,6 +6,6 @@ inputs:
     required: true
     default: ${{ github.token }}
 runs:
-  using: node16
+  using: node20
   pre: '../setup.mjs'
   main: ../build/check-pr-reviews/index.js
