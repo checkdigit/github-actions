@@ -9,6 +9,22 @@ inputs:
     description: command to run
     required: true
 runs:
-  using: node16
-  pre: '../setup.mjs'
-  main: ../build/check-label/index.js
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+    - name: Install Dependencies
+      run: npm ci --ignore-scripts
+      env:
+        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    - name: Compile MJS
+      run: npm run build:dist-mjs
+    - name: RUN
+      run: npm run run:check-label
+  # pre: '../setup.mjs'
+  # main: ../build/check-label/index.js
+  # env:
+  #   GITHUB_TOKEN: ${{ inputs.github-token }}

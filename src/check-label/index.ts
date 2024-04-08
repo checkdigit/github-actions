@@ -1,6 +1,6 @@
 // check-label/index.ts
 
-import checkLabel from './check-label.js';
+import checkLabel from './check-label';
 
 checkLabel()
   .then(() => {
