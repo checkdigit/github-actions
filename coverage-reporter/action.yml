@@ -14,11 +14,11 @@ inputs:
   filter-changed-files:
     description: Set to true to only comment with coverage on files changed in this commit
     required: false
-    default: false
+    default: 'false'
   delete-old-comments:
     description: Set to true to delete old Coverage Report comments
     required: false
-    default: false
+    default: 'false'
   working-directory:
     description: Set working directory if project is not in root folder
     required: false
@@ -27,6 +27,6 @@ inputs:
     description: Title to add to the comment
     required: false
 runs:
-  using: node16
+  using: node20
   pre: '../setup.mjs'
-  main: ../build/coverage-reporter/index.js
+  main: ../dist-mjs/coverage-reporter/index.mjs

@@ -1,11 +1,6 @@
 name: Check Pull Request Reviews
 description: Checks that a Pull request has been reviewed by all reviewers attached to the pull request
-inputs:
-  github-token:
-    description: Github token
-    required: true
-    default: ${{ github.token }}
 runs:
-  using: node16
+  using: node20
   pre: '../setup.mjs'
-  main: ../build/check-pr-reviews/index.js
+  main: ../dist-mjs/check-pr-reviews/index.mjs

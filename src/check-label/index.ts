@@ -1,7 +1,5 @@
 // check-label/index.ts
 
-import process from 'node:process';
-
 import checkLabel from './check-label';
 
 checkLabel()

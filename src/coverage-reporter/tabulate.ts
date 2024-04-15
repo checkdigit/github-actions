@@ -8,20 +8,20 @@
 import { a, b, fragment, table, tbody, td, th, tr } from './html';
 import type { Lcov, LcovFile } from './lcov';
 import type { Options } from './options';
-import { createHref, normalisePath } from './util';
+import { createHref, normalizePath } from './util';
 
 function shouldBeIncluded(fileName: string, options: Options) {
-  if (!options.shouldFilterChangedFiles) {
+  if (options.shouldFilterChangedFiles !== true) {
     return true;
   }
   return options.changedFiles?.includes(fileName.replace(options.prefix, ''));
 }
 
-function filterAndNormaliseLcov(lcov: Lcov, options: Options) {
+function filterAndNormalizeLcov(lcov: Lcov, options: Options) {
   return lcov
     .map((file) => ({
       ...file,
-      file: normalisePath(file.file),
+      file: normalizePath(file.file),
     }))
     .filter((file) => shouldBeIncluded(file.file, options));
 }
@@ -40,6 +40,7 @@ function getStatement(file: LcovFile) {
   // eslint-disable-next-line unicorn/no-array-reduce
   return [branches, functions, lines].reduce(
     (accumulator, current) => {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
       if (!current) {
         return accumulator;
       }
@@ -49,7 +50,7 @@ function getStatement(file: LcovFile) {
         found: accumulator.found + current.found,
       };
     },
-    { hit: 0, found: 0 }
+    { hit: 0, found: 0 },
   );
 }
 
@@ -67,7 +68,7 @@ function percentage(item: { hit: number; found: number } | undefined) {
 
   // eslint-disable-next-line no-magic-numbers
   const value = item.found === 0 ? 100 : (item.hit / item.found) * 100;
-  const rounded = value.toFixed(2).replace(/\.0*$/u, '');
+  const rounded = value.toFixed(2).replace(/\.0*$/u, ''); // remove trailing zeros after the decimal point
 
   // eslint-disable-next-line no-magic-numbers
   const tag = value === 100 ? fragment : b;
@@ -83,11 +84,13 @@ function ranges(lineNumbers: number[]) {
   for (const lineno of lineNumbers.sort()) {
     if (last === null) {
       last = { start: lineno, end: lineno };
+      // eslint-disable-next-line no-continue
       continue;
     }
 
     if (last.end + 1 === lineno) {
       last.end = lineno;
+      // eslint-disable-next-line no-continue
       continue;
     }
 
@@ -103,10 +106,12 @@ function ranges(lineNumbers: number[]) {
 }
 
 function uncovered(file: LcovFile, options: Options) {
+  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
   const branches = (file.branches ? file.branches.details : [])
     .filter((branch) => branch.taken === 0)
     .map((branch) => branch.line);
 
+  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
   const lines = (file.lines ? file.lines.details : []).filter((line) => line.hit === 0).map((line) => line.line);
 
   const all = ranges([...branches, ...lines]);
@@ -129,7 +134,7 @@ function toRow(file: LcovFile, indent: boolean, options: Options) {
     td(percentage(file.branches)),
     td(percentage(file.functions)),
     td(percentage(file.lines)),
-    td(uncovered(file, options))
+    td(uncovered(file, options)),
   );
 }
 
@@ -138,11 +143,10 @@ export function tabulate(lcov: Lcov, options: Options): string {
   const head = tr(th('File'), th('Stmts'), th('Branches'), th('Funcs'), th('Lines'), th('Uncovered Lines'));
 
   const folders = {} as Record<string, LcovFile[]>;
-  for (const file of filterAndNormaliseLcov(lcov, options)) {
+  for (const file of filterAndNormalizeLcov(lcov, options)) {
     const parts = file.file.replace(options.prefix, '').split('/');
     const folder = parts.slice(0, -1).join('/');
-    folders[folder] ??= [];
-    (folders[folder] as LcovFile[]).push(file);
+    (folders[folder] ??= []).push(file);
   }
 
   const rows = Object.keys(folders)
@@ -152,9 +156,9 @@ export function tabulate(lcov: Lcov, options: Options): string {
       (accumulator: unknown[], key: string) => [
         ...accumulator,
         toFolder(key),
-        ...(folders[key] as LcovFile[]).map((file) => toRow(file, key !== '', options)),
+        ...(folders[key]?.map((file) => toRow(file, key !== '', options)) ?? []),
       ],
-      []
+      [],
     );
 
   return table(tbody(head, ...rows));

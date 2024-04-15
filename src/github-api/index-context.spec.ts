@@ -4,7 +4,8 @@ import { strict as assert } from 'node:assert';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
-import process from 'node:process';
+
+import { afterAll, beforeAll, describe, it } from '@jest/globals';
 import { v4 as uuid } from 'uuid';
 
 import { getPullRequestContext } from './index';
@@ -34,7 +35,7 @@ describe('github context', () => {
         pull_request: {
           number: 10,
         },
-      })
+      }),
     );
     process.env['GITHUB_EVENT_PATH'] = filePath;
     assert.deepEqual(await getPullRequestContext(), { owner: 'checkdigit', number: 10, repo: 'test' });

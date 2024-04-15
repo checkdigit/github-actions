@@ -1,7 +1,6 @@
 // prepare-beta/index.ts
 
-import process from 'node:process';
-import { debug } from 'debug';
+import debug from 'debug';
 import { setOutput } from '@actions/core';
 
 import { packageJSONUpdate } from './package';

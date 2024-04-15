@@ -7,6 +7,8 @@
 
 import { strict as assert } from 'node:assert';
 
+import { describe, it } from '@jest/globals';
+
 import { a, b, details, fragment, span, summary, table, tbody, td, th, tr } from './html';
 
 describe('html', () => {
@@ -33,7 +35,7 @@ describe('html', () => {
     assert.equal(a({ href: 'http://www.example.com' }, 'example'), "<a href='http://www.example.com'>example</a>");
     assert.equal(
       a({ href: 'http://www.example.com', target: '_blank' }, 'example'),
-      "<a href='http://www.example.com' target='_blank'>example</a>"
+      "<a href='http://www.example.com' target='_blank'>example</a>",
     );
   });
 });

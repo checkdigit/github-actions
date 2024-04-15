@@ -5,15 +5,18 @@
  * https://github.com/romeovs/lcov-reporter-action
  */
 
-import process from 'node:process';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
+
+import { strict as assert } from 'node:assert';
 
 import { parse } from './lcov';
 import { diff } from './comment';
 
 async function main() {
-  const file = process.argv[2] as string;
+  const file = process.argv[2];
+  assert.ok(file, 'file argument is required');
+
   // eslint-disable-next-line no-magic-numbers
   const beforeFile = process.argv[3];
   const prefix = `${path.dirname(path.dirname(path.resolve(file)))}/`;
@@ -22,7 +25,7 @@ async function main() {
   const lcov = parse(content);
 
   let before;
-  if (beforeFile) {
+  if (beforeFile !== undefined && beforeFile !== '') {
     before = parse(await fs.readFile(beforeFile, 'utf8'));
   }
 

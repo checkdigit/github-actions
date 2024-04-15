@@ -1,11 +1,11 @@
 // check-published/index.ts
 
-import process from 'node:process';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { exec } from 'node:child_process';
-import { debug } from 'debug';
+
+import debug from 'debug';
 
 import slackPost, { postErrorToSlack } from './slack';
 
@@ -24,10 +24,10 @@ async function getLocalPackageJson(fileName: string): Promise<PackageJSON> {
 
 async function getVersionFromNPM(packageName: string): Promise<string> {
   const { stdout: latestVersion } = await execAsync(`npm show ${packageName} version`);
-  return latestVersion.replace(/[\n\r]/gu, '').trim(); // rm any new lines
+  return latestVersion.replaceAll(/[\n\r]/gu, '').trim(); // rm any new lines
 }
 
-export async function main(): Promise<void | boolean> {
+export async function main(): Promise<void> {
   log('Action starting');
   let mainPackageJson: PackageJSON;
   try {

@@ -1,8 +1,7 @@
 // perform-bundle/index.ts
 
-import process from 'node:process';
 import { readFile } from 'node:fs/promises';
-import { debug } from 'debug';
+import debug from 'debug';
 import type { Metafile } from 'esbuild';
 
 import { publishCommentAndRemovePrevious } from '../github-api';
@@ -32,9 +31,9 @@ export async function main(): Promise<void> {
   const results = analyze(metaDataFile);
   await publishCommentAndRemovePrevious(
     `Bundle created - Total size ${bytesToKB(results.totalBytes)} KB - source ${bytesToKB(
-      results.sourceBytes
+      results.sourceBytes,
     )} KB - modules ${bytesToKB(results.moduleBytes)} KB`,
-    'Bundle created '
+    'Bundle created ',
   );
 }
 

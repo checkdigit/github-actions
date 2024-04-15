@@ -28,14 +28,14 @@ export default function (options?: GithubNock): void {
 
   nock('https://api.github.com/')
     .persist()
-    .get('/repos/checkdigit/prview/pulls/10/requested_reviewers')
+    .get('/repos/checkdigit/preview/pulls/10/requested_reviewers')
     .reply(200, () => ({
       users: [],
     }));
 
   nock('https://api.github.com/')
     .persist()
-    .get('/repos/checkdigit/prviewOutstanding/pulls/10/requested_reviewers')
+    .get('/repos/checkdigit/previewOutstanding/pulls/10/requested_reviewers')
     .reply(200, () => ({
       users: [
         {
@@ -49,7 +49,7 @@ export default function (options?: GithubNock): void {
 
   nock('https://api.github.com/')
     .persist()
-    .get('/repos/checkdigit/prview/pulls/10/reviews')
+    .get('/repos/checkdigit/preview/pulls/10/reviews')
     .reply(200, () => [
       {
         id: '1234prReviewPull',
@@ -95,7 +95,7 @@ export default function (options?: GithubNock): void {
 
   nock('https://api.github.com/')
     .persist()
-    .get('/repos/checkdigit/prview/pulls/10')
+    .get('/repos/checkdigit/preview/pulls/10')
     .reply(200, () => ({
       head: {
         sha: '1234',

@@ -5,6 +5,8 @@ import { mkdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
 
+import { afterAll, beforeAll, describe, it } from '@jest/globals';
+
 import examplePackageLock from './example-package-lock.json';
 import { extractPackageName, getPackageLock, satisfiesNameAndRange } from './package-lock-file-util';
 

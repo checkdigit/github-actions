@@ -1,7 +1,7 @@
 // github-api/index.ts
-import process from 'node:process';
 import { readFile } from 'node:fs/promises';
-import { debug } from 'debug';
+
+import debug from 'debug';
 import { Octokit } from '@octokit/rest';
 
 const THROW_UNABLE_TO_GET_CONTEXT = 'unable to get context';
@@ -35,8 +35,8 @@ export interface PullRequestState {
 const log = debug('publish-beta:github');
 
 export function getPRNumber(): string {
-  const prNumberSearch = process.env['GITHUB_REF']?.match(/[0-9]+/gu);
-  if (!prNumberSearch || prNumberSearch[0] === undefined) {
+  const prNumberSearch = process.env['GITHUB_REF']?.match(/[0-9]+/gu); // matches the PR number
+  if (prNumberSearch?.[0] === undefined) {
     log('unable to get PR number - Is process.env.GITHUB_REF set correctly?');
     throw new Error('unable to get PR number');
   }
@@ -52,13 +52,13 @@ export async function getPullRequestContext(): Promise<GithubConfigurationRespon
       pull_request?: { number: number };
       number?: { number: number };
     };
-    const gitHubRepo = process.env?.['GITHUB_REPOSITORY'] ?? '';
+    const gitHubRepo = process.env['GITHUB_REPOSITORY'] ?? '';
     const [owner, repo] = gitHubRepo.split('/');
-    if (!owner || !repo) {
+    if (owner === undefined || owner === '' || repo === undefined || repo === '') {
       log('Unable to find repo: Context File', JSON.stringify(gitContextFile));
       throw new Error('unable to get repo');
     }
-    const number = (payload.issue || payload.pull_request || payload).number as number;
+    const number = (payload.issue ?? payload.pull_request ?? payload).number as number;
     return { owner, repo, number };
   } catch {
     log('Throw - getGithubContext - returning undefined');
@@ -67,11 +67,11 @@ export async function getPullRequestContext(): Promise<GithubConfigurationRespon
 }
 
 export async function getFileFromMain(filename: string): Promise<string | undefined> {
-  if (!process.env['GITHUB_TOKEN']) {
+  if (process.env['GITHUB_TOKEN'] === undefined || process.env['GITHUB_TOKEN'] === '') {
     log('getFileFromMain - GITHUB_TOKEN is not set - check action configuration');
     throw new Error(THROW_ACTION_ERROR_MESSAGE);
   }
-  const octokat = new Octokit({ auth: process.env['GITHUB_TOKEN'] });
+  const octokit = new Octokit({ auth: process.env['GITHUB_TOKEN'] });
 
   const githubContext = await getPullRequestContext();
   if (!githubContext) {
@@ -80,7 +80,7 @@ export async function getFileFromMain(filename: string): Promise<string | undefi
   }
 
   // get the labels attached to the PR
-  const { data } = (await octokat.rest.repos.getContent({
+  const { data } = (await octokit.rest.repos.getContent({
     owner: githubContext.owner,
     repo: githubContext.repo,
     path: filename,
@@ -99,11 +99,11 @@ export async function getFileFromMain(filename: string): Promise<string | undefi
 }
 
 export async function getLabelsOnPR(): Promise<string[]> {
-  if (!process.env['GITHUB_TOKEN']) {
+  if (process.env['GITHUB_TOKEN'] === undefined || process.env['GITHUB_TOKEN'] === '') {
     log('getLabelsOnPR - GITHUB_TOKEN is not set - check action configuration');
     throw new Error(THROW_ACTION_ERROR_MESSAGE);
   }
-  const octokat = new Octokit({ auth: process.env['GITHUB_TOKEN'] });
+  const octokit = new Octokit({ auth: process.env['GITHUB_TOKEN'] });
 
   const githubContext = await getPullRequestContext();
   if (!githubContext) {
@@ -111,25 +111,25 @@ export async function getLabelsOnPR(): Promise<string[]> {
     throw new Error(THROW_UNABLE_TO_GET_CONTEXT);
   }
 
-  const pullReqeust = await octokat.rest.pulls.get({
+  const pullRequest = await octokit.rest.pulls.get({
     owner: githubContext.owner,
     repo: githubContext.repo,
     // eslint-disable-next-line camelcase
     pull_number: githubContext.number,
   });
 
-  return pullReqeust.data.labels.map((label) => label.name);
+  return pullRequest.data.labels.map((label) => label.name);
 }
 
 export async function publishCommentAndRemovePrevious(
   message: string,
-  prefixOfPreviousMessageToRemove?: string
+  prefixOfPreviousMessageToRemove?: string,
 ): Promise<void> {
-  if (!process.env['GITHUB_TOKEN']) {
+  if (process.env['GITHUB_TOKEN'] === undefined || process.env['GITHUB_TOKEN'] === '') {
     log('publishCommentAndRemovePrevious: GITHUB_TOKEN is not set - check action configuration');
     throw new Error(THROW_ACTION_ERROR_MESSAGE);
   }
-  const octokat = new Octokit({ auth: process.env['GITHUB_TOKEN'] });
+  const octokit = new Octokit({ auth: process.env['GITHUB_TOKEN'] });
   const githubContext = await getPullRequestContext();
   if (!githubContext) {
     log('publishCommentAndRemovePrevious: Error - unable to get github context');
@@ -137,7 +137,7 @@ export async function publishCommentAndRemovePrevious(
   }
   let prComments;
   try {
-    prComments = await octokat.rest.issues.listComments({
+    prComments = await octokit.rest.issues.listComments({
       // eslint-disable-next-line camelcase
       issue_number: githubContext.number,
       owner: githubContext.owner,
@@ -147,15 +147,18 @@ export async function publishCommentAndRemovePrevious(
     log('Error thrown - unable to listComments', error);
   }
 
-  if (prComments && prComments.data) {
+  if (prComments?.data) {
     for (const comment of prComments.data) {
-      // if (comment.body?.includes('Beta Published - Install Command: ')) {
-      if (prefixOfPreviousMessageToRemove && comment.body?.includes(prefixOfPreviousMessageToRemove)) {
+      if (
+        prefixOfPreviousMessageToRemove !== undefined &&
+        prefixOfPreviousMessageToRemove !== '' &&
+        (comment.body === undefined || comment.body.includes(prefixOfPreviousMessageToRemove))
+      ) {
         log('Comment removed');
         // eslint-disable-next-line no-await-in-loop
-        await octokat.rest.issues.deleteComment({
+        await octokit.rest.issues.deleteComment({
           // eslint-disable-next-line camelcase
-          comment_id: comment?.id,
+          comment_id: comment.id,
           owner: githubContext.owner,
           repo: githubContext.repo,
         });
@@ -164,22 +167,21 @@ export async function publishCommentAndRemovePrevious(
   }
 
   log('Creating issue');
-  await octokat.rest.issues.createComment({
+  await octokit.rest.issues.createComment({
     // eslint-disable-next-line camelcase
     issue_number: githubContext.number,
     owner: githubContext.owner,
     repo: githubContext.repo,
     body: message,
-    // body: `Beta Published - Install Command: \`npm install ${newBetaVersion}\` `.replaceAll('"', ''),
   });
 }
 
 export async function haveAllReviewersReviewed(): Promise<number> {
-  if (!process.env['GITHUB_TOKEN']) {
+  if (process.env['GITHUB_TOKEN'] === undefined || process.env['GITHUB_TOKEN'] === '') {
     log('GITHUB_TOKEN is not set - check action configuration');
     throw new Error(THROW_ACTION_ERROR_MESSAGE);
   }
-  const octokat = new Octokit({ auth: process.env['GITHUB_TOKEN'] });
+  const octokit = new Octokit({ auth: process.env['GITHUB_TOKEN'] });
 
   const githubContext = await getPullRequestContext();
   if (!githubContext) {
@@ -188,7 +190,7 @@ export async function haveAllReviewersReviewed(): Promise<number> {
   }
 
   // list status of all reviews
-  const requestedReviewers = await octokat.rest.pulls.listRequestedReviewers({
+  const requestedReviewers = await octokit.rest.pulls.listRequestedReviewers({
     owner: githubContext.owner,
     repo: githubContext.repo,
     // eslint-disable-next-line camelcase
@@ -198,11 +200,11 @@ export async function haveAllReviewersReviewed(): Promise<number> {
 }
 
 export async function approvedReviews(): Promise<GithubReviewStatus> {
-  if (!process.env['GITHUB_TOKEN']) {
+  if (process.env['GITHUB_TOKEN'] === undefined || process.env['GITHUB_TOKEN'] === '') {
     log('GITHUB_TOKEN is not set - check action configuration');
     throw new Error(THROW_ACTION_ERROR_MESSAGE);
   }
-  const octokat = new Octokit({ auth: process.env['GITHUB_TOKEN'] });
+  const octokit = new Octokit({ auth: process.env['GITHUB_TOKEN'] });
 
   const githubContext = await getPullRequestContext();
   if (!githubContext) {
@@ -210,13 +212,13 @@ export async function approvedReviews(): Promise<GithubReviewStatus> {
     throw new Error(THROW_UNABLE_TO_GET_CONTEXT);
   }
 
-  const requestedReviewers: RequestedReviewers[] = await octokat.paginate(
+  const requestedReviewers: RequestedReviewers[] = await octokit.paginate(
     'GET /repos/{owner}/{repo}/pulls/{number}/reviews',
     {
       owner: githubContext.owner,
       repo: githubContext.repo,
       number: githubContext.number,
-    }
+    },
   );
 
   if (requestedReviewers.length === 0) {
@@ -224,13 +226,13 @@ export async function approvedReviews(): Promise<GithubReviewStatus> {
     throw new Error('No reviews on this PR');
   }
 
-  const pullRequestStateRequest: PullRequestState[] = await octokat.paginate(
+  const pullRequestStateRequest: PullRequestState[] = await octokit.paginate(
     'GET /repos/{owner}/{repo}/pulls/{number}',
     {
       owner: githubContext.owner,
       repo: githubContext.repo,
       number: githubContext.number,
-    }
+    },
   );
 
   if (pullRequestStateRequest.length !== 1) {
@@ -238,18 +240,20 @@ export async function approvedReviews(): Promise<GithubReviewStatus> {
   }
   const pullRequestState = pullRequestStateRequest['0'];
 
-  const reviewState: { [user: string]: string[] } = {};
+  const reviewState: Record<string, string[]> = {};
 
   for (const review of requestedReviewers) {
-    if (!review?.user?.login) {
+    if (review.user?.login === undefined || review.user.login === '') {
       throw new Error(THROW_ACTION_ERROR_MESSAGE);
     }
     // skip any bots related comments on a PR (such as GitHub advanced security)
     if (review.user.type === 'Bot') {
+      // eslint-disable-next-line no-continue
       continue;
     }
     // skip if the user is the one who created the PR makes a comment - that is not a review
     if (pullRequestState?.user?.login === review.user.login && review.state === 'COMMENTED') {
+      // eslint-disable-next-line no-continue
       continue;
     }
     const userState = reviewState[review.user.login];

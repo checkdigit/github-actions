@@ -77,8 +77,6 @@ export function parse(input: string): Lcov {
     const allParts = line.split(':');
 
     const parts = [allParts.shift(), allParts.join(':')] as [string, string];
-    let lines;
-    let function_: string[];
 
     switch (parts[0].toUpperCase()) {
       case 'TN': {
@@ -106,27 +104,26 @@ export function parse(input: string): Lcov {
         break;
       }
       case 'DA': {
-        lines = parts[1].split(',');
+        const [lineNumber, hit] = parts[1].split(',');
         item.lines.details.push({
-          line: Number(lines[0]),
-          hit: Number(lines[1]),
+          line: Number(lineNumber),
+          hit: Number(hit),
         });
         break;
       }
       case 'FN': {
-        function_ = parts[1].split(',') as [string, string];
+        const [lineNumber, name] = parts[1].split(',') as [string, string];
         item.functions.details.push({
-          name: function_[1] as string,
-          line: Number(function_[0]),
+          name,
+          line: Number(lineNumber),
         });
         break;
       }
       case 'FNDA': {
-        function_ = parts[1].split(',');
-        // eslint-disable-next-line no-loop-func
-        item.functions.details.some((lcovFunction, index) => {
-          if (lcovFunction.name === function_[1] && lcovFunction.hit === undefined) {
-            (item.functions.details[index] as LcovFunction).hit = Number(function_[0]);
+        const [lineNumber, name] = parts[1].split(',');
+        item.functions.details.some((lcovFunction) => {
+          if (lcovFunction.name === name && lcovFunction.hit === undefined) {
+            lcovFunction.hit = Number(lineNumber);
             return true;
           }
           return false;
@@ -134,13 +131,12 @@ export function parse(input: string): Lcov {
         break;
       }
       case 'BRDA': {
-        function_ = parts[1].split(',');
+        const [lineNumber, block, branch, taken] = parts[1].split(',');
         item.branches.details.push({
-          line: Number(function_[0]),
-          block: Number(function_[1]),
-          branch: Number(function_[2]),
-          // eslint-disable-next-line no-magic-numbers
-          taken: function_[3] === '-' ? 0 : Number(function_[3]),
+          line: Number(lineNumber),
+          block: Number(block),
+          branch: Number(branch),
+          taken: taken === '-' ? 0 : Number(taken),
         });
         break;
       }

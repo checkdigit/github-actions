@@ -7,6 +7,8 @@
 
 import { strict as assert } from 'node:assert';
 
+import { describe, it } from '@jest/globals';
+
 import type { Lcov } from './lcov';
 import type { Options } from './options';
 import { tabulate } from './tabulate';
@@ -143,14 +145,14 @@ describe('tabulate', () => {
               {
                 href: `https://github.com/${options.repository}/blob/${options.commit}/frontend/index.js`,
               },
-              'index.js'
-            )
+              'index.js',
+            ),
           ),
           td('100%'),
           td('N/A'),
           td('100%'),
           td('N/A'),
-          td()
+          td(),
         ),
         tr(td({ colspan: 6 }, b('src'))),
         tr(
@@ -160,8 +162,8 @@ describe('tabulate', () => {
               {
                 href: `https://github.com/${options.repository}/blob/${options.commit}/frontend/src/foo.js`,
               },
-              'foo.js'
-            )
+              'foo.js',
+            ),
           ),
           td(b('89.66%')),
           td('100%'),
@@ -172,9 +174,9 @@ describe('tabulate', () => {
               {
                 href: `https://github.com/${options.repository}/blob/${options.commit}/frontend/src/foo.js#L37`,
               },
-              37
-            )
-          )
+              37,
+            ),
+          ),
         ),
         tr(td({ colspan: 6 }, b('src/bar'))),
         tr(
@@ -184,8 +186,8 @@ describe('tabulate', () => {
               {
                 href: `https://github.com/${options.repository}/blob/${options.commit}/frontend/src/bar/baz.js`,
               },
-              'baz.js'
-            )
+              'baz.js',
+            ),
           ),
           td(b('53.85%')),
           td('N/A'),
@@ -196,18 +198,18 @@ describe('tabulate', () => {
               {
                 href: `https://github.com/${options.repository}/blob/${options.commit}/frontend/src/bar/baz.js#L20-L21`,
               },
-              '20&ndash;21'
+              '20&ndash;21',
             ),
             ', ',
             a(
               {
                 href: `https://github.com/${options.repository}/blob/${options.commit}/frontend/src/bar/baz.js#L27`,
               },
-              '27'
-            )
-          )
-        )
-      )
+              '27',
+            ),
+          ),
+        ),
+      ),
     );
     assert.equal(tabulate(data, options), html);
   });
@@ -345,8 +347,8 @@ describe('tabulate', () => {
               {
                 href: `https://github.com/${options.repository}/blob/${options.commit}/src/foo.js`,
               },
-              'foo.js'
-            )
+              'foo.js',
+            ),
           ),
           td(b('89.66%')),
           td('100%'),
@@ -357,11 +359,11 @@ describe('tabulate', () => {
               {
                 href: `https://github.com/${options.repository}/blob/${options.commit}/src/foo.js#L37`,
               },
-              37
-            )
-          )
-        )
-      )
+              37,
+            ),
+          ),
+        ),
+      ),
     );
     assert.equal(tabulate(data, options), html);
   });
@@ -499,8 +501,8 @@ describe('tabulate', () => {
               {
                 href: `https://github.com/${options.repository}/blob/${options.commit}/src/foo.js`,
               },
-              'foo.js'
-            )
+              'foo.js',
+            ),
           ),
           td(b('89.66%')),
           td('100%'),
@@ -511,11 +513,11 @@ describe('tabulate', () => {
               {
                 href: `https://github.com/${options.repository}/blob/${options.commit}/src/foo.js#L37`,
               },
-              37
-            )
-          )
-        )
-      )
+              37,
+            ),
+          ),
+        ),
+      ),
     );
     assert.equal(tabulate(data, options), html);
   });

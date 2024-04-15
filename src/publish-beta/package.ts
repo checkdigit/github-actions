@@ -2,7 +2,7 @@
 
 import path from 'node:path';
 import { readFile, writeFile } from 'node:fs/promises';
-import { debug } from 'debug';
+import debug from 'debug';
 
 import { getPRNumber } from '../github-api';
 import { removeTestFilesFromSource } from './files';
@@ -19,7 +19,7 @@ const NUMBER_OF_CHARS_TO_USE_FROM_COMMIT_SHA = 4;
 
 export function generatePackageBetaTag(): string {
   const commentSha = process.env['GITHUB_SHA'];
-  if (!commentSha) {
+  if (commentSha === undefined || commentSha === '') {
     throw new Error('Unable to get GITHUB_SHA');
   }
   const id = commentSha.slice(-NUMBER_OF_CHARS_TO_USE_FROM_COMMIT_SHA, commentSha.length);

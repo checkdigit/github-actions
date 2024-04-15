@@ -2,7 +2,7 @@
 
 import path from 'node:path';
 import { readFile } from 'node:fs/promises';
-import satisfies from 'semver/functions/satisfies';
+import * as semver from 'semver';
 import type { Name, Range } from './packages-not-allowed';
 
 export interface Descriptor {
@@ -28,7 +28,7 @@ export interface PackageLock {
   name: string;
   version: string;
   lockfileVersion: number;
-  packages: { [key: string]: Descriptor };
+  packages: Record<string, Descriptor>;
 }
 
 export async function getPackageLock(rootProjectDirectory: string): Promise<PackageLock> {
@@ -44,11 +44,11 @@ export function extractPackageName(key: string): string {
 
 export function isMatchingName(nameA: string, nameB: string): boolean {
   if (nameA.endsWith('*')) {
-    return nameB.startsWith(nameA.split('*')[0] as string);
+    return nameB.startsWith(nameA.slice(0, -1));
   }
 
   if (nameB.endsWith('*')) {
-    return nameA.startsWith(nameB.split('*')[0] as string);
+    return nameA.startsWith(nameB.slice(0, -1));
   }
 
   return nameA === nameB;
@@ -57,7 +57,7 @@ export function isMatchingName(nameA: string, nameB: string): boolean {
 export function satisfiesNameAndRange(
   packageName: string,
   packageVersion: string,
-  [name, range]: [Name, Range]
+  [name, range]: [Name, Range],
 ): boolean {
-  return isMatchingName(packageName, name) && satisfies(packageVersion, range);
+  return isMatchingName(packageName, name) && semver.satisfies(packageVersion, range);
 }
