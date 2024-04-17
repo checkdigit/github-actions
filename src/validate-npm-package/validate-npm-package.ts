@@ -10,7 +10,7 @@ import util from 'node:util';
 
 import debug from 'debug';
 import { v4 as uuid } from 'uuid';
-// import { addNPMRCFile } from '../publish-beta/publish';
+import { addNPMRCFile } from '../publish-beta/publish';
 
 interface PackageJson {
   type?: string;
@@ -99,7 +99,7 @@ export default async function (packageNameAndBetaVersion: string): Promise<void>
   await fs.mkdir(workFolder, { recursive: true, mode: 0o700 });
   log('temporaryFolder created', workFolder);
 
-  // await addNPMRCFile(workFolder);
+  await addNPMRCFile(workFolder);
 
   await obtainNpmPackage(packageNameAndBetaVersion, workFolder);
 
@@ -111,6 +111,7 @@ export default async function (packageNameAndBetaVersion: string): Promise<void>
   }
   await unpackNpmPackage(packageTarballFilename, workFolder);
 
+  await addNPMRCFile(`${workFolder}/package`);
   await installNpmDependencies(workFolder);
 
   await verifyNpmPackage(workFolder);
