@@ -99,6 +99,8 @@ export default async function (packageNameAndBetaVersion: string): Promise<void>
   await fs.mkdir(workFolder, { recursive: true, mode: 0o700 });
   log('temporaryFolder created', workFolder);
 
+  await addNPMRCFile(workFolder);
+
   await obtainNpmPackage(packageNameAndBetaVersion, workFolder);
 
   // replace all '@' and '/' with '-' and remove leading '-'
@@ -108,8 +110,6 @@ export default async function (packageNameAndBetaVersion: string): Promise<void>
     packageTarballFilename = packageTarballFilename.slice(1);
   }
   await unpackNpmPackage(packageTarballFilename, workFolder);
-
-  await addNPMRCFile(workFolder);
 
   await installNpmDependencies(workFolder);
 
