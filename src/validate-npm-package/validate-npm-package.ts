@@ -47,6 +47,8 @@ async function unpackNpmPackage(packageTarballFilename: string, workFolder: stri
 }
 
 async function installNpmDependencies(packageFolder: string): Promise<void> {
+  await addNPMRCFile(packageFolder);
+
   const fullCommandLine = `npm i --ignore-scripts`;
   log('installNpmDependencies - fullCommandLine', fullCommandLine);
 
@@ -55,8 +57,6 @@ async function installNpmDependencies(packageFolder: string): Promise<void> {
 }
 
 async function verifyImportEntryPoints(packageFolder: string): Promise<void> {
-  await addNPMRCFile(packageFolder);
-
   const packageJson = JSON.parse(await fs.readFile(`${packageFolder}/package.json`, 'utf8')) as PackageJson;
   const isEsm = packageJson.type === 'module';
   const bundleFolder = isEsm ? 'dist-mjs' : 'dist';
