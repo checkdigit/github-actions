@@ -23,6 +23,8 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Calculate Code Coverage
         run: npm run ci:coverage
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN_PUBLISH }}
       - name: Create Coverage Report for base branch
         run: |
           mv coverage/lcov.info coverage/lcov_head.info
