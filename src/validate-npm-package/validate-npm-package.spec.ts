@@ -6,6 +6,8 @@ import { describe, it } from '@jest/globals';
 
 import verifyNpmPackage from './validate-npm-package';
 
+// // the following test works locally but fails in the CI because this is a public repo and the npm token is not available
+// // eslint-disable-next-line jest/no-disabled-tests
 describe('validate-npm-package', () => {
   it('successfully verify good npm package', async () => {
     await verifyNpmPackage('@checkdigit/approval@2.0.3');
