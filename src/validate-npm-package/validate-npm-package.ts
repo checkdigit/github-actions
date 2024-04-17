@@ -25,8 +25,8 @@ interface PackageJson {
 const exec = util.promisify(childProcess.exec);
 const log = debug('github-actions:validate-npm-package');
 
-async function obtainNpmPackage(packageVersion: string, baseFolder: string): Promise<void> {
-  const commands = [`cd ${baseFolder}`, `npm pack ${packageVersion}`];
+async function obtainNpmPackage(packageVersion: string, workFolder: string): Promise<void> {
+  const commands = [`cd ${workFolder}`, `npm pack ${packageVersion}`];
   const fullCommandLine = commands.join(' && ');
   log('obtainNpmPackage - fullCommandLine', fullCommandLine);
 
@@ -34,8 +34,8 @@ async function obtainNpmPackage(packageVersion: string, baseFolder: string): Pro
   log('obtainNpmPackage - execResult', JSON.stringify(execResult, undefined, 2));
 }
 
-async function unpackNpmPackage(packageTarballFilename: string, baseFolder: string): Promise<void> {
-  const commands = [`cd ${baseFolder}`, `tar zxvf ${packageTarballFilename}.tgz`];
+async function unpackNpmPackage(packageTarballFilename: string, workFolder: string): Promise<void> {
+  const commands = [`cd ${workFolder}`, `tar zxvf ${packageTarballFilename}.tgz`];
   const fullCommandLine = commands.join(' && ');
   log('unpackNpmPackage - fullCommandLine', fullCommandLine);
 
@@ -43,8 +43,8 @@ async function unpackNpmPackage(packageTarballFilename: string, baseFolder: stri
   log('unpackNpmPackage - execResult', JSON.stringify(execResult, undefined, 2));
 }
 
-async function installNpmDependencies(baseFolder: string): Promise<void> {
-  const commands = [`cd ${baseFolder}/package`, `npm i --ignore-scripts`];
+async function installNpmDependencies(workFolder: string): Promise<void> {
+  const commands = [`cd ${workFolder}/package`, `npm i --ignore-scripts`];
   const fullCommandLine = commands.join(' && ');
   log('installNpmDependencies - fullCommandLine', fullCommandLine);
 
@@ -52,8 +52,8 @@ async function installNpmDependencies(baseFolder: string): Promise<void> {
   log('installNpmDependencies - execResult', JSON.stringify(execResult, undefined, 2));
 }
 
-async function verifyNpmPackage(baseFolder: string): Promise<void> {
-  const packageJson = JSON.parse(await fs.readFile(`${baseFolder}/package/package.json`, 'utf8')) as PackageJson;
+async function verifyNpmPackage(workFolder: string): Promise<void> {
+  const packageJson = JSON.parse(await fs.readFile(`${workFolder}/package/package.json`, 'utf8')) as PackageJson;
 
   const isEsm = packageJson.type === 'module';
   const bundleFolder = isEsm ? 'dist-mjs' : 'dist';
@@ -65,7 +65,7 @@ async function verifyNpmPackage(baseFolder: string): Promise<void> {
     packageJson.service?.api.endpoints.map((endpoint) => `${endpoint}/index${suffix}`) ?? [];
 
   const commands = [
-    `cd ${baseFolder}/package/${bundleFolder}`,
+    `cd ${workFolder}/package/${bundleFolder}`,
     ...[rootIndex, ...serviceEndpointIndexes].map((index) => `node ${index}`),
   ];
 
