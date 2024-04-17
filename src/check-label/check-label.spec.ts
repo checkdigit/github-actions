@@ -53,9 +53,7 @@ describe('check label', () => {
   });
 
   /* -------------------- enable if the current PR label is patch -------------------- */
-
-  // eslint-disable-next-line jest/no-disabled-tests
-  it.skip('label matches - patch', async () => {
+  it('label matches - patch', async () => {
     process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
 
     const packageJsonRaw = await readFile(path.join(process.cwd(), 'package.json'), 'utf8');
@@ -69,8 +67,7 @@ describe('check label', () => {
     await assert.doesNotReject(checkLabel());
   });
 
-  // eslint-disable-next-line jest/no-disabled-tests
-  it.skip('label does not match - should be major but is patch', async () => {
+  it('label does not match - should be major but is patch', async () => {
     process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
 
     const packageJsonRaw = await readFile(path.join(process.cwd(), 'package.json'), 'utf8');
@@ -87,7 +84,7 @@ describe('check label', () => {
   });
 
   /* -------------------- enable if the current PR label is major -------------------- */
-  it('label matches - major', async () => {
+  it.failing('label matches - major', async () => {
     process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
 
     const packageJsonRaw = await readFile(path.join(process.cwd(), 'package.json'), 'utf8');
@@ -103,7 +100,7 @@ describe('check label', () => {
     });
   });
 
-  it('label does not match - should be major but is major', async () => {
+  it.failing('label does not match - should be major but is major', async () => {
     process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
 
     const packageJsonRaw = await readFile(path.join(process.cwd(), 'package.json'), 'utf8');

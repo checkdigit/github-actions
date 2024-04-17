@@ -1,6 +1,6 @@
 {
   "name": "@checkdigit/github-actions",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": " Provides supporting operations for github action builds.",
   "author": "Check Digit, LLC",
   "license": "MIT",
@@ -23,7 +23,8 @@
     "@octokit/rest": "^20.1.0",
     "debug": "^4.3.4",
     "semver": "^7.6.0",
-    "undici": "^6.11.1"
+    "undici": "^6.11.1",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@checkdigit/eslint-config": "^9.2.0",
@@ -35,8 +36,7 @@
     "@types/uuid": "^9.0.8",
     "esbuild": "^0.20.2",
     "nock": "^14.0.0-beta.5",
-    "rimraf": "^5.0.5",
-    "uuid": "^9.0.1"
+    "rimraf": "^5.0.5"
   },
   "scripts": {
     "build:dist-mjs": "rimraf dist-mjs && npx builder --type=module --sourceMap --outDir=dist-mjs",
