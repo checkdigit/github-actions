@@ -1,7 +1,5 @@
 // validate-npm-package/validate-npm-package.ts
 
-// NOTE: Requires that ~/.npmrc has proper auth token set for the registry.
-
 import os from 'node:os';
 import path from 'node:path';
 import { promises as fs } from 'node:fs';
