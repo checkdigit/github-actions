@@ -23,7 +23,7 @@
     "@octokit/rest": "^20.1.0",
     "debug": "^4.3.4",
     "semver": "^7.6.0",
-    "undici": "^6.11.1",
+    "undici": "^6.13.0",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
