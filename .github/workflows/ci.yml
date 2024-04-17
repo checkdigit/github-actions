@@ -31,7 +31,7 @@ jobs:
       - name: Run Tests
         run: npm run ci:test
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN_PUBLISH }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   branchBuild:
@@ -61,5 +61,5 @@ jobs:
       - name: Run Tests
         run: npm run ci:test
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN_PUBLISH }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
