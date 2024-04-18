@@ -33,7 +33,7 @@ async function retrievePackageJson(workFolder: string, packageNameAndBetaVersion
 // create a minimal project with the package as a dependency
 async function generateProject(workFolder: string, packageJson: PackageJson): Promise<void> {
   // create index.ts to import the dependency
-  await fs.mkdir(`${workFolder}/src`, { recursive: true });
+  await fs.mkdir(`${workFolder}/src`);
   await fs.writeFile(path.join(workFolder, 'src', 'index.ts'), `import '${packageJson.name}';\n`);
 
   // create package.json with the dependency
@@ -87,8 +87,8 @@ export default async function (packageNameAndBetaVersion: string): Promise<void>
   log('packageNameAndBetaVersion', packageNameAndBetaVersion);
 
   const workFolder = path.join(os.tmpdir(), uuid());
-  await fs.mkdir(workFolder, { recursive: true, mode: 0o700 });
-  log('temporaryFolder created', workFolder);
+  await fs.mkdir(workFolder);
+  log('temporary work folder created', workFolder);
 
   await addNPMRCFile(workFolder);
 

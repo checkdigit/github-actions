@@ -1,16 +1,47 @@
 // nocks/github.test.ts
+import os from 'node:os';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
+
 import nock from 'nock';
+import { v4 as uuid } from 'uuid';
+
+export const PR_NUMBER_PATCH = 1;
+export const PR_NUMBER_MINOR = 20;
+export const PR_NUMBER_MAJOR = 300;
+export const PR_NUMBER_DEFAULT = PR_NUMBER_PATCH;
 
 export interface GithubNock {
   labelPackageVersionMain?: string;
 }
+
+export async function createGithubEventFile(prNumber = PR_NUMBER_DEFAULT): Promise<string> {
+  const filePath = path.join(os.tmpdir(), uuid());
+  await fs.writeFile(
+    filePath,
+    JSON.stringify({
+      // eslint-disable-next-line camelcase
+      pull_request: {
+        number: prNumber,
+      },
+    }),
+  );
+  return filePath;
+}
+
 export default function (options?: GithubNock): void {
-  nock('https://api.github.com/').persist().get('/repos/checkdigit/nocomments/issues/10/comments').reply(200);
-  nock('https://api.github.com/').persist().post('/repos/checkdigit/nocomments/issues/10/comments').reply(200);
+  nock('https://api.github.com/')
+    .persist()
+    .get(`/repos/checkdigit/nocomments/issues/${PR_NUMBER_DEFAULT}/comments`)
+    .reply(200);
+  nock('https://api.github.com/')
+    .persist()
+    .post(`/repos/checkdigit/nocomments/issues/${PR_NUMBER_DEFAULT}/comments`)
+    .reply(200);
 
   nock('https://api.github.com/')
     .persist()
-    .get('/repos/checkdigit/comments/issues/10/comments')
+    .get(`/repos/checkdigit/comments/issues/${PR_NUMBER_DEFAULT}/comments`)
     .reply(200, () => [
       {
         id: 1,
@@ -28,14 +59,14 @@ export default function (options?: GithubNock): void {
 
   nock('https://api.github.com/')
     .persist()
-    .get('/repos/checkdigit/preview/pulls/10/requested_reviewers')
+    .get(`/repos/checkdigit/preview/pulls/${PR_NUMBER_DEFAULT}/requested_reviewers`)
     .reply(200, () => ({
       users: [],
     }));
 
   nock('https://api.github.com/')
     .persist()
-    .get('/repos/checkdigit/previewOutstanding/pulls/10/requested_reviewers')
+    .get(`/repos/checkdigit/previewOutstanding/pulls/${PR_NUMBER_DEFAULT}/requested_reviewers`)
     .reply(200, () => ({
       users: [
         {
@@ -49,7 +80,7 @@ export default function (options?: GithubNock): void {
 
   nock('https://api.github.com/')
     .persist()
-    .get('/repos/checkdigit/preview/pulls/10/reviews')
+    .get(`/repos/checkdigit/preview/pulls/${PR_NUMBER_DEFAULT}/reviews`)
     .reply(200, () => [
       {
         id: '1234prReviewPull',
@@ -95,7 +126,7 @@ export default function (options?: GithubNock): void {
 
   nock('https://api.github.com/')
     .persist()
-    .get('/repos/checkdigit/preview/pulls/10')
+    .get(`/repos/checkdigit/preview/pulls/${PR_NUMBER_DEFAULT}`)
     .reply(200, () => ({
       head: {
         sha: '1234',
@@ -108,37 +139,40 @@ export default function (options?: GithubNock): void {
   // return label
   nock('https://api.github.com/')
     .persist()
-    .get('/repos/checkdigit/testlabel/pulls/10')
+    .get(`/repos/checkdigit/testlabel/pulls/${PR_NUMBER_DEFAULT}`)
     .reply(200, () => ({
       labels: [{ name: 'patch' }],
     }));
 
   nock('https://api.github.com/')
     .persist()
-    .get('/repos/checkdigit/testlabel/pulls/11')
+    .get(`/repos/checkdigit/testlabel/pulls/${PR_NUMBER_MINOR}`)
+    .reply(200, () => ({
+      labels: [{ name: 'minor' }],
+    }));
+
+  nock('https://api.github.com/')
+    .persist()
+    .get(`/repos/checkdigit/testlabel/pulls/${PR_NUMBER_MAJOR}`)
     .reply(200, () => ({
       labels: [{ name: 'major' }],
     }));
 
   // return a raw package json file
   nock('https://api.github.com/')
-    .persist()
     .get('/repos/checkdigit/testlabel/contents/package.json?ref=main')
-    .reply(200, () => {
-      if (options?.labelPackageVersionMain) {
-        return `{"version": "${options.labelPackageVersionMain}"}`;
-      }
-      return '{"version": "1.0.0"}';
-    });
+    .reply(200, () => JSON.stringify({ version: options?.labelPackageVersionMain ?? '1.0.0' }));
 
   nock('https://api.github.com/')
-    .persist()
     .get('/repos/checkdigit/testlabel/contents/package-lock.json?ref=main')
-    .reply(200, () => '{"version": "1.0.0"}');
+    .reply(200, () => JSON.stringify({ version: options?.labelPackageVersionMain ?? '1.0.0' }));
 
   // allow delete operations to the two comments that should be deleted
   nock('https://api.github.com/').persist().delete('/repos/checkdigit/comments/issues/comments/1').reply(200);
   nock('https://api.github.com/').persist().delete('/repos/checkdigit/comments/issues/comments/3').reply(200);
 
-  nock('https://api.github.com/').persist().post('/repos/checkdigit/comments/issues/10/comments').reply(200);
+  nock('https://api.github.com/')
+    .persist()
+    .post(`/repos/checkdigit/comments/issues/${PR_NUMBER_DEFAULT}/comments`)
+    .reply(200);
 }

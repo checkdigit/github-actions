@@ -1,27 +1,23 @@
 // check-imports/package-lock-file-util.spec.ts
 
 import { strict as assert } from 'node:assert';
-import { mkdir, rm, writeFile } from 'node:fs/promises';
+import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { tmpdir } from 'node:os';
+import os from 'node:os';
 
-import { afterAll, beforeAll, describe, it } from '@jest/globals';
+import { describe, it } from '@jest/globals';
+import { v4 as uuid } from 'uuid';
 
 import examplePackageLock from './example-package-lock.json';
 import { extractPackageName, getPackageLock, satisfiesNameAndRange } from './package-lock-file-util';
 
 describe('package lock file utilities', () => {
-  beforeAll(async () => {
-    await mkdir(path.join(tmpdir(), 'temporaryDirectory'), { recursive: true });
-  });
-
-  afterAll(async () => {
-    await rm(path.join(tmpdir(), 'temporaryDirectory'), { recursive: true });
-  });
-
   it('can get a package-lock file', async () => {
-    await writeFile(path.join(tmpdir(), 'temporaryDirectory/package-lock.json'), JSON.stringify(examplePackageLock));
-    const packageLock = await getPackageLock(path.join(tmpdir(), 'temporaryDirectory'));
+    const workFolder = path.join(os.tmpdir(), uuid());
+    await fs.mkdir(workFolder);
+
+    await fs.writeFile(path.join(workFolder, 'package-lock.json'), JSON.stringify(examplePackageLock));
+    const packageLock = await getPackageLock(workFolder);
     assert.ok(packageLock.name === '@checkdigit/github-actions');
   });
 
