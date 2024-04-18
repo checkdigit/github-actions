@@ -9,7 +9,7 @@ import copyNonTSFiles from './files';
 import compile from './compile';
 import publish from './publish';
 
-const log = debug('publish-beta');
+const log = debug('github-actions:publish-beta');
 export async function main(): Promise<void> {
   log('Action start');
 

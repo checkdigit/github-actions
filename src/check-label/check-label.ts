@@ -9,7 +9,7 @@ import semver from 'semver';
 
 import { getFileFromMain, getLabelsOnPR } from '../github-api';
 
-const log = debug('check-label');
+const log = debug('github-actions:check-label');
 
 interface PackageJSON {
   name: string;

@@ -11,7 +11,7 @@ import slackPost, { postErrorToSlack } from './slack';
 
 const execAsync = promisify(exec);
 
-const log = debug('check-published');
+const log = debug('github-actions:check-published');
 interface PackageJSON {
   name: string;
   version: string;

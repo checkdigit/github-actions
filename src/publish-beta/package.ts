@@ -7,7 +7,7 @@ import debug from 'debug';
 import { getPRNumber } from '../github-api';
 import { removeTestFilesFromSource } from './files';
 
-const log = debug('publish-beta:package');
+const log = debug('github-actions:publish-beta:package');
 
 interface PackageJSON {
   name: string;

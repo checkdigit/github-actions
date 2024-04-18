@@ -12,61 +12,73 @@ import { v4 as uuid } from 'uuid';
 import { addNPMRCFile } from '../publish-beta/publish';
 
 interface PackageJson {
-  type?: string;
-  service?: {
-    api: {
-      root: string;
-      endpoints: string[];
-    };
-  };
+  name: string;
+  version: string;
+  devDependencies?: Record<string, string>;
 }
 
 const exec = util.promisify(childProcess.exec);
 const log = debug('github-actions:validate-npm-package');
 
-async function obtainNpmPackage(packageVersion: string, workFolder: string): Promise<void> {
-  await addNPMRCFile(workFolder);
+async function retrievePackageJson(workFolder: string, packageNameAndBetaVersion: string): Promise<PackageJson> {
+  const execResult = await exec(`npm view ${packageNameAndBetaVersion} --json`, { cwd: workFolder });
+  log('retrievePackageJson - execResult', execResult);
 
-  const fullCommandLine = `npm pack ${packageVersion}`;
-  log('obtainNpmPackage - fullCommandLine', fullCommandLine);
-
-  const execResult = await exec(fullCommandLine, { cwd: workFolder });
-  log('obtainNpmPackage - execResult', execResult);
+  const packageJson = JSON.parse(execResult.stdout) as PackageJson;
+  log('retrievePackageJson - name', packageJson.name);
+  log('retrievePackageJson - version', packageJson.version);
+  return packageJson;
 }
 
-async function unpackNpmPackage(packageTarballFilename: string, workFolder: string): Promise<string> {
-  const fullCommandLine = `tar zxvf ${packageTarballFilename}.tgz`;
-  log('unpackNpmPackage - fullCommandLine', fullCommandLine);
+// create a minimal project with the package as a dependency
+async function generateProject(workFolder: string, packageJson: PackageJson): Promise<void> {
+  // create index.ts to import the dependency
+  await fs.mkdir(`${workFolder}/src`, { recursive: true });
+  await fs.writeFile(path.join(workFolder, 'src', 'index.ts'), `import '${packageJson.name}';\n`);
 
-  const execResult = await exec(fullCommandLine, { cwd: workFolder });
-  log('unpackNpmPackage - execResult', execResult);
+  // create package.json with the dependency
+  const projectPackageJson = {
+    name: 'test',
+    version: '0.0.1',
+    description: 'test project for validating a target library or service npm package',
+    engines: {
+      node: '>=20.11',
+    },
+    type: 'module',
+    dependencies: {
+      [packageJson.name]: packageJson.version,
+    },
+    devDependencies: {
+      // including the devDependencies from the target package is necessary for resolving the typing references including but not limited to the types from its service dependencies
+      ...packageJson.devDependencies,
+      '@checkdigit/typescript-config': '^7.0.1',
+    },
+    scripts: {
+      compile: 'tsc --noEmit',
+    },
+  };
+  await fs.writeFile(`${workFolder}/package.json`, JSON.stringify(projectPackageJson, null, 2));
 
-  return `${workFolder}/package`;
+  // create tsconfig.json
+  const tsconfigJson = {
+    extends: '@checkdigit/typescript-config',
+  };
+  await fs.writeFile(`${workFolder}/tsconfig.json`, JSON.stringify(tsconfigJson, null, 2));
 }
 
-async function installNpmDependencies(packageFolder: string): Promise<void> {
-  await addNPMRCFile(packageFolder);
-
+async function installDependencies(workFolder: string): Promise<void> {
   const fullCommandLine = `npm i --ignore-scripts`;
   log('installNpmDependencies - fullCommandLine', fullCommandLine);
 
-  const execResult = await exec(fullCommandLine, { cwd: packageFolder });
+  const execResult = await exec(fullCommandLine, { cwd: workFolder });
   log('installNpmDependencies - execResult', execResult);
 }
 
-async function verifyImportEntryPoints(packageFolder: string): Promise<void> {
-  const packageJson = JSON.parse(await fs.readFile(`${packageFolder}/package.json`, 'utf8')) as PackageJson;
-  const isEsm = packageJson.type === 'module';
-  const bundleFolder = isEsm ? 'dist-mjs' : 'dist';
-  const suffix = isEsm ? '.mjs' : '.js';
-
-  const rootIndex = `index${suffix}`;
-  const serviceEndpointIndexes =
-    packageJson.service?.api.endpoints.map((endpoint) => `${endpoint}/index${suffix}`) ?? [];
-  const fullCommandLine = [rootIndex, ...serviceEndpointIndexes].map((index) => `node ${index}`).join(' && ');
+async function verifyDefaultImport(workFolder: string): Promise<void> {
+  const fullCommandLine = `npm run compile`;
   log('verifyImportEntryPoints - fullCommandLine', fullCommandLine);
 
-  const execResult = await exec(fullCommandLine, { cwd: `${packageFolder}/${bundleFolder}` });
+  const execResult = await exec(fullCommandLine, { cwd: workFolder });
   log('verifyImportEntryPoints - execResult', execResult);
 }
 
@@ -78,18 +90,15 @@ export default async function (packageNameAndBetaVersion: string): Promise<void>
   await fs.mkdir(workFolder, { recursive: true, mode: 0o700 });
   log('temporaryFolder created', workFolder);
 
-  await obtainNpmPackage(packageNameAndBetaVersion, workFolder);
+  await addNPMRCFile(workFolder);
 
-  // replace all '@' and '/' with '-' and remove leading '-', e.g. @checkdigit/approval@2.0.0-PR.196-b041 -> checkdigit-approval-2.0.0-PR.196-b041
-  let packageTarballFilename = packageNameAndBetaVersion.replaceAll(/[@/]/gu, '-');
-  if (packageTarballFilename.startsWith('-')) {
-    packageTarballFilename = packageTarballFilename.slice(1);
-  }
-  const packageFolder = await unpackNpmPackage(packageTarballFilename, workFolder);
+  const packageJson = await retrievePackageJson(workFolder, packageNameAndBetaVersion);
 
-  await installNpmDependencies(packageFolder);
+  await generateProject(workFolder, packageJson);
 
-  await verifyImportEntryPoints(packageFolder);
+  await installDependencies(workFolder);
+
+  await verifyDefaultImport(workFolder);
 
   log('Action end');
 }

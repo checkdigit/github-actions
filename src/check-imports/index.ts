@@ -7,7 +7,7 @@ import debug from 'debug';
 import { extractPackageName, getPackageLock, satisfiesNameAndRange } from './package-lock-file-util';
 import notAllowed from './packages-not-allowed';
 
-const log = debug('check-imports');
+const log = debug('github-actions:check-imports');
 export async function main(): Promise<void> {
   log('Action starting');
 

@@ -8,7 +8,7 @@ import { publishCommentAndRemovePrevious } from '../github-api';
 import runDeployer from './deployer';
 import analyze from './analyze';
 
-const log = debug('perform-bundle');
+const log = debug('github-actions:perform-bundle');
 
 function bytesToKB(bytes: number) {
   return Math.round(bytes / 1024);

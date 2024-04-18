@@ -32,7 +32,7 @@ export interface PullRequestState {
   };
 }
 
-const log = debug('publish-beta:github');
+const log = debug('github-actions:publish-beta:github');
 
 export function getPRNumber(): string {
   const prNumberSearch = process.env['GITHUB_REF']?.match(/[0-9]+/gu); // matches the PR number

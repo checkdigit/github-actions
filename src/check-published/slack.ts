@@ -4,7 +4,7 @@ import { strict as assert } from 'node:assert';
 import debug from 'debug';
 import { fetch } from 'undici';
 
-const log = debug('check-published:slack');
+const log = debug('github-actions:check-published:slack');
 
 export interface SlackMessage {
   text: string;

@@ -5,7 +5,7 @@ import { getInput } from '@actions/core';
 
 import { publishCommentAndRemovePrevious } from '../github-api';
 
-const log = debug('comment-npm-publish');
+const log = debug('github-actions:comment-npm-publish');
 export async function main(): Promise<void> {
   log('Action start');
 

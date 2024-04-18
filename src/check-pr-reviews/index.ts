@@ -6,7 +6,7 @@ import { setFailed } from '@actions/core';
 import { approvedReviews, haveAllReviewersReviewed, publishCommentAndRemovePrevious } from '../github-api';
 const PULL_REQUEST_MESSAGE_KEYWORD = 'PR review status ';
 
-const log = debug('check-pr-reviews');
+const log = debug('github-actions:check-pr-reviews');
 export async function main(): Promise<void> {
   log('Action start');
 

@@ -6,7 +6,7 @@ import debug from 'debug';
 
 const execAsync = promisify(exec);
 
-const log = debug('perform-bundle:deployer');
+const log = debug('github-actions:perform-bundle:deployer');
 
 export default async function (): Promise<void> {
   log('Install deployer');
