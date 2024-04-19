@@ -51,7 +51,7 @@ export function validateVersion(
   }
 
   const expectedVersion = mainVersionSplit.join('.');
-  assert.equal(expectedVersion, branchPackageJsonVersion, 'Version is incorrect based on Pull Request label');
+  assert.equal(branchPackageJsonVersion, expectedVersion, 'Version is incorrect based on Pull Request label');
   return true;
 }
 
@@ -76,5 +76,5 @@ export default async function (): Promise<void> {
   validateVersion(branchPackageJsonVersion, mainPackageJsonVersion.version, label);
 
   const branchLockFile = await getLocalPackageJsonVersion('package-lock.json');
-  assert.equal(branchLockFile, branchPackageJsonVersion, 'package.json and package-lock.json versions do not match');
+  assert.equal(branchPackageJsonVersion, branchLockFile, 'package.json and package-lock.json versions do not match');
 }
