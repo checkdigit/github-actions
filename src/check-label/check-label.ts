@@ -77,4 +77,6 @@ export default async function (): Promise<void> {
 
   const branchLockFile = await getLocalPackageJsonVersion('package-lock.json');
   assert.equal(branchPackageJsonVersion, branchLockFile, 'package.json and package-lock.json versions do not match');
+
+  log('Action end');
 }

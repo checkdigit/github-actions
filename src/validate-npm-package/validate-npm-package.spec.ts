@@ -2,16 +2,36 @@
 
 import { strict as assert } from 'node:assert';
 
-import { describe, it } from '@jest/globals';
+import { afterEach, describe, it, jest } from '@jest/globals';
+import core from '@actions/core';
 
 import verifyNpmPackage from './validate-npm-package';
 
 describe('validate-npm-package', () => {
+  const actionsCoreSpy = jest.spyOn(core, 'getInput');
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('successfully verify good npm package', async () => {
-    await verifyNpmPackage('@checkdigit/approval@2.0.3');
+    actionsCoreSpy.mockImplementationOnce((name) => {
+      if (name === 'betaPackage') {
+        return '@checkdigit/approval@2.0.3';
+      }
+      return '';
+    });
+
+    await verifyNpmPackage();
   }, 300_000);
 
   it('bad npm package results in error', async () => {
-    await assert.rejects(() => verifyNpmPackage('@checkdigit/approval@2.0.0-PR.196-b041'));
+    actionsCoreSpy.mockImplementationOnce((name) => {
+      if (name === 'betaPackage') {
+        return '@checkdigit/approval@2.0.0-PR.196-b041';
+      }
+      return '';
+    });
+    await assert.rejects(() => verifyNpmPackage());
   }, 300_000);
 });

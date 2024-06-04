@@ -6,6 +6,7 @@ import { promises as fs } from 'node:fs';
 import childProcess from 'node:child_process';
 import util from 'node:util';
 
+import core from '@actions/core';
 import debug from 'debug';
 import { v4 as uuid } from 'uuid';
 
@@ -82,8 +83,10 @@ async function verifyDefaultImport(workFolder: string): Promise<void> {
   log('verifyImportEntryPoints - execResult', execResult);
 }
 
-export default async function (packageNameAndBetaVersion: string): Promise<void> {
+export default async function (): Promise<void> {
   log('Action start');
+
+  const packageNameAndBetaVersion = core.getInput('betaPackage');
   log('packageNameAndBetaVersion', packageNameAndBetaVersion);
 
   const workFolder = path.join(os.tmpdir(), uuid());
