@@ -1,38 +1,19 @@
 // github-api/index-reviews.spec.ts
 
 import { strict as assert } from 'node:assert';
-import { tmpdir } from 'node:os';
-import path from 'node:path';
-import { mkdir, rm, writeFile } from 'node:fs/promises';
 
-import { afterAll, beforeAll, describe, it } from '@jest/globals';
-import { v4 as uuid } from 'uuid';
+import { describe, it } from '@jest/globals';
 
-import gitHubNock from '../nocks/github.test';
+import gitHubNock, { createGithubEventFile } from '../nocks/github.test';
 import { approvedReviews, haveAllReviewersReviewed } from './index';
 
-const actionFolderName = 'actionreviewtest';
-
 describe('github review', () => {
-  beforeAll(async () => mkdir(path.join(tmpdir(), actionFolderName)));
-  afterAll(async () => rm(path.join(tmpdir(), actionFolderName), { recursive: true }));
-
   it('review two outstanding reviewers', async () => {
     // setGlobalDispatcher(gitHubNock);
     gitHubNock();
     process.env['GITHUB_REPOSITORY'] = 'checkdigit/previewOutstanding';
     process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
-    const filePath = path.join(tmpdir(), actionFolderName, uuid());
-    await writeFile(
-      filePath,
-      JSON.stringify({
-        // eslint-disable-next-line camelcase
-        pull_request: {
-          number: 10,
-        },
-      }),
-    );
-    process.env['GITHUB_EVENT_PATH'] = filePath;
+    process.env['GITHUB_EVENT_PATH'] = await createGithubEventFile();
     const result = await haveAllReviewersReviewed();
     assert.equal(result, 2);
   });
@@ -42,17 +23,7 @@ describe('github review', () => {
     gitHubNock();
     process.env['GITHUB_REPOSITORY'] = 'checkdigit/preview';
     process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
-    const filePath = path.join(tmpdir(), actionFolderName, uuid());
-    await writeFile(
-      filePath,
-      JSON.stringify({
-        // eslint-disable-next-line camelcase
-        pull_request: {
-          number: 10,
-        },
-      }),
-    );
-    process.env['GITHUB_EVENT_PATH'] = filePath;
+    process.env['GITHUB_EVENT_PATH'] = await createGithubEventFile();
     const result = await approvedReviews();
     assert.deepEqual(result, { approvedReviews: 2, totalReviewers: 2 });
   });

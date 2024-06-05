@@ -2,118 +2,71 @@
 
 import { strict as assert } from 'node:assert';
 import path from 'node:path';
-import { tmpdir } from 'node:os';
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import os from 'node:os';
+import { promises as fs } from 'node:fs';
 
-import { afterAll, beforeAll, describe, it } from '@jest/globals';
+import { describe, it } from '@jest/globals';
 import { v4 as uuid } from 'uuid';
 
-import gitHubNock from '../nocks/github.test';
+import gitHubNock, {
+  createGithubEventFile,
+  PR_NUMBER_MAJOR,
+  PR_NUMBER_MINOR,
+  PR_NUMBER_PATCH,
+} from '../nocks/github.test';
 import checkLabel from './check-label';
 
 async function createContext(prNumber: number) {
   process.env['GITHUB_REPOSITORY'] = 'checkdigit/testlabel';
-  const filePath = path.join(tmpdir(), 'actioncontexttestlabel', uuid());
-  await writeFile(
-    filePath,
-    JSON.stringify({
-      // eslint-disable-next-line camelcase
-      pull_request: {
-        number: prNumber,
-      },
-    }),
-  );
-  process.env['GITHUB_EVENT_PATH'] = filePath;
-}
-
-function semverSubtract(version: string, versionLabel: 'patch' | 'major' | 'minor'): string {
-  const versionParts = version.split('.');
-  if (versionLabel === 'major' && Number(versionParts[0]) !== 0) {
-    versionParts[0] = (Number(versionParts[0]) - 1).toString();
-  }
-
-  if (versionLabel === 'minor' && Number(versionParts[1]) !== 0) {
-    versionParts[1] = (Number(versionParts[1]) - 1).toString();
-  }
-
-  if (versionLabel === 'patch' && Number(versionParts[2]) !== 0) {
-    versionParts[2] = (Number(versionParts[2]) - 1).toString();
-  }
-
-  return versionParts.join('.');
+  process.env['GITHUB_EVENT_PATH'] = await createGithubEventFile(prNumber);
 }
 
 describe('check label', () => {
-  beforeAll(async () => mkdir(path.join(tmpdir(), 'actioncontexttestlabel')));
-  afterAll(async () => rm(path.join(tmpdir(), 'actioncontexttestlabel'), { recursive: true }));
-
   it('Test with no labels throws correctly', async () => {
     // assert that the call to checkLabel rejects a promise
     await assert.rejects(checkLabel());
   });
 
-  /* -------------------- enable if the current PR label is patch -------------------- */
+  it.each([
+    { mainVersion: '1.0.0', currentVersion: '1.0.0', prNumber: PR_NUMBER_PATCH, success: false },
+    { mainVersion: '1.0.0', currentVersion: '1.0.1', prNumber: PR_NUMBER_PATCH, success: true },
+    { mainVersion: '1.0.0', currentVersion: '1.1.0', prNumber: PR_NUMBER_PATCH, success: false },
+    { mainVersion: '1.0.0', currentVersion: '2.0.0', prNumber: PR_NUMBER_PATCH, success: false },
+    { mainVersion: '1.1.0', currentVersion: '1.1.0', prNumber: PR_NUMBER_MINOR, success: false },
+    { mainVersion: '1.1.0', currentVersion: '1.1.1', prNumber: PR_NUMBER_MINOR, success: false },
+    { mainVersion: '1.1.1', currentVersion: '1.2.0', prNumber: PR_NUMBER_MINOR, success: true },
+    { mainVersion: '1.1.1', currentVersion: '1.2.1', prNumber: PR_NUMBER_MINOR, success: false },
+    { mainVersion: '1.1.1', currentVersion: '2.0.0', prNumber: PR_NUMBER_MINOR, success: false },
+    { mainVersion: '2.2.2', currentVersion: '2.2.2', prNumber: PR_NUMBER_MAJOR, success: false },
+    { mainVersion: '2.2.2', currentVersion: '2.2.3', prNumber: PR_NUMBER_MAJOR, success: false },
+    { mainVersion: '2.2.2', currentVersion: '2.3.0', prNumber: PR_NUMBER_MAJOR, success: false },
+    { mainVersion: '2.2.2', currentVersion: '3.0.0', prNumber: PR_NUMBER_MAJOR, success: true },
+    { mainVersion: '2.2.2', currentVersion: '3.0.2', prNumber: PR_NUMBER_MAJOR, success: false },
+    { mainVersion: '2.2.2', currentVersion: '3.2.2', prNumber: PR_NUMBER_MAJOR, success: false },
+  ])(
+    'pull request: $prNumber; version in main branch: $mainVersion; version in PR branch: $currentVersion; success: $success',
+    async ({ mainVersion, currentVersion, prNumber, success }) => {
+      process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
 
-  // eslint-disable-next-line jest/no-disabled-tests
-  it.skip('label matches - patch', async () => {
-    process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
+      gitHubNock({ labelPackageVersionMain: mainVersion });
 
-    const packageJsonRaw = await readFile(path.join(process.cwd(), 'package.json'), 'utf8');
-    const packageJson = JSON.parse(packageJsonRaw);
+      const workFolder = path.join(os.tmpdir(), uuid());
+      await fs.mkdir(workFolder);
+      await fs.writeFile(path.join(workFolder, 'package.json'), JSON.stringify({ version: currentVersion }));
+      await fs.writeFile(path.join(workFolder, 'package-lock.json'), JSON.stringify({ version: currentVersion }));
 
-    const targetVersion = semverSubtract(packageJson.version, 'patch');
-    gitHubNock({ labelPackageVersionMain: targetVersion });
-
-    await createContext(10);
-
-    await assert.doesNotReject(checkLabel());
-  });
-
-  // eslint-disable-next-line jest/no-disabled-tests
-  it.skip('label does not match - should be major but is patch', async () => {
-    process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
-
-    const packageJsonRaw = await readFile(path.join(process.cwd(), 'package.json'), 'utf8');
-    const packageJson = JSON.parse(packageJsonRaw);
-
-    const targetVersion = semverSubtract(packageJson.version, 'patch');
-    gitHubNock({ labelPackageVersionMain: targetVersion });
-
-    await createContext(11);
-
-    await assert.rejects(checkLabel(), {
-      message: 'Version is incorrect based on Pull Request label',
-    });
-  });
-
-  /* -------------------- enable if the current PR label is major -------------------- */
-  it('label matches - major', async () => {
-    process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
-
-    const packageJsonRaw = await readFile(path.join(process.cwd(), 'package.json'), 'utf8');
-    const packageJson = JSON.parse(packageJsonRaw);
-
-    const targetVersion = semverSubtract(packageJson.version, 'major');
-    gitHubNock({ labelPackageVersionMain: targetVersion });
-
-    await createContext(10);
-
-    await assert.rejects(checkLabel(), {
-      message: 'Version is incorrect based on Pull Request label',
-    });
-  });
-
-  it('label does not match - should be major but is major', async () => {
-    process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
-
-    const packageJsonRaw = await readFile(path.join(process.cwd(), 'package.json'), 'utf8');
-    const packageJson = JSON.parse(packageJsonRaw);
-
-    const targetVersion = semverSubtract(packageJson.version, 'major');
-    gitHubNock({ labelPackageVersionMain: targetVersion });
-
-    await createContext(11);
-
-    await assert.doesNotReject(checkLabel());
-  });
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(workFolder);
+        await createContext(prNumber);
+        if (success) {
+          await assert.doesNotReject(checkLabel());
+        } else {
+          await assert.rejects(checkLabel());
+        }
+      } finally {
+        process.chdir(originalCwd);
+      }
+    },
+  );
 });

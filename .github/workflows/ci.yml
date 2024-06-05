@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: ['20.x', '21.x']
+        node-version: ['20.x', '22.x']
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -30,13 +30,15 @@ jobs:
         run: npm run ci:lint
       - name: Run Tests
         run: npm run ci:test
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN_PUBLISH }}
 
   branchBuild:
     name: Branch Build
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: ['20.x', '21.x']
+        node-version: ['20.x', '22.x']
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -57,3 +59,5 @@ jobs:
         run: npm run ci:lint
       - name: Run Tests
         run: npm run ci:test
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN_PUBLISH }}

@@ -1,0 +1,10 @@
+name: Validate NPM Package
+description: Make sure the NPM package is valid by importing its exports
+inputs:
+  betaPackage:
+    description: published beta package
+    required: true
+runs:
+  using: node20
+  pre: '../setup.mjs'
+  main: ../dist-mjs/validate-npm-package/index.mjs
