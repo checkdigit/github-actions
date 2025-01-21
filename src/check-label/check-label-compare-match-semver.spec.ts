@@ -8,7 +8,7 @@ import { validateVersion } from './check-label';
 
 const assertError = /Version is incorrect based on Pull Request label/u; // expected error message when version is incorrect - assert adds additional information to error, so regex is used
 
-describe.only('compare and match semver', () => {
+describe('compare and match semver', () => {
   it('Test basic patch', async () => {
     assert.equal(validateVersion('1.0.1', '1.0.0', 'patch'), true);
 
