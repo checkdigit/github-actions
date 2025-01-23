@@ -37,8 +37,20 @@ const SERVICE_NAME_LENGTH_EXCEPTIONS = new Set([
   'teampay-vendor-management',
 ]); // list of services with names that are longer than limit
 
-const MAXIMUM_S3_BUCKET_NAME_LENGTH = 25;
-const S3_BUCKET_NAME_LENGTH_EXCEPTIONS = new Set(['']); // list of resources with names that are longer than limit
+const MAXIMUM_S3_BUCKET_NAME_LENGTH = 20;
+const S3_BUCKET_NAME_LENGTH_EXCEPTIONS = new Set([
+  'abcorp.vault.outbound',
+  'ach.inbound.tokenized',
+  'payment.vault.inbound',
+  'arroweye.vault.inbound',
+  'payment.vault.outbound',
+  'star.inbound.tokenized',
+  'arroweye.vault.outbound',
+  'choice.mc.scheme.report',
+  'mastercard.armor.inbound',
+  'ach.summary.armor.inbound',
+  'ach.teampay.armor.inbound',
+]); // list of resources with names that are longer than limit
 
 export async function readPackageJSON(rootProjectDirectory: string): Promise<PackageJSON> {
   const packageJSONPath = path.join(rootProjectDirectory, 'package.json');

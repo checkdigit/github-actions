@@ -98,7 +98,7 @@ describe('Test name and resource length', () => {
     await assert.rejects(validateNameAndResourceLength(packageJSON));
   });
 
-  it('Service name too long - except service', async () => {
+  it('Service name too long - exempt service', async () => {
     const packageJSON: PackageJSON = {
       service: {
         name: 'teampay-vendor-management',
@@ -108,7 +108,7 @@ describe('Test name and resource length', () => {
               'valid-s3-name': {
                 Type: 'AWS::S3::Bucket',
                 Properties: {
-                  BucketName: 'valid-s3-name',
+                  BucketName: 'valid-s3-bucket-name',
                 },
               },
             },
@@ -135,7 +135,7 @@ describe('Test name and resource length', () => {
               bucket2: {
                 Type: 'AWS::S3::Bucket',
                 Properties: {
-                  BucketName: 'invalid-s3-bucket-length-01',
+                  BucketName: 'invalid-bucket-length',
                 },
               },
             },
@@ -144,5 +144,32 @@ describe('Test name and resource length', () => {
       },
     };
     await assert.rejects(validateNameAndResourceLength(packageJSON));
+  });
+
+  it('S3 bucket name too long - exempt bucket', async () => {
+    const packageJSON: PackageJSON = {
+      service: {
+        name: 'TestName',
+        resources: {
+          aws: {
+            s3: {
+              bucket1: {
+                Type: 'AWS::S3::Bucket',
+                Properties: {
+                  BucketName: 'valid name',
+                },
+              },
+              'ach.teampay.armor.inbound': {
+                Type: 'AWS::S3::Bucket',
+                Properties: {
+                  BucketName: 'ach.teampay.armor.inbound',
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    await assert.doesNotReject(validateNameAndResourceLength(packageJSON));
   });
 });
