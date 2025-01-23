@@ -25,10 +25,11 @@ describe('validate-npm-package', () => {
     await verifyNpmPackage();
   }, 300_000);
 
-  // this test should reject but isn't now
-  // this did work historically
-  // eslint-disable-next-line jest/no-disabled-tests
-  it.skip('bad npm package results in error', async () => {
+  // Test uses a bad version of approval package
+  // and requires skipLibCheck: false in tsconfig.json
+  // we set it manually in validate npm package as
+  // checkdigit/typescript-config is various versions of this setting
+  it('bad npm package results in error', async () => {
     actionsCoreSpy.mockImplementationOnce((name) => {
       if (name === 'betaPackage') {
         return '@checkdigit/approval@2.0.0-PR.196-b041';
