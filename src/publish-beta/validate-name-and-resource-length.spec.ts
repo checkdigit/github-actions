@@ -99,6 +99,7 @@ describe('Test name and resource length', () => {
   });
 
   it('Service name too long - exempt service', async () => {
+    process.env['SERVICE_NAME_LENGTH_EXCEPTION'] = 'teampay-vendor-management';
     const packageJSON: PackageJSON = {
       service: {
         name: 'teampay-vendor-management',
@@ -147,6 +148,7 @@ describe('Test name and resource length', () => {
   });
 
   it('S3 bucket name too long - exempt bucket', async () => {
+    process.env['S3_BUCKET_NAME_LENGTH_EXCEPTIONS'] = 'ach.teampay.armor.inbound';
     const packageJSON: PackageJSON = {
       service: {
         name: 'TestName',
@@ -163,6 +165,40 @@ describe('Test name and resource length', () => {
                 Type: 'AWS::S3::Bucket',
                 Properties: {
                   BucketName: 'ach.teampay.armor.inbound',
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    await assert.doesNotReject(validateNameAndResourceLength(packageJSON));
+  });
+
+  it('S3 bucket name too long - multiple exempt bucket', async () => {
+    process.env['S3_BUCKET_NAME_LENGTH_EXCEPTIONS'] = 'mastercard.armor.inbound,ach.teampay.armor.inbound';
+    const packageJSON: PackageJSON = {
+      service: {
+        name: 'TestName',
+        resources: {
+          aws: {
+            s3: {
+              bucket1: {
+                Type: 'AWS::S3::Bucket',
+                Properties: {
+                  BucketName: 'valid name',
+                },
+              },
+              'ach.teampay.armor.inbound': {
+                Type: 'AWS::S3::Bucket',
+                Properties: {
+                  BucketName: 'ach.teampay.armor.inbound',
+                },
+              },
+              'mastercard.armor.inbound': {
+                Type: 'AWS::S3::Bucket',
+                Properties: {
+                  BucketName: 'mastercard.armor.inbound',
                 },
               },
             },

@@ -28,29 +28,8 @@ export interface PackageJSON {
 }
 
 const MAXIMUM_SERVICE_NAME_LENGTH = 20;
-const SERVICE_NAME_LENGTH_EXCEPTIONS = new Set([
-  'current-certification',
-  'mngs-interchange-file',
-  'teampay-card-management',
-  'teampay-client-management',
-  'teampay-merchant-terminal',
-  'teampay-vendor-management',
-]); // list of services with names that are longer than limit
 
 const MAXIMUM_S3_BUCKET_NAME_LENGTH = 20;
-const S3_BUCKET_NAME_LENGTH_EXCEPTIONS = new Set([
-  'abcorp.vault.outbound',
-  'ach.inbound.tokenized',
-  'payment.vault.inbound',
-  'arroweye.vault.inbound',
-  'payment.vault.outbound',
-  'star.inbound.tokenized',
-  'arroweye.vault.outbound',
-  'choice.mc.scheme.report',
-  'mastercard.armor.inbound',
-  'ach.summary.armor.inbound',
-  'ach.teampay.armor.inbound',
-]); // list of resources with names that are longer than limit
 
 export async function readPackageJSON(rootProjectDirectory: string): Promise<PackageJSON> {
   const packageJSONPath = path.join(rootProjectDirectory, 'package.json');
@@ -63,6 +42,10 @@ async function validateS3BucketNames(input: Resources) {
     log('package.json does not have a service.resources.aws.s3: {} property');
     return;
   }
+  // allow override of s3 bucket name length from action environment
+  const listOfS3BucketsFromEnvironment = process.env['S3_BUCKET_NAME_LENGTH_EXCEPTIONS'] ?? undefined;
+  const S3_BUCKET_NAME_LENGTH_EXCEPTIONS =
+    listOfS3BucketsFromEnvironment === undefined ? new Set() : new Set(listOfS3BucketsFromEnvironment.split(','));
 
   const s3Resources = input.aws.s3;
 
@@ -83,10 +66,11 @@ export async function validateNameAndResourceLength(packageJSONWithResources: Pa
     log('package.json does not have a service: {} property');
     return;
   }
-
+  // allow override of service name length from action environment
+  const SERVICE_NAME_LENGTH_EXCEPTION = process.env['SERVICE_NAME_LENGTH_EXCEPTION'] ?? undefined;
   const serviceName = packageJSONWithResources.service.name;
 
-  if (!SERVICE_NAME_LENGTH_EXCEPTIONS.has(serviceName) && serviceName.length > MAXIMUM_SERVICE_NAME_LENGTH) {
+  if (SERVICE_NAME_LENGTH_EXCEPTION !== serviceName && serviceName.length > MAXIMUM_SERVICE_NAME_LENGTH) {
     const message = `Service name ${serviceName} is longer than ${MAXIMUM_SERVICE_NAME_LENGTH} characters`;
     log(message);
     throw new Error(message);
