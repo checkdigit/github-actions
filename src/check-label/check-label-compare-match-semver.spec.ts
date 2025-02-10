@@ -6,7 +6,7 @@ import { describe, it } from '@jest/globals';
 
 import { validateVersion } from './check-label';
 
-const assertError = 'Version is incorrect based on Pull Request label';
+const assertError = /Version is incorrect based on Pull Request label/u; // expected error message when version is incorrect - assert adds additional information to error, so regex is used
 
 describe('compare and match semver', () => {
   it('Test basic patch', async () => {

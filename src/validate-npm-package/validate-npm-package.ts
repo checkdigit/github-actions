@@ -63,6 +63,9 @@ async function generateProject(workFolder: string, packageJson: PackageJson): Pr
   // create tsconfig.json
   const tsconfigJson = {
     extends: '@checkdigit/typescript-config',
+    compilerOptions: {
+      skipLibCheck: false,
+    },
   };
   await fs.writeFile(`${workFolder}/tsconfig.json`, JSON.stringify(tsconfigJson, null, 2));
 }
