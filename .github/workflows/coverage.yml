@@ -31,6 +31,8 @@ jobs:
           git fetch
           git checkout origin/${{ github.event.pull_request.base.ref }}
           npm ci --ignore-scripts && npm run ci:coverage
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN_PUBLISH }}
       - name: Post Coverage Report
         uses: checkdigit/github-actions/coverage-reporter@coverage-folder-handling-conflict
         with:
