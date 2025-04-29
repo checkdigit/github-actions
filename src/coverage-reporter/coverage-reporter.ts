@@ -22,7 +22,6 @@ import { normalizePath } from './util';
 const MAX_COMMENT_CHARS = 65_536;
 const log = debug('github-actions:coverage-reporter');
 
-const DEFAULT_COVERAGE_RESULTS_FOLDER = 'coverage';
 const LCOV_FILE_NAME = 'lcov.info';
 
 export default async function (): Promise<void> {
@@ -32,11 +31,7 @@ export default async function (): Promise<void> {
     const token = getInput('github-token');
     const githubClient = getOctokit(token);
     const workingDirectory = getInput('working-directory') || './';
-    const prLcovFile = path.join(
-      workingDirectory,
-      getInput('coverage-results-folder-pr') ?? DEFAULT_COVERAGE_RESULTS_FOLDER,
-      LCOV_FILE_NAME,
-    );
+    const prLcovFile = path.join(workingDirectory, getInput('coverage-results-folder-pr'), LCOV_FILE_NAME);
     const baseLcovFile = path.join(workingDirectory, getInput('coverage-results-folder-base'), LCOV_FILE_NAME);
     const shouldFilterChangedFiles = getInput('filter-changed-files').toLowerCase() === 'true';
     const shouldDeleteOldComments = getInput('delete-old-comments').toLowerCase() === 'true';
