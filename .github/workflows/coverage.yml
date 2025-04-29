@@ -36,6 +36,6 @@ jobs:
       - name: Post Coverage Report
         uses: checkdigit/github-actions/coverage-reporter@coverage-folder-handling-conflict
         with:
-          coverage-results-folder-pr: 'coverage_pr'
+          coverage-results-folder-pr: 'coverage-pr'
           coverage-results-folder-base: 'coverage'
           delete-old-comments: true
