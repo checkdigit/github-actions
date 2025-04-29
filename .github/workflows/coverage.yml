@@ -27,13 +27,13 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN_PUBLISH }}
       - name: Create Coverage Report for base branch
         run: |
-          mv coverage/lcov.info coverage/lcov_head.info
+          mv coverage coverage-pr
           git fetch
           git checkout origin/${{ github.event.pull_request.base.ref }}
           npm ci --ignore-scripts && npm run ci:coverage
       - name: Post Coverage Report
-        uses: checkdigit/github-actions/coverage-reporter@main
+        uses: checkdigit/github-actions/coverage-reporter@coverage-folder-handling-conflict
         with:
-          lcov-file: 'coverage/lcov_head.info'
-          lcov-base: 'coverage/lcov.info'
+          coverage-results-folder-pr: 'coverage_pr'
+          coverage-results-folder-base: 'coverage'
           delete-old-comments: true
