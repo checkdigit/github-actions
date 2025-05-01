@@ -22,6 +22,8 @@ import { normalizePath } from './util';
 const MAX_COMMENT_CHARS = 65_536;
 const log = debug('github-actions:coverage-reporter');
 
+const LCOV_FILE_NAME = 'lcov.info';
+
 export default async function (): Promise<void> {
   try {
     log('Action start');
@@ -29,24 +31,24 @@ export default async function (): Promise<void> {
     const token = getInput('github-token');
     const githubClient = getOctokit(token);
     const workingDirectory = getInput('working-directory') || './';
-    const lcovFile = path.join(workingDirectory, getInput('lcov-file') || './coverage/lcov.info');
-    const baseFile = getInput('lcov-base');
+    const prLcovFile = path.join(workingDirectory, getInput('coverage-results-folder-pr'), LCOV_FILE_NAME);
+    const baseLcovFile = path.join(workingDirectory, getInput('coverage-results-folder-base'), LCOV_FILE_NAME);
     const shouldFilterChangedFiles = getInput('filter-changed-files').toLowerCase() === 'true';
     const shouldDeleteOldComments = getInput('delete-old-comments').toLowerCase() === 'true';
     const title = getInput('title');
 
-    const raw = await fs.readFile(lcovFile, 'utf8').catch(() => null);
+    const raw = await fs.readFile(prLcovFile, 'utf8').catch(() => null);
     if (raw === null || raw === '') {
       // eslint-disable-next-line no-console
-      console.log(`No coverage report found at '${lcovFile}', exiting...`);
+      console.log(`No coverage report found at '${prLcovFile}', exiting...`);
       return;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const baseRaw = baseFile && (await fs.readFile(baseFile, 'utf8').catch(() => null))!;
-    if (baseFile && !baseRaw) {
+    const baseRaw = baseLcovFile && (await fs.readFile(baseLcovFile, 'utf8').catch(() => null))!;
+    if (baseLcovFile && !baseRaw) {
       // eslint-disable-next-line no-console
-      console.log(`No coverage report found at '${baseFile}', ignoring...`);
+      console.log(`No coverage report found at '${baseLcovFile}', ignoring...`);
     }
 
     const options = {
