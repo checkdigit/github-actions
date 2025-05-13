@@ -25,6 +25,17 @@ describe('validate-npm-package', () => {
     await verifyNpmPackage();
   }, 300_000);
 
+  it('successfully verify good beta npm package with the latest standards', async () => {
+    actionsCoreSpy.mockImplementationOnce((name) => {
+      if (name === 'betaPackage') {
+        return '@checkdigit/test-checkdigit@3.4.1-PR.134-31bc';
+      }
+      return '';
+    });
+
+    await verifyNpmPackage();
+  }, 300_000);
+
   // Test uses a bad version of approval package
   // and requires skipLibCheck: false in tsconfig.json
   // we set it manually in validate npm package as

@@ -15,7 +15,9 @@ import { addNPMRCFile } from '../publish-beta/publish';
 interface PackageJson {
   name: string;
   version: string;
+  engine?: Record<string, string>;
   devDependencies?: Record<string, string>;
+  overrides?: Record<string, string>;
 }
 
 const exec = util.promisify(childProcess.exec);
@@ -42,18 +44,13 @@ async function generateProject(workFolder: string, packageJson: PackageJson): Pr
     name: 'test',
     version: '0.0.1',
     description: 'test project for validating a target library or service npm package',
-    engines: {
-      node: '>=20.11',
-    },
+    ...(packageJson.engine === undefined ? {} : { engine: packageJson.engine }),
     type: 'module',
     dependencies: {
       [packageJson.name]: packageJson.version,
     },
-    devDependencies: {
-      // including the devDependencies from the target package is necessary for resolving the typing references including but not limited to the types from its service dependencies
-      ...packageJson.devDependencies,
-      '@checkdigit/typescript-config': '^7.0.1',
-    },
+    devDependencies: packageJson.devDependencies,
+    ...(packageJson.overrides === undefined ? {} : { overrides: packageJson.overrides }),
     scripts: {
       compile: 'tsc --noEmit',
     },
