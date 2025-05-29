@@ -3,8 +3,11 @@
 import debug from 'debug';
 import { setFailed } from '@actions/core';
 
+import { differenceInCalendarDays } from '@checkdigit/time';
+
 import { approvedReviews, haveAllReviewersReviewed, publishCommentAndRemovePrevious } from '../github-api';
 
+const MAXIMUM_DAYS_SINCE_REVIEW = 90;
 const PULL_REQUEST_MESSAGE_KEYWORD = 'PR review status ';
 const log = debug('github-actions:check-pr-reviews');
 
@@ -41,10 +44,14 @@ export default async function (): Promise<void> {
     throw new Error('PR has not been reviewed correctly - not all reviewers have approved');
   }
 
-  await publishCommentAndRemovePrevious(
-    ':white_check_mark: PR review status - All reviews completed and approved!',
-    PULL_REQUEST_MESSAGE_KEYWORD,
+  const daysSinceOldestApprovedReview = differenceInCalendarDays(
+    new Date().toISOString(),
+    reviews.oldestApprovedReviewDate,
   );
+  if (Math.abs(daysSinceOldestApprovedReview) > MAXIMUM_DAYS_SINCE_REVIEW) {
+    setFailed(`PR has stale review`);
+    throw new Error('PR has stale review');
+  }
 
   log('Action end');
 }
