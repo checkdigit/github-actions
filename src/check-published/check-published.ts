@@ -43,7 +43,7 @@ export default async function (): Promise<void> {
 
   log(`Main package.json - name ${mainPackageJson.name} - version ${mainPackageJson.version}`);
 
-  if (mainPackageJson.name.includes('template')) {
+  if (mainPackageJson.name.toLowerCase().includes('template')) {
     log(
       `Action skipped - package name includes "template" and so it's either a template or a new service/library created from a template.`,
     );
