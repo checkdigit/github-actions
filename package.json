@@ -1,6 +1,6 @@
 {
   "name": "@checkdigit/github-actions",
-  "version": "2.4.1",
+  "version": "2.4.2",
   "description": " Provides supporting operations for github action builds.",
   "author": "Check Digit, LLC",
   "license": "MIT",
