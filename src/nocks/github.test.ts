@@ -82,17 +82,7 @@ export default function (options?: GithubNock): void {
     .persist()
     .get(`/repos/checkdigit/previewOldReviews/pulls/${PR_NUMBER_DEFAULT}/requested_reviewers`)
     .reply(200, () => ({
-      users: [
-        {
-          login: 'commituser4',
-        },
-        {
-          login: 'commituser5',
-        },
-        {
-          login: 'commituser6',
-        },
-      ],
+      users: [],
     }));
 
   nock('https://api.github.com/')
@@ -220,6 +210,9 @@ export default function (options?: GithubNock): void {
         login: 'commituser1',
       },
     }));
+
+  // allow POST of comments to the PRs
+  nock('https://api.github.com/').persist().post('/repos/checkdigit/previewOldReviews/issues/1/comments').reply(200);
 
   // return label
   nock('https://api.github.com/')
