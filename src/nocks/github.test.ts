@@ -80,6 +80,13 @@ export default function (options?: GithubNock): void {
 
   nock('https://api.github.com/')
     .persist()
+    .get(`/repos/checkdigit/previewOldReviews/pulls/${PR_NUMBER_DEFAULT}/requested_reviewers`)
+    .reply(200, () => ({
+      users: [],
+    }));
+
+  nock('https://api.github.com/')
+    .persist()
     .get(`/repos/checkdigit/preview/pulls/${PR_NUMBER_DEFAULT}/reviews`)
     .reply(200, () => [
       {
@@ -89,6 +96,8 @@ export default function (options?: GithubNock): void {
         },
         body: 'body string',
         state: 'COMMENTED',
+        // eslint-disable-next-line camelcase
+        submitted_at: new Date().toISOString(),
       },
       {
         id: '1234prReviewPull',
@@ -97,6 +106,8 @@ export default function (options?: GithubNock): void {
         },
         body: 'body string',
         state: 'COMMENTED',
+        // eslint-disable-next-line camelcase
+        submitted_at: new Date().toISOString(),
       },
       {
         id: '1234prReviewPull',
@@ -105,6 +116,8 @@ export default function (options?: GithubNock): void {
         },
         body: 'body string',
         state: 'APPROVED',
+        // eslint-disable-next-line camelcase
+        submitted_at: new Date().toISOString(),
       },
       {
         id: '1234prReviewPull',
@@ -113,6 +126,8 @@ export default function (options?: GithubNock): void {
         },
         body: 'body string',
         state: 'CHANGES_REQUESTED',
+        // eslint-disable-next-line camelcase
+        submitted_at: new Date().toISOString(),
       },
       {
         id: '1234prReviewPull',
@@ -121,6 +136,54 @@ export default function (options?: GithubNock): void {
         },
         body: 'body string',
         state: 'APPROVED',
+        // eslint-disable-next-line camelcase
+        submitted_at: new Date().toISOString(),
+      },
+    ]);
+
+  nock('https://api.github.com/')
+    .persist()
+    .get(`/repos/checkdigit/previewOldReviews/pulls/${PR_NUMBER_DEFAULT}/reviews`)
+    .reply(200, () => [
+      {
+        id: '1234prReviewPull',
+        user: {
+          login: 'commituser4',
+        },
+        body: 'body string',
+        state: 'APPROVED',
+        // eslint-disable-next-line camelcase
+        submitted_at: new Date().toISOString(),
+      },
+      {
+        id: '1234prReviewPull',
+        user: {
+          login: 'commituser5',
+        },
+        body: 'body string',
+        state: 'CHANGES_REQUESTED',
+        // eslint-disable-next-line camelcase
+        submitted_at: '2023-09-03T01:03:30Z',
+      },
+      {
+        id: '1234prReviewPull',
+        user: {
+          login: 'commituser5',
+        },
+        body: 'body string',
+        state: 'APPROVED',
+        // eslint-disable-next-line camelcase
+        submitted_at: new Date().toISOString(),
+      },
+      {
+        id: '1234prReviewPull',
+        user: {
+          login: 'commituser6',
+        },
+        body: 'body string',
+        state: 'APPROVED',
+        // eslint-disable-next-line camelcase
+        submitted_at: '2023-10-01T01:03:30Z',
       },
     ]);
 
@@ -135,6 +198,21 @@ export default function (options?: GithubNock): void {
         login: 'commituser1',
       },
     }));
+
+  nock('https://api.github.com/')
+    .persist()
+    .get(`/repos/checkdigit/previewOldReviews/pulls/${PR_NUMBER_DEFAULT}`)
+    .reply(200, () => ({
+      head: {
+        sha: '1234',
+      },
+      user: {
+        login: 'commituser1',
+      },
+    }));
+
+  // allow POST of comments to the PRs
+  nock('https://api.github.com/').persist().post('/repos/checkdigit/previewOldReviews/issues/1/comments').reply(200);
 
   // return label
   nock('https://api.github.com/')

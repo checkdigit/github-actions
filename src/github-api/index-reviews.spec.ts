@@ -3,13 +3,13 @@
 import { strict as assert } from 'node:assert';
 
 import { describe, it } from '@jest/globals';
+import { differenceInCalendarDays } from '@checkdigit/time';
 
 import gitHubNock, { createGithubEventFile } from '../nocks/github.test';
 import { approvedReviews, haveAllReviewersReviewed } from './index';
 
 describe('github review', () => {
   it('review two outstanding reviewers', async () => {
-    // setGlobalDispatcher(gitHubNock);
     gitHubNock();
     process.env['GITHUB_REPOSITORY'] = 'checkdigit/previewOutstanding';
     process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
@@ -19,12 +19,30 @@ describe('github review', () => {
   });
 
   it('No outstanding reviewers and all approved reviews', async () => {
-    // setGlobalDispatcher(gitHubNock);
     gitHubNock();
     process.env['GITHUB_REPOSITORY'] = 'checkdigit/preview';
     process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
     process.env['GITHUB_EVENT_PATH'] = await createGithubEventFile();
     const result = await approvedReviews();
-    assert.deepEqual(result, { approvedReviews: 2, totalReviewers: 2 });
+    assert.equal(result.approvedReviews, 2);
+    assert.equal(result.totalReviewers, 2);
+  });
+
+  it('Ensure reviews arent stale', async () => {
+    gitHubNock();
+    process.env['GITHUB_REPOSITORY'] = 'checkdigit/previewOldReviews';
+    process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
+    process.env['GITHUB_EVENT_PATH'] = await createGithubEventFile();
+    const result = await approvedReviews();
+    assert.equal(result.approvedReviews, 3);
+    assert.equal(result.totalReviewers, 3);
+    assert.equal(result.oldestApprovedReviewDate, '2023-10-01T01:03:30Z');
+
+    // Ensure the oldest review is more than 90 days old
+    const daysSinceOldestApprovedReview = differenceInCalendarDays(
+      new Date().toISOString(),
+      result.oldestApprovedReviewDate,
+    );
+    assert.ok(daysSinceOldestApprovedReview > 90);
   });
 });

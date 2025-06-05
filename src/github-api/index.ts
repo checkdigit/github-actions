@@ -16,6 +16,7 @@ export interface GithubConfigurationResponse {
 export interface GithubReviewStatus {
   approvedReviews: number;
   totalReviewers: number;
+  oldestApprovedReviewDate: string;
 }
 
 export interface RequestedReviewers {
@@ -24,6 +25,7 @@ export interface RequestedReviewers {
     login?: string;
   };
   state: string;
+  submitted_at: string;
 }
 
 export interface PullRequestState {
@@ -242,6 +244,8 @@ export async function approvedReviews(): Promise<GithubReviewStatus> {
 
   const reviewState: Record<string, string[]> = {};
 
+  const dateOfApprovedReviews: string[] = [];
+
   for (const review of requestedReviewers) {
     if (review.user?.login === undefined || review.user.login === '') {
       throw new Error(THROW_ACTION_ERROR_MESSAGE);
@@ -262,6 +266,14 @@ export async function approvedReviews(): Promise<GithubReviewStatus> {
     } else {
       reviewState[review.user.login] = [review.state];
     }
+    if (review.state === 'APPROVED') {
+      dateOfApprovedReviews.push(review.submitted_at);
+    }
+  }
+
+  const oldestApprovedReviewDate = dateOfApprovedReviews.sort()[0];
+  if (oldestApprovedReviewDate === undefined) {
+    throw new Error('Invalid date received from approved reviews');
   }
 
   const approvedReviewsList = Object.keys(reviewState).filter((user) => {
@@ -269,5 +281,9 @@ export async function approvedReviews(): Promise<GithubReviewStatus> {
     return reviews && reviews.includes('APPROVED');
   });
 
-  return { approvedReviews: approvedReviewsList.length, totalReviewers: Object.keys(reviewState).length };
+  return {
+    approvedReviews: approvedReviewsList.length,
+    totalReviewers: Object.keys(reviewState).length,
+    oldestApprovedReviewDate,
+  };
 }
