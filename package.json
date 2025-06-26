@@ -1,6 +1,6 @@
 {
   "name": "@checkdigit/github-actions",
-  "version": "2.4.2",
+  "version": "2.5.0",
   "description": " Provides supporting operations for github action builds.",
   "author": "Check Digit, LLC",
   "license": "MIT",
@@ -18,12 +18,12 @@
   "type": "module",
   "sideEffects": false,
   "dependencies": {
-    "@actions/core": "^1.10.1",
-    "@actions/github": "^6.0.0",
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.1",
     "@checkdigit/time": "^4.0.0",
     "@octokit/rest": "^20.1.1",
-    "debug": "^4.3.5",
-    "semver": "^7.6.2",
+    "debug": "^4.4.1",
+    "semver": "^7.7.2",
     "undici": "^6.18.2",
     "uuid": "^9.0.1"
   },
@@ -33,7 +33,7 @@
     "@checkdigit/prettier-config": "^5.4.0",
     "@checkdigit/typescript-config": "^7.0.1",
     "@types/debug": "^4.1.12",
-    "@types/semver": "^7.5.8",
+    "@types/semver": "^7.7.0",
     "@types/uuid": "^9.0.8",
     "nock": "^14.0.0-beta.5",
     "rimraf": "^5.0.7"

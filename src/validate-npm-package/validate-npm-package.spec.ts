@@ -36,6 +36,17 @@ describe('validate-npm-package', () => {
     await verifyNpmPackage();
   }, 300_000);
 
+  it('config only package exporting json entry point should work too', async () => {
+    actionsCoreSpy.mockImplementationOnce((name) => {
+      if (name === 'betaPackage') {
+        return '@checkdigit/prettier-config@7.1.0-PR.56-1e02';
+      }
+      return '';
+    });
+
+    await verifyNpmPackage();
+  }, 300_000);
+
   // Test uses a bad version of approval package
   // and requires skipLibCheck: false in tsconfig.json
   // we set it manually in validate npm package as

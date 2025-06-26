@@ -16,8 +16,12 @@ interface PackageJson {
   name: string;
   version: string;
   engine?: Record<string, string>;
-  devDependencies?: Record<string, string>;
-  overrides?: Record<string, string>;
+  main?: string; // for backward compatibility
+  exports?: {
+    '.'?: {
+      import?: string;
+    };
+  };
 }
 
 const exec = util.promisify(childProcess.exec);
@@ -35,10 +39,6 @@ async function retrievePackageJson(workFolder: string, packageNameAndBetaVersion
 
 // create a minimal project with the package as a dependency
 async function generateProject(workFolder: string, packageJson: PackageJson): Promise<void> {
-  // create index.ts to import the dependency
-  await fs.mkdir(`${workFolder}/src`);
-  await fs.writeFile(path.join(workFolder, 'src', 'index.ts'), `import '${packageJson.name}';\n`);
-
   // create package.json with the dependency
   const projectPackageJson = {
     name: 'test',
@@ -49,22 +49,8 @@ async function generateProject(workFolder: string, packageJson: PackageJson): Pr
     dependencies: {
       [packageJson.name]: packageJson.version,
     },
-    devDependencies: packageJson.devDependencies,
-    ...(packageJson.overrides === undefined ? {} : { overrides: packageJson.overrides }),
-    scripts: {
-      compile: 'tsc --noEmit',
-    },
   };
   await fs.writeFile(`${workFolder}/package.json`, JSON.stringify(projectPackageJson, null, 2));
-
-  // create tsconfig.json
-  const tsconfigJson = {
-    extends: '@checkdigit/typescript-config',
-    compilerOptions: {
-      skipLibCheck: false,
-    },
-  };
-  await fs.writeFile(`${workFolder}/tsconfig.json`, JSON.stringify(tsconfigJson, null, 2));
 }
 
 async function installDependencies(workFolder: string): Promise<void> {
@@ -75,12 +61,14 @@ async function installDependencies(workFolder: string): Promise<void> {
   log('installNpmDependencies - execResult', execResult);
 }
 
-async function verifyDefaultImport(workFolder: string): Promise<void> {
-  const fullCommandLine = `npm run compile`;
-  log('verifyImportEntryPoints - fullCommandLine', fullCommandLine);
+async function verifyDefaultImport(workFolder: string, packageName: string, importEntryPoint: string): Promise<void> {
+  const importType = importEntryPoint.endsWith('.json') ? ` with { type: 'json' }` : '';
+  const importStatement = `import '${packageName}'${importType};`;
+  const commandLine = `node -e "${importStatement}"`;
+  log('verifyDefaultImport - commandLine', commandLine);
 
-  const execResult = await exec(fullCommandLine, { cwd: workFolder });
-  log('verifyImportEntryPoints - execResult', execResult);
+  const execResult = await exec(commandLine, { cwd: workFolder });
+  log('verifyDefaultImport - execResult', execResult);
 }
 
 export default async function (): Promise<void> {
@@ -96,12 +84,16 @@ export default async function (): Promise<void> {
   await addNPMRCFile(workFolder);
 
   const packageJson = await retrievePackageJson(workFolder, packageNameAndBetaVersion);
+  const importEntryPoint = packageJson.exports?.['.']?.import ?? packageJson.main;
+  if (typeof importEntryPoint !== 'string') {
+    throw new TypeError('no import entry point found, or not defined following our standards.');
+  }
 
   await generateProject(workFolder, packageJson);
 
   await installDependencies(workFolder);
 
-  await verifyDefaultImport(workFolder);
+  await verifyDefaultImport(workFolder, packageJson.name, importEntryPoint);
 
   log('Action end');
 }
