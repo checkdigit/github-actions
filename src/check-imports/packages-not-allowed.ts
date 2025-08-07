@@ -1,7 +1,10 @@
 // check-imports/packages-not-allowed.ts
 
+// eslint-disable-next-line sonarjs/redundant-type-aliases
 export type Name = string;
+// eslint-disable-next-line sonarjs/redundant-type-aliases
 export type Range = string;
+// eslint-disable-next-line sonarjs/redundant-type-aliases
 export type Reason = string;
 export type NotAllowed = [Name, Range, Reason];
 

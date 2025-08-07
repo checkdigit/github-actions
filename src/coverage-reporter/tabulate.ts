@@ -5,10 +5,10 @@
  * https://github.com/romeovs/lcov-reporter-action
  */
 
-import { a, b, fragment, table, tbody, td, th, tr } from './html';
-import type { Lcov, LcovFile } from './lcov';
-import type { Options } from './options';
-import { createHref, normalizePath } from './util';
+import { a, b, fragment, table, tbody, td, th, tr } from './html.ts';
+import type { Lcov, LcovFile } from './lcov.ts';
+import type { Options } from './options.ts';
+import { createHref, normalizePath } from './util.ts';
 
 function shouldBeIncluded(fileName: string, options: Options) {
   if (options.shouldFilterChangedFiles !== true) {
@@ -18,12 +18,15 @@ function shouldBeIncluded(fileName: string, options: Options) {
 }
 
 function filterAndNormalizeLcov(lcov: Lcov, options: Options) {
-  return lcov
-    .map((file) => ({
-      ...file,
-      file: normalizePath(file.file),
-    }))
-    .filter((file) => shouldBeIncluded(file.file, options));
+  return (
+    lcov
+      .map((file) => ({
+        ...file,
+        file: normalizePath(file.file),
+      }))
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+      .filter((file) => shouldBeIncluded(file.file, options))
+  );
 }
 
 function toFolder(path: string) {
@@ -81,7 +84,7 @@ function ranges(lineNumbers: number[]) {
 
   let last = null;
 
-  for (const lineno of lineNumbers.sort()) {
+  for (const lineno of lineNumbers.toSorted((lineA, lineB) => lineA - lineB)) {
     if (last === null) {
       last = { start: lineno, end: lineno };
       // eslint-disable-next-line no-continue
@@ -146,10 +149,12 @@ export function tabulate(lcov: Lcov, options: Options): string {
   for (const file of filterAndNormalizeLcov(lcov, options)) {
     const parts = file.file.replace(options.prefix, '').split('/');
     const folder = parts.slice(0, -1).join('/');
+    // eslint-disable-next-line sonarjs/no-nested-assignment
     (folders[folder] ??= []).push(file);
   }
 
   const rows = Object.keys(folders)
+    // eslint-disable-next-line sonarjs/no-alphabetical-sort
     .sort()
     // eslint-disable-next-line unicorn/no-array-reduce
     .reduce(

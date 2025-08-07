@@ -1,66 +1,54 @@
 {
   "name": "@checkdigit/github-actions",
-  "version": "2.4.2",
+  "version": "3.0.0",
   "description": " Provides supporting operations for github action builds.",
-  "author": "Check Digit, LLC",
-  "license": "MIT",
+  "homepage": "https://github.com/checkdigit/github-actions#readme",
   "bugs": {
     "url": "https://github.com/checkdigit/github-actions/issues"
   },
-  "homepage": "https://github.com/checkdigit/github-actions#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/checkdigit/github-actions.git"
   },
-  "engines": {
-    "node": ">=20.11"
-  },
-  "type": "module",
+  "license": "MIT",
+  "author": "Check Digit, LLC",
   "sideEffects": false,
-  "dependencies": {
-    "@actions/core": "^1.10.1",
-    "@actions/github": "^6.0.0",
-    "@checkdigit/time": "^4.0.0",
-    "@octokit/rest": "^20.1.1",
-    "debug": "^4.3.5",
-    "semver": "^7.6.2",
-    "undici": "^6.18.2",
-    "uuid": "^9.0.1"
-  },
-  "devDependencies": {
-    "@checkdigit/eslint-config": "^9.2.0",
-    "@checkdigit/jest-config": "^6.0.2",
-    "@checkdigit/prettier-config": "^5.4.0",
-    "@checkdigit/typescript-config": "^7.0.1",
-    "@types/debug": "^4.1.12",
-    "@types/semver": "^7.5.8",
-    "@types/uuid": "^9.0.8",
-    "nock": "^14.0.0-beta.5",
-    "rimraf": "^5.0.7"
-  },
+  "type": "module",
   "scripts": {
     "build:dist-mjs": "rimraf dist-mjs && npx builder --type=module --sourceMap --outDir=dist-mjs",
-    "lint": "eslint --max-warnings 0 --ignore-path .gitignore .",
-    "lint:fix": "eslint --ignore-path .gitignore . --fix",
+    "ci:compile": "tsc --noEmit",
+    "ci:coverage": "rimraf coverage && mkdir coverage && node --experimental-test-module-mocks --disable-warning ExperimentalWarning --experimental-strip-types --test-timeout 600000 --experimental-test-coverage --test-reporter=lcov --test-reporter-destination=coverage/lcov.info --test-reporter spec --test-reporter-destination stdout --test \"src/**/*.spec.ts\"",
+    "ci:lint": "npm run lint",
+    "ci:style": "npm run prettier",
+    "ci:test": "node --experimental-test-module-mocks --disable-warning ExperimentalWarning --experimental-strip-types --test-timeout 600000 --test \"src/**/*.spec.ts\"",
+    "coverage": "node --experimental-test-module-mocks --disable-warning ExperimentalWarning --experimental-strip-types --test-timeout 600000 --experimental-test-coverage --test \"src/**/*.spec.ts\"",
+    "lint": "eslint --max-warnings 0 .",
+    "lint:fix": "eslint . --fix",
+    "prepare": "",
     "prettier": "prettier --ignore-path .gitignore --list-different .",
     "prettier:fix": "prettier --ignore-path .gitignore --write .",
-    "test": "npm run ci:compile && npm run ci:test && npm run ci:lint && npm run ci:style",
-    "ci:compile": "tsc --noEmit",
-    "ci:test": "NODE_OPTIONS=\"--disable-warning ExperimentalWarning --experimental-vm-modules\" jest --coverage=false",
-    "ci:coverage": "rimraf coverage && mkdir coverage && NODE_OPTIONS=\"--disable-warning ExperimentalWarning --experimental-vm-modules\" jest --coverage=true",
-    "ci:lint": "npm run lint",
-    "ci:style": "npm run prettier"
+    "test": "npm run ci:compile && npm run ci:test && npm run ci:lint && npm run ci:style"
   },
-  "jest": {
-    "preset": "@checkdigit/jest-config"
+  "prettier": "@checkdigit/prettier-config",
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.1",
+    "@checkdigit/time": "^5.0.0",
+    "@octokit/rest": "^20.1.1",
+    "debug": "^4.4.1",
+    "semver": "^7.7.2",
+    "undici": "^7.13.0"
   },
-  "eslintConfig": {
-    "extends": [
-      "@checkdigit/eslint-config"
-    ],
-    "rules": {
-      "n/no-process-env": "off"
-    }
+  "devDependencies": {
+    "@checkdigit/eslint-config": "^11.3.0",
+    "@checkdigit/prettier-config": "^5.4.0",
+    "@checkdigit/typescript-config": "^9.3.0",
+    "@types/debug": "^4.1.12",
+    "@types/semver": "^7.7.0",
+    "nock": "^14.0.0-beta.5",
+    "rimraf": "^6.0.1"
   },
-  "prettier": "@checkdigit/prettier-config"
+  "engines": {
+    "node": ">=24"
+  }
 }

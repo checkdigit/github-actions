@@ -1,19 +1,18 @@
 // check-imports/package-lock-file-util.spec.ts
 
+// eslint-disable-next-line @checkdigit/no-util
 import { strict as assert } from 'node:assert';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import { describe, it } from 'node:test';
 
-import { describe, it } from '@jest/globals';
-import { v4 as uuid } from 'uuid';
+import examplePackageLock from './example-package-lock.json' with { type: 'json' };
+import { extractPackageName, getPackageLock, satisfiesNameAndRange } from './package-lock-file-util.ts';
 
-import examplePackageLock from './example-package-lock.json';
-import { extractPackageName, getPackageLock, satisfiesNameAndRange } from './package-lock-file-util';
-
-describe('package lock file utilities', () => {
+describe('package lock file utilities', async () => {
   it('can get a package-lock file', async () => {
-    const workFolder = path.join(os.tmpdir(), uuid());
+    const workFolder = path.join(os.tmpdir(), crypto.randomUUID());
     await fs.mkdir(workFolder);
 
     await fs.writeFile(path.join(workFolder, 'package-lock.json'), JSON.stringify(examplePackageLock));

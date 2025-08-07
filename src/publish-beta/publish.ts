@@ -1,13 +1,14 @@
 // publish-beta/publish.ts
 
 import childProcess from 'node:child_process';
-import util from 'node:util';
+import { promisify } from 'node:util';
 import fs from 'node:fs/promises';
+
 import debug from 'debug';
 
 const log = debug('github-actions:publish-beta:publish');
 
-const exec = util.promisify(childProcess.exec);
+const exec = promisify(childProcess.exec);
 
 export async function addNPMRCFile(rootProjectDirectory: string): Promise<void> {
   const npmrcPath = `${rootProjectDirectory}/.npmrc`;

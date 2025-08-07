@@ -7,10 +7,9 @@
  */
 
 import { strict as assert } from 'node:assert';
+import { describe, it } from 'node:test';
 
-import { describe, it } from '@jest/globals';
-
-import { parse, percentage } from './lcov';
+import { parse, percentage } from './lcov.ts';
 
 const example = `
 TN:
@@ -35,7 +34,7 @@ BRH:4
 end_of_record
 `;
 
-describe('lcov', () => {
+describe('lcov', async () => {
   it('parse should parse lcov strings correctly', async () => {
     assert.deepEqual(parse(example), [
       {

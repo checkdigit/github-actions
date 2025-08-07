@@ -20,19 +20,28 @@ function tag(name: string) {
   };
 }
 
-export const details = tag('details');
-export const summary = tag('summary');
-export const tr = tag('tr');
-export const td = tag('td');
-export const th = tag('th');
-// eslint-disable-next-line id-length
-export const b = tag('b');
-export const table = tag('table');
-export const tbody = tag('tbody');
-// eslint-disable-next-line id-length
-export const a = tag('a');
-export const span = tag('span');
-export const h2 = tag('h2');
+// eslint-disable-next-line @checkdigit/no-side-effects
+export const details: (...children: unknown[]) => string = tag('details');
+// eslint-disable-next-line @checkdigit/no-side-effects
+export const summary: (...children: unknown[]) => string = tag('summary');
+// eslint-disable-next-line @checkdigit/no-side-effects
+export const tr: (...children: unknown[]) => string = tag('tr');
+// eslint-disable-next-line @checkdigit/no-side-effects
+export const td: (...children: unknown[]) => string = tag('td');
+// eslint-disable-next-line @checkdigit/no-side-effects
+export const th: (...children: unknown[]) => string = tag('th');
+// eslint-disable-next-line id-length, @checkdigit/no-side-effects
+export const b: (...children: unknown[]) => string = tag('b');
+// eslint-disable-next-line @checkdigit/no-side-effects
+export const table: (...children: unknown[]) => string = tag('table');
+// eslint-disable-next-line @checkdigit/no-side-effects
+export const tbody: (...children: unknown[]) => string = tag('tbody');
+// eslint-disable-next-line id-length, @checkdigit/no-side-effects
+export const a: (...children: unknown[]) => string = tag('a');
+// eslint-disable-next-line @checkdigit/no-side-effects
+export const span: (...children: unknown[]) => string = tag('span');
+// eslint-disable-next-line @checkdigit/no-side-effects
+export const h2: (...children: unknown[]) => string = tag('h2');
 
 export function fragment(...children: string[]): string {
   return children.join('');

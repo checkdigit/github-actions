@@ -3,7 +3,7 @@
 import debug from 'debug';
 import { setOutput } from '@actions/core';
 
-import { packageJSONUpdate } from './package';
+import { packageJSONUpdate } from './package.ts';
 
 const log = debug('github-actions:prepare-beta');
 

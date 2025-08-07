@@ -3,7 +3,7 @@
 import debug from 'debug';
 import { getInput } from '@actions/core';
 
-import { publishCommentAndRemovePrevious } from '../github-api';
+import { publishCommentAndRemovePrevious } from '../github-api/index.ts';
 
 const log = debug('github-actions:comment-npm-publish');
 

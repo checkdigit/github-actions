@@ -1,6 +1,7 @@
 // check-published/slack.ts
 
 import { strict as assert } from 'node:assert';
+
 import debug from 'debug';
 import { fetch } from 'undici';
 
@@ -18,9 +19,11 @@ export interface SlackMessage {
 
 async function postSlackMessage(slackMessage: SlackMessage): Promise<void> {
   try {
+    // eslint-disable-next-line n/no-process-env
     const slackUrl = process.env['SLACK_PUBLISH_MISMATCH'];
-    assert(slackUrl);
+    assert.ok(slackUrl !== undefined, 'SLACK_PUBLISH_MISMATCH environment variable is required');
     log('slack HTTP POST request options: ', JSON.stringify(slackMessage));
+    // eslint-disable-next-line @checkdigit/require-service-call-response-declaration
     await fetch(slackUrl, {
       method: 'POST',
       body: JSON.stringify(slackMessage),
