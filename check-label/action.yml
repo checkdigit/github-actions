@@ -1,6 +1,6 @@
 name: Check Label
 description: Check package.json version bump matches label
 runs:
-  using: node20
+  using: node24
   pre: '../setup.mjs'
   main: ../dist-mjs/check-label/index.mjs

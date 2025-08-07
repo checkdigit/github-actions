@@ -1,6 +1,6 @@
 name: Bundle
 description: Bundle the project and validate the bundle and size
 runs:
-  using: node20
+  using: node24
   pre: '../setup.mjs'
   main: ../dist-mjs/perform-bundle/index.mjs

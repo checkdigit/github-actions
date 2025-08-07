@@ -1,6 +1,6 @@
 name: Check Imports
 description: Ensure imported packages are allowed for use.
 runs:
-  using: node20
+  using: node24
   pre: '../setup.mjs'
   main: ../dist-mjs/check-imports/index.mjs

@@ -1,6 +1,6 @@
 name: Prepare Beta
 description: Prepare a source for a beta package release
 runs:
-  using: node20
+  using: node24
   pre: '../setup.mjs'
   main: ../dist-mjs/prepare-beta/index.mjs
