@@ -3,7 +3,6 @@
 import { strict as assert } from 'node:assert';
 
 import debug from 'debug';
-import { fetch } from 'undici';
 
 const log = debug('github-actions:check-published:slack');
 

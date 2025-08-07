@@ -36,8 +36,7 @@
     "@checkdigit/time": "^5.0.0",
     "@octokit/rest": "^20.1.1",
     "debug": "^4.4.1",
-    "semver": "^7.7.2",
-    "undici": "^7.13.0"
+    "semver": "^7.7.2"
   },
   "devDependencies": {
     "@checkdigit/eslint-config": "^11.3.0",

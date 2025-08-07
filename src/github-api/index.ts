@@ -193,8 +193,6 @@ export async function haveAllReviewersReviewed(): Promise<number> {
   if (process.env['GITHUB_TOKEN'] === undefined || process.env['GITHUB_TOKEN'] === '') {
     log('GITHUB_TOKEN is not set - check action configuration');
     throw new Error(THROW_ACTION_ERROR_MESSAGE);
-  } else {
-    //
   }
   // eslint-disable-next-line n/no-process-env
   const octokit = new Octokit({ auth: process.env['GITHUB_TOKEN'] });
