@@ -34,7 +34,7 @@
     "@actions/core": "^1.11.1",
     "@actions/github": "^6.0.1",
     "@checkdigit/time": "^5.0.0",
-    "@octokit/rest": "^20.1.1",
+    "@octokit/rest": "^22.0.0",
     "debug": "^4.4.1",
     "semver": "^7.7.2"
   },
@@ -44,7 +44,7 @@
     "@checkdigit/typescript-config": "^9.3.0",
     "@types/debug": "^4.1.12",
     "@types/semver": "^7.7.0",
-    "nock": "^14.0.0-beta.5",
+    "nock": "^14.0.8",
     "rimraf": "^6.0.1"
   },
   "engines": {
