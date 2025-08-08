@@ -28,5 +28,5 @@ inputs:
     required: false
 runs:
   using: node24
-  pre: '../setup.mjs'
-  main: ../dist-mjs/coverage-reporter/index.mjs
+  pre: '../src/setup.ts'
+  main: ../src/coverage-reporter/index.ts

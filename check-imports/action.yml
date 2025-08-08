@@ -2,5 +2,5 @@ name: Check Imports
 description: Ensure imported packages are allowed for use.
 runs:
   using: node24
-  pre: '../setup.mjs'
-  main: ../dist-mjs/check-imports/index.mjs
+  pre: '../src/setup.ts'
+  main: ../src/check-imports/index.ts

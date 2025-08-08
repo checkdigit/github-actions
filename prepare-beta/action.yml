@@ -2,5 +2,5 @@ name: Prepare Beta
 description: Prepare a source for a beta package release
 runs:
   using: node24
-  pre: '../setup.mjs'
-  main: ../dist-mjs/prepare-beta/index.mjs
+  pre: '../src/setup.ts'
+  main: ../src/prepare-beta/index.ts

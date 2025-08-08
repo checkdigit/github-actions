@@ -2,5 +2,5 @@ name: Publish Beta
 description: Publish beta version of the package
 runs:
   using: node24
-  pre: '../setup.mjs'
-  main: ../dist-mjs/publish-beta/index.mjs
+  pre: '../src/setup.ts'
+  main: ../src/publish-beta/index.ts

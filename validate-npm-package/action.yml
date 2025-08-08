@@ -6,5 +6,5 @@ inputs:
     required: true
 runs:
   using: node24
-  pre: '../setup.mjs'
-  main: ../dist-mjs/validate-npm-package/index.mjs
+  pre: '../src/setup.ts'
+  main: ../src/validate-npm-package/index.ts

@@ -2,5 +2,5 @@ name: Bundle
 description: Bundle the project and validate the bundle and size
 runs:
   using: node24
-  pre: '../setup.mjs'
-  main: ../dist-mjs/perform-bundle/index.mjs
+  pre: '../src/setup.ts'
+  main: ../src/perform-bundle/index.ts
