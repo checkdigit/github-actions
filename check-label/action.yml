@@ -2,5 +2,5 @@ name: Check Label
 description: Check package.json version bump matches label
 runs:
   using: node24
-  pre: '../setup.ts'
+  pre: '../src/setup.ts'
   main: ../src/check-label/index.ts
