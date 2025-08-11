@@ -72,8 +72,7 @@ export function parse(input: string): Lcov {
   const result = [] as Lcov;
   let item = emptyItem();
 
-  for (let line of input.split('\n')) {
-    line = line.trim();
+  for (const line of input.split('\n').map((lineToTrim) => lineToTrim.trim())) {
     const allParts = line.split(':');
 
     const parts = [allParts.shift(), allParts.join(':')] as [string, string];

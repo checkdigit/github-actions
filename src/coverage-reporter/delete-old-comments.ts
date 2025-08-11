@@ -8,7 +8,7 @@
 import { debug } from '@actions/core';
 import type { context, getOctokit } from '@actions/github';
 
-import type { Options } from './options';
+import type { Options } from './options.ts';
 
 const REQUESTED_COMMENTS_PER_PAGE = 20;
 
@@ -39,10 +39,12 @@ async function getExistingComments(
   } while (!finished);
 
   return results.filter(
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     (comment) =>
       Boolean(comment.user) &&
       (options.title === undefined ||
         options.title === '' ||
+        // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
         (comment.body !== undefined && comment.body.includes(options.title))) &&
       comment.body?.includes('Coverage Report'),
   );

@@ -1,14 +1,13 @@
 // check-label/check-label-compare-match-semver.spec.ts
 
 import { strict as assert } from 'node:assert';
+import { describe, it } from 'node:test';
 
-import { describe, it } from '@jest/globals';
-
-import { validateVersion } from './check-label';
+import { validateVersion } from './check-label.ts';
 
 const assertError = /Version is incorrect based on Pull Request label/u; // expected error message when version is incorrect - assert adds additional information to error, so regex is used
 
-describe('compare and match semver', () => {
+describe('compare and match semver', async () => {
   it('Test basic patch', async () => {
     assert.equal(validateVersion('1.0.1', '1.0.0', 'patch'), true);
 

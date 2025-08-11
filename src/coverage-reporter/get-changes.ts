@@ -7,7 +7,8 @@
 
 import { setFailed } from '@actions/core';
 import type { context, getOctokit } from '@actions/github';
-import type { Options } from './options';
+
+import type { Options } from './options.ts';
 
 export async function getChangedFiles(
   githubClient: ReturnType<typeof getOctokit>,

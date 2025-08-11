@@ -1,14 +1,14 @@
 // github-api/index-reviews.spec.ts
 
 import { strict as assert } from 'node:assert';
+import { describe, it } from 'node:test';
 
-import { describe, it } from '@jest/globals';
 import { differenceInCalendarDays } from '@checkdigit/time';
 
-import gitHubNock, { createGithubEventFile } from '../nocks/github.test';
-import { approvedReviews, haveAllReviewersReviewed } from './index';
+import gitHubNock, { createGithubEventFile } from '../nocks/github.test.ts';
+import { approvedReviews, haveAllReviewersReviewed } from './index.ts';
 
-describe('github review', () => {
+describe('github review', async () => {
   it('review two outstanding reviewers', async () => {
     gitHubNock();
     process.env['GITHUB_REPOSITORY'] = 'checkdigit/previewOutstanding';

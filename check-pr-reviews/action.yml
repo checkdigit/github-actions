@@ -1,6 +1,6 @@
 name: Check Pull Request Reviews
 description: Checks that a Pull request has been reviewed by all reviewers attached to the pull request
 runs:
-  using: node20
-  pre: '../setup.mjs'
-  main: ../dist-mjs/check-pr-reviews/index.mjs
+  using: node24
+  pre: '../src/setup.ts'
+  main: ../src/check-pr-reviews/index.ts

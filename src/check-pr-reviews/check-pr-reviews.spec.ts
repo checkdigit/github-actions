@@ -1,13 +1,21 @@
 // check-pr-reviews/check-pr-reviews.spec.ts
 
 import { strict as assert } from 'node:assert';
+import { describe, it, mock } from 'node:test';
 
-import { describe, it } from '@jest/globals';
+import gitHubNock, { createGithubEventFile } from '../nocks/github.test.ts';
 
-import gitHubNock, { createGithubEventFile } from '../nocks/github.test';
-import checkPRReviews from './check-pr-reviews';
+describe('check pr reviews', async () => {
+  // we have to mock setFailed as it is used in the code to signal failure,
+  //  behind the scenes it calls process.exit(1) which marks the test as failed even though it is not
+  mock.module('@actions/core', {
+    namedExports: {
+      setFailed: mock.fn(),
+    },
+  });
+  // must use dynamic import after mocking to ensure the mock is applied
+  const { default: checkPRReviews } = await import('./check-pr-reviews.ts');
 
-describe('check pr reviews', () => {
   gitHubNock();
   it('Test basic patch', async () => {
     process.env['GITHUB_REPOSITORY'] = 'checkdigit/previewOldReviews';

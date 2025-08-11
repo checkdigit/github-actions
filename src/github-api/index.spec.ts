@@ -1,12 +1,11 @@
 // github-api/index.spec.ts
 
 import { strict as assert } from 'node:assert';
+import { describe, it } from 'node:test';
 
-import { describe, it } from '@jest/globals';
+import { getPRNumber } from './index.ts';
 
-import { getPRNumber } from './index';
-
-describe('github', () => {
+describe('github', async () => {
   it('getPRNumber', async () => {
     process.env['GITHUB_REF'] = '/ref/4/branch';
     assert.equal(getPRNumber(), '4');

@@ -17,10 +17,14 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: '24.x'
           cache: 'npm'
+      - name: Install latest npm
+        run: npm install -g npm@11.4.2
       - name: Install Dependencies
         run: npm ci --ignore-scripts
+      - name: Prepare
+        run: npm run prepare
       - name: Calculate Code Coverage
         run: npm run ci:coverage
         env:
@@ -30,7 +34,7 @@ jobs:
           mv coverage coverage-pr
           git fetch
           git checkout origin/${{ github.event.pull_request.base.ref }}
-          npm ci --ignore-scripts && npm run ci:coverage
+          npm ci --ignore-scripts && npm run prepare && npm run ci:coverage
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN_PUBLISH }}
       - name: Post Coverage Report

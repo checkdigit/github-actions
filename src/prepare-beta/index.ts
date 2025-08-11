@@ -1,5 +1,5 @@
 // prepare-beta/index.ts
 
-import main from './prepare-beta';
+import main from './prepare-beta.ts';
 
 await main();

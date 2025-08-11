@@ -9,7 +9,7 @@ export default function analyze(metafile: Metafile): { sourceBytes: number; modu
   const modules = new Set(Object.keys(metafile.inputs).filter((key) => key.startsWith('node_modules')));
 
   const [output] = Object.entries(metafile.outputs);
-  assert.ok(output !== undefined);
+  assert.ok(output !== undefined, 'Expected at least one output in the metafile');
   const [, bundle] = output;
 
   // eslint-disable-next-line unicorn/no-array-reduce

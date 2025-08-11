@@ -1,11 +1,11 @@
 // publish-beta/validate-name-and-resource-length.spec.ts
 
 import { strict as assert } from 'node:assert';
-import { describe, it } from '@jest/globals';
+import { describe, it } from 'node:test';
 
-import { type PackageJSON, validateNameAndResourceLength } from './validate-name-and-resource-length';
+import { type PackageJSON, validateNameAndResourceLength } from './validate-name-and-resource-length.ts';
 
-describe('Test name and resource length', () => {
+describe('Test name and resource length', async () => {
   it('No services property', async () => {
     const packageJSON: PackageJSON = {};
     await assert.doesNotReject(validateNameAndResourceLength(packageJSON));
@@ -95,6 +95,7 @@ describe('Test name and resource length', () => {
         },
       },
     };
+    // eslint-disable-next-line @checkdigit/require-assert-predicate-rejects-throws
     await assert.rejects(validateNameAndResourceLength(packageJSON));
   });
 
@@ -144,6 +145,7 @@ describe('Test name and resource length', () => {
         },
       },
     };
+    // eslint-disable-next-line @checkdigit/require-assert-predicate-rejects-throws
     await assert.rejects(validateNameAndResourceLength(packageJSON));
   });
 

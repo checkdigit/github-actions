@@ -37,6 +37,7 @@ export interface PullRequestState {
 const log = debug('github-actions:publish-beta:github');
 
 export function getPRNumber(): string {
+  // eslint-disable-next-line n/no-process-env, sonarjs/concise-regex
   const prNumberSearch = process.env['GITHUB_REF']?.match(/[0-9]+/gu); // matches the PR number
   if (prNumberSearch?.[0] === undefined) {
     log('unable to get PR number - Is process.env.GITHUB_REF set correctly?');
@@ -47,13 +48,16 @@ export function getPRNumber(): string {
 
 export async function getPullRequestContext(): Promise<GithubConfigurationResponse | undefined> {
   try {
+    // eslint-disable-next-line n/no-process-env
     log('getGithubContext Path:', process.env['GITHUB_EVENT_PATH']);
+    // eslint-disable-next-line n/no-process-env
     const gitContextFile = await readFile(process.env['GITHUB_EVENT_PATH'] ?? '', { encoding: 'utf8' });
     const payload = JSON.parse(gitContextFile) as {
       issue?: { number: number };
       pull_request?: { number: number };
       number?: { number: number };
     };
+    // eslint-disable-next-line n/no-process-env
     const gitHubRepo = process.env['GITHUB_REPOSITORY'] ?? '';
     const [owner, repo] = gitHubRepo.split('/');
     if (owner === undefined || owner === '' || repo === undefined || repo === '') {
@@ -69,10 +73,12 @@ export async function getPullRequestContext(): Promise<GithubConfigurationRespon
 }
 
 export async function getFileFromMain(filename: string): Promise<string | undefined> {
+  // eslint-disable-next-line n/no-process-env
   if (process.env['GITHUB_TOKEN'] === undefined || process.env['GITHUB_TOKEN'] === '') {
     log('getFileFromMain - GITHUB_TOKEN is not set - check action configuration');
     throw new Error(THROW_ACTION_ERROR_MESSAGE);
   }
+  // eslint-disable-next-line n/no-process-env
   const octokit = new Octokit({ auth: process.env['GITHUB_TOKEN'] });
 
   const githubContext = await getPullRequestContext();
@@ -101,10 +107,12 @@ export async function getFileFromMain(filename: string): Promise<string | undefi
 }
 
 export async function getLabelsOnPR(): Promise<string[]> {
+  // eslint-disable-next-line n/no-process-env
   if (process.env['GITHUB_TOKEN'] === undefined || process.env['GITHUB_TOKEN'] === '') {
     log('getLabelsOnPR - GITHUB_TOKEN is not set - check action configuration');
     throw new Error(THROW_ACTION_ERROR_MESSAGE);
   }
+  // eslint-disable-next-line n/no-process-env
   const octokit = new Octokit({ auth: process.env['GITHUB_TOKEN'] });
 
   const githubContext = await getPullRequestContext();
@@ -127,10 +135,12 @@ export async function publishCommentAndRemovePrevious(
   message: string,
   prefixOfPreviousMessageToRemove?: string,
 ): Promise<void> {
+  // eslint-disable-next-line n/no-process-env
   if (process.env['GITHUB_TOKEN'] === undefined || process.env['GITHUB_TOKEN'] === '') {
     log('publishCommentAndRemovePrevious: GITHUB_TOKEN is not set - check action configuration');
     throw new Error(THROW_ACTION_ERROR_MESSAGE);
   }
+  // eslint-disable-next-line n/no-process-env
   const octokit = new Octokit({ auth: process.env['GITHUB_TOKEN'] });
   const githubContext = await getPullRequestContext();
   if (!githubContext) {
@@ -179,10 +189,12 @@ export async function publishCommentAndRemovePrevious(
 }
 
 export async function haveAllReviewersReviewed(): Promise<number> {
+  // eslint-disable-next-line n/no-process-env
   if (process.env['GITHUB_TOKEN'] === undefined || process.env['GITHUB_TOKEN'] === '') {
     log('GITHUB_TOKEN is not set - check action configuration');
     throw new Error(THROW_ACTION_ERROR_MESSAGE);
   }
+  // eslint-disable-next-line n/no-process-env
   const octokit = new Octokit({ auth: process.env['GITHUB_TOKEN'] });
 
   const githubContext = await getPullRequestContext();
@@ -202,10 +214,12 @@ export async function haveAllReviewersReviewed(): Promise<number> {
 }
 
 export async function approvedReviews(): Promise<GithubReviewStatus> {
+  // eslint-disable-next-line n/no-process-env
   if (process.env['GITHUB_TOKEN'] === undefined || process.env['GITHUB_TOKEN'] === '') {
     log('GITHUB_TOKEN is not set - check action configuration');
     throw new Error(THROW_ACTION_ERROR_MESSAGE);
   }
+  // eslint-disable-next-line n/no-process-env
   const octokit = new Octokit({ auth: process.env['GITHUB_TOKEN'] });
 
   const githubContext = await getPullRequestContext();
@@ -271,14 +285,16 @@ export async function approvedReviews(): Promise<GithubReviewStatus> {
     }
   }
 
+  // eslint-disable-next-line sonarjs/no-misleading-array-reverse, sonarjs/no-alphabetical-sort
   const oldestApprovedReviewDate = dateOfApprovedReviews.sort()[0];
   if (oldestApprovedReviewDate === undefined) {
     throw new Error('Invalid date received from approved reviews');
   }
 
+  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
   const approvedReviewsList = Object.keys(reviewState).filter((user) => {
     const reviews = reviewState[user];
-    return reviews && reviews.includes('APPROVED');
+    return reviews?.includes('APPROVED');
   });
 
   return {
