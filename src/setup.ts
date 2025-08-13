@@ -1,3 +1,6 @@
+// setup.ts
+
+// eslint-disable-next-line unicorn/import-style
 import util from 'node:util';
 import childProcess from 'node:child_process';
 

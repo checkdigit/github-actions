@@ -12,12 +12,12 @@ import { getInput, setFailed } from '@actions/core';
 import { context, getOctokit } from '@actions/github';
 import debug from 'debug';
 
-import { parse } from './lcov';
-import { diff } from './comment';
-import { getChangedFiles } from './get-changes';
-import { deleteOldComments } from './delete-old-comments';
-import type { Options } from './options';
-import { normalizePath } from './util';
+import { parse } from './lcov.ts';
+import { diff } from './comment.ts';
+import { getChangedFiles } from './get-changes.ts';
+import { deleteOldComments } from './delete-old-comments.ts';
+import type { Options } from './options.ts';
+import { normalizePath } from './util.ts';
 
 const MAX_COMMENT_CHARS = 65_536;
 const log = debug('github-actions:coverage-reporter');
@@ -37,6 +37,7 @@ export default async function (): Promise<void> {
     const shouldDeleteOldComments = getInput('delete-old-comments').toLowerCase() === 'true';
     const title = getInput('title');
 
+    // eslint-disable-next-line @checkdigit/no-promise-instance-method
     const raw = await fs.readFile(prLcovFile, 'utf8').catch(() => null);
     if (raw === null || raw === '') {
       // eslint-disable-next-line no-console
@@ -44,7 +45,7 @@ export default async function (): Promise<void> {
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @checkdigit/no-promise-instance-method
     const baseRaw = baseLcovFile && (await fs.readFile(baseLcovFile, 'utf8').catch(() => null))!;
     if (baseLcovFile && !baseRaw) {
       // eslint-disable-next-line no-console
@@ -53,7 +54,7 @@ export default async function (): Promise<void> {
 
     const options = {
       repository: context.payload.repository?.full_name,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, n/no-process-env
       prefix: normalizePath(`${process.env['GITHUB_WORKSPACE']!}/`),
       workingDir: workingDirectory,
     } as Options;

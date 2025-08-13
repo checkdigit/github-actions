@@ -1,5 +1,5 @@
 // coverage-reporter/index.ts
 
-import main from './coverage-reporter';
+import main from './coverage-reporter.ts';
 
 await main();

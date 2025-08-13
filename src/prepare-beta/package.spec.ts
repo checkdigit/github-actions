@@ -4,13 +4,11 @@ import { strict as assert } from 'node:assert';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import { describe, it } from 'node:test';
 
-import { describe, it } from '@jest/globals';
-import { v4 as uuid } from 'uuid';
+import { generatePackageBetaTag, packageJSONUpdate } from './package.ts';
 
-import { generatePackageBetaTag, packageJSONUpdate } from './package';
-
-describe('package', () => {
+describe('package', async () => {
   it('generatePackageBetaTag', async () => {
     process.env['GITHUB_REF'] = '/ref/2406/branch';
     process.env['GITHUB_SHA'] = '1234';
@@ -19,7 +17,7 @@ describe('package', () => {
   });
 
   it('test packageJSON Update and add /src/ to files', async () => {
-    const workFolder = path.join(os.tmpdir(), uuid());
+    const workFolder = path.join(os.tmpdir(), crypto.randomUUID());
     await fs.mkdir(workFolder);
 
     const filePath = path.join(workFolder, 'package.json');

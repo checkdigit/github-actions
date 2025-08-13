@@ -6,15 +6,14 @@
  */
 
 import { strict as assert } from 'node:assert';
+import { describe, it } from 'node:test';
 
-import { describe, it } from '@jest/globals';
+import type { Lcov } from './lcov.ts';
+import type { Options } from './options.ts';
+import { tabulate } from './tabulate.ts';
+import { a, b, table, tbody, td, th, tr } from './html.ts';
 
-import type { Lcov } from './lcov';
-import type { Options } from './options';
-import { tabulate } from './tabulate';
-import { a, b, table, tbody, td, th, tr } from './html';
-
-describe('tabulate', () => {
+describe('tabulate', async () => {
   it('tabulate should generate a correct table', () => {
     const data = [
       {
@@ -371,7 +370,7 @@ describe('tabulate', () => {
   it('filtered tabulate should fix backwards slashes in filenames', () => {
     const data = [
       {
-        file: '\\files\\project\\index.js',
+        file: String.raw`\files\project\index.js`,
         functions: {
           found: 0,
           hit: 0,
@@ -379,7 +378,7 @@ describe('tabulate', () => {
         },
       },
       {
-        file: '\\files\\project\\src\\foo.js',
+        file: String.raw`\files\project\src\foo.js`,
         lines: {
           found: 23,
           hit: 21,
@@ -442,7 +441,7 @@ describe('tabulate', () => {
         },
       },
       {
-        file: '\\files\\project\\src\\bar\\baz.js',
+        file: String.raw`\files\project\src\bar\baz.js`,
         lines: {
           found: 10,
           hit: 5,

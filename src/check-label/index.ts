@@ -1,5 +1,5 @@
 // check-label/index.ts
 
-import main from './check-label';
+import main from './check-label.ts';
 
 await main();

@@ -5,11 +5,11 @@
  * https://github.com/romeovs/lcov-reporter-action
  */
 
-import { b, details, fragment, h2, summary, table, tbody, th, tr } from './html';
+import { b, details, fragment, h2, summary, table, tbody, th, tr } from './html.ts';
 
-import { type Lcov, percentage } from './lcov';
-import type { Options } from './options';
-import { tabulate } from './tabulate';
+import { type Lcov, percentage } from './lcov.ts';
+import type { Options } from './options.ts';
+import { tabulate } from './tabulate.ts';
 
 export function comment(lcov: Lcov, options: Options): string {
   return fragment(

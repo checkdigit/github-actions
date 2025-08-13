@@ -5,9 +5,9 @@ import { readFile } from 'node:fs/promises';
 import debug from 'debug';
 import type { Metafile } from 'esbuild';
 
-import { publishCommentAndRemovePrevious } from '../github-api';
-import runDeployer from './deployer';
-import analyze from './analyze';
+import { publishCommentAndRemovePrevious } from '../github-api/index.ts';
+import runDeployer from './deployer.ts';
+import analyze from './analyze.ts';
 
 const log = debug('github-actions:perform-bundle');
 
@@ -20,7 +20,7 @@ async function readMetaDataFile(): Promise<Metafile> {
     const rawFile = await readFile('esbuild-lambda/metafile.json', 'utf8');
     return JSON.parse(rawFile) as Metafile;
   } catch (error) {
-    log('Exception thrown attempting to read meta data file: ', JSON.stringify(error));
+    log('Exception thrown attempting to read meta data file: ', String(error));
     throw error;
   }
 }

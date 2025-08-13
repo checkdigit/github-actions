@@ -4,13 +4,12 @@ import os from 'node:os';
 import path from 'node:path';
 import { promises as fs } from 'node:fs';
 import childProcess from 'node:child_process';
-import util from 'node:util';
+import { promisify } from 'node:util';
 
 import core from '@actions/core';
 import debug from 'debug';
-import { v4 as uuid } from 'uuid';
 
-import { addNPMRCFile } from '../publish-beta/publish';
+import { addNPMRCFile } from '../publish-beta/publish.ts';
 
 interface PackageJson {
   name: string;
@@ -24,7 +23,7 @@ interface PackageJson {
   };
 }
 
-const exec = util.promisify(childProcess.exec);
+const exec = promisify(childProcess.exec);
 const log = debug('github-actions:validate-npm-package');
 
 async function retrievePackageJson(workFolder: string, packageNameAndBetaVersion: string): Promise<PackageJson> {
@@ -77,7 +76,8 @@ export default async function (): Promise<void> {
   const packageNameAndBetaVersion = core.getInput('betaPackage');
   log('packageNameAndBetaVersion', packageNameAndBetaVersion);
 
-  const workFolder = path.join(os.tmpdir(), uuid());
+  // eslint-disable-next-line @checkdigit/no-random-v4-uuid
+  const workFolder = path.join(os.tmpdir(), crypto.randomUUID());
   await fs.mkdir(workFolder);
   log('temporary work folder created', workFolder);
 

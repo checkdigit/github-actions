@@ -5,7 +5,7 @@ import { setFailed } from '@actions/core';
 
 import { differenceInCalendarDays } from '@checkdigit/time';
 
-import { approvedReviews, haveAllReviewersReviewed, publishCommentAndRemovePrevious } from '../github-api';
+import { approvedReviews, haveAllReviewersReviewed, publishCommentAndRemovePrevious } from '../github-api/index.ts';
 
 const MAXIMUM_DAYS_SINCE_REVIEW = 90;
 const PULL_REQUEST_MESSAGE_KEYWORD = 'PR review status ';

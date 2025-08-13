@@ -4,19 +4,18 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
 import nock from 'nock';
-import { v4 as uuid } from 'uuid';
 
 export const PR_NUMBER_PATCH = 1;
 export const PR_NUMBER_MINOR = 20;
 export const PR_NUMBER_MAJOR = 300;
-export const PR_NUMBER_DEFAULT = PR_NUMBER_PATCH;
+export const PR_NUMBER_DEFAULT: typeof PR_NUMBER_PATCH = PR_NUMBER_PATCH;
 
 export interface GithubNock {
   labelPackageVersionMain?: string;
 }
 
-export async function createGithubEventFile(prNumber = PR_NUMBER_DEFAULT): Promise<string> {
-  const filePath = path.join(os.tmpdir(), uuid());
+export async function createGithubEventFile(prNumber: number = PR_NUMBER_DEFAULT): Promise<string> {
+  const filePath = path.join(os.tmpdir(), crypto.randomUUID());
   await fs.writeFile(
     filePath,
     JSON.stringify({

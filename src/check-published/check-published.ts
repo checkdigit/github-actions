@@ -7,7 +7,7 @@ import { exec } from 'node:child_process';
 
 import debug from 'debug';
 
-import slackPost, { postErrorToSlack } from './slack';
+import slackPost, { postErrorToSlack } from './slack.ts';
 
 const execAsync = promisify(exec);
 const log = debug('github-actions:check-published');

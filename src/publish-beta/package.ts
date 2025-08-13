@@ -4,8 +4,8 @@ import path from 'node:path';
 import { readFile, writeFile } from 'node:fs/promises';
 import debug from 'debug';
 
-import { getPRNumber } from '../github-api';
-import { removeTestFilesFromSource } from './files';
+import { getPRNumber } from '../github-api/index.ts';
+import { removeTestFilesFromSource } from './files.ts';
 
 const log = debug('github-actions:publish-beta:package');
 
@@ -18,11 +18,12 @@ interface PackageJSON {
 const NUMBER_OF_CHARS_TO_USE_FROM_COMMIT_SHA = 4;
 
 export function generatePackageBetaTag(): string {
+  // eslint-disable-next-line n/no-process-env
   const commentSha = process.env['GITHUB_SHA'];
   if (commentSha === undefined || commentSha === '') {
     throw new Error('Unable to get GITHUB_SHA');
   }
-  const id = commentSha.slice(-NUMBER_OF_CHARS_TO_USE_FROM_COMMIT_SHA, commentSha.length);
+  const id = commentSha.slice(-NUMBER_OF_CHARS_TO_USE_FROM_COMMIT_SHA);
   const prNumber = getPRNumber();
   return `PR.${prNumber}-${id}`;
 }

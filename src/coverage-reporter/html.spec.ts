@@ -6,12 +6,11 @@
  */
 
 import { strict as assert } from 'node:assert';
+import { describe, it } from 'node:test';
 
-import { describe, it } from '@jest/globals';
+import { a, b, details, fragment, span, summary, table, tbody, td, th, tr } from './html.ts';
 
-import { a, b, details, fragment, span, summary, table, tbody, td, th, tr } from './html';
-
-describe('html', () => {
+describe('html', async () => {
   it('html tags should return the correct html', () => {
     assert.equal(details('foo', 'bar'), '<details>foobar</details>');
     assert.equal(summary('foo', 'bar'), '<summary>foobar</summary>');

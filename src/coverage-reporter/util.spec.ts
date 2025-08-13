@@ -5,13 +5,13 @@
  * https://github.com/romeovs/lcov-reporter-action
  */
 
+// eslint-disable-next-line @checkdigit/no-util
 import { strict as assert } from 'node:assert';
+import { describe, it } from 'node:test';
 
-import { describe, it } from '@jest/globals';
+import { createHref } from './util.ts';
 
-import { createHref } from './util';
-
-describe('util', () => {
+describe('util', async () => {
   it('create simple url to file', () => {
     const options = {
       repository: 'example/foo',

@@ -4,11 +4,11 @@ import path from 'node:path';
 
 import debug from 'debug';
 
-import { publishCommentAndRemovePrevious } from '../github-api';
-import { packageJSONUpdate } from './package';
-import copyNonTSFiles from './files';
-import compile from './compile';
-import publish from './publish';
+import { publishCommentAndRemovePrevious } from '../github-api/index.ts';
+import { packageJSONUpdate } from './package.ts';
+import copyNonTSFiles from './files.ts';
+import compile from './compile.ts';
+import publish from './publish.ts';
 
 const log = debug('github-actions:publish-beta');
 

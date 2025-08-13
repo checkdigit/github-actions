@@ -10,12 +10,12 @@ import path from 'node:path';
 
 import { strict as assert } from 'node:assert';
 
-import { parse } from './lcov';
-import { diff } from './comment';
+import { parse } from './lcov.ts';
+import { diff } from './comment.ts';
 
 async function main() {
   const file = process.argv[2];
-  assert.ok(file, 'file argument is required');
+  assert.ok(file !== undefined, 'file argument is required');
 
   // eslint-disable-next-line no-magic-numbers
   const beforeFile = process.argv[3];
@@ -41,10 +41,11 @@ async function main() {
   console.log(diff(lcov, before, options));
 }
 
-// eslint-disable-next-line unicorn/prefer-top-level-await
-main().catch((error) => {
+try {
+  await main();
+} catch (error) {
   // eslint-disable-next-line no-console
   console.log(error);
   // eslint-disable-next-line unicorn/no-process-exit
   process.exit(1);
-});
+}

@@ -1,13 +1,13 @@
 // check-imports/packages-not-allowed.spec.ts
 
 import { strict as assert } from 'node:assert';
+import { describe, it } from 'node:test';
 
-import { describe, it } from '@jest/globals';
 import * as semver from 'semver';
 
-import notAllowed from './packages-not-allowed';
+import notAllowed from './packages-not-allowed.ts';
 
-describe('packages not allowed', () => {
+describe('packages not allowed', async () => {
   it('contains a list of names, valid ranges, and reasons', async () => {
     notAllowed.forEach(([name, range, reason]) => {
       assert.ok(name !== '');

@@ -7,7 +7,7 @@ import { readFile } from 'node:fs/promises';
 import debug from 'debug';
 import semver from 'semver';
 
-import { getFileFromMain, getLabelsOnPR } from '../github-api';
+import { getFileFromMain, getLabelsOnPR } from '../github-api/index.ts';
 
 const log = debug('github-actions:check-label');
 
@@ -63,7 +63,7 @@ export default async function (): Promise<void> {
     throw new Error('PR has more than one label');
   }
   const label = labelsPullRequest[0]?.toLowerCase();
-  assert(label, 'Unable to get label from PR');
+  assert.ok(label !== undefined, 'Unable to get label from PR');
 
   const branchPackageJsonVersion = await getLocalPackageJsonVersion('package.json');
   const mainPackageJsonVersionRaw = await getFileFromMain('package.json');

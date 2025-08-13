@@ -43,6 +43,7 @@ async function validateS3BucketNames(input: Resources) {
     return;
   }
   // allow override of s3 bucket name length from action environment
+  // eslint-disable-next-line n/no-process-env
   const listOfS3BucketsFromEnvironment = process.env['S3_BUCKET_NAME_LENGTH_EXCEPTIONS'] ?? undefined;
   const S3_BUCKET_NAME_LENGTH_EXCEPTIONS =
     listOfS3BucketsFromEnvironment === undefined ? new Set() : new Set(listOfS3BucketsFromEnvironment.split(','));
@@ -67,6 +68,7 @@ export async function validateNameAndResourceLength(packageJSONWithResources: Pa
     return;
   }
   // allow override of service name length from action environment
+  // eslint-disable-next-line n/no-process-env
   const SERVICE_NAME_LENGTH_EXCEPTION = process.env['SERVICE_NAME_LENGTH_EXCEPTION'] ?? undefined;
   const serviceName = packageJSONWithResources.service.name;
 

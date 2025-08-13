@@ -4,15 +4,13 @@ import { strict as assert } from 'node:assert';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import { describe, it } from 'node:test';
 
-import { describe, it } from '@jest/globals';
-import { v4 as uuid } from 'uuid';
+import copyNonTSFiles, { removeTestFilesFromSource } from './files.ts';
 
-import copyNonTSFiles, { removeTestFilesFromSource } from './files';
-
-describe('copy', () => {
+describe('copy', async () => {
   it('test recursive filtering', async () => {
-    const rootDirectory = path.join(os.tmpdir(), uuid());
+    const rootDirectory = path.join(os.tmpdir(), crypto.randomUUID());
     await fs.mkdir(rootDirectory);
 
     const sourceDirectory = path.join(rootDirectory, 'src');
@@ -39,12 +37,14 @@ describe('copy', () => {
     const file3 = await fs.readFile(path.join(destinationDirectory, 'api/v2/actiontestv2.yml'), 'utf8');
     assert.equal(file3, 'actiontestv2.yml');
 
+    // eslint-disable-next-line @checkdigit/require-assert-predicate-rejects-throws
     await assert.rejects(fs.readFile(path.join(destinationDirectory, 'api/v1/test.ts'), 'utf8'));
+    // eslint-disable-next-line @checkdigit/require-assert-predicate-rejects-throws
     await assert.rejects(fs.readFile(path.join(destinationDirectory, 'api/v2/test2.ts'), 'utf8'));
   });
 
   it('test removal of all files except .ts (excluding .spec.ts and .test.ts)', async () => {
-    const sourceDirectory = path.join(os.tmpdir(), uuid(), 'src');
+    const sourceDirectory = path.join(os.tmpdir(), crypto.randomUUID(), 'src');
     await fs.mkdir(sourceDirectory, { recursive: true });
     await Promise.all([
       fs.writeFile(path.join(sourceDirectory, 'test.ts'), 'test'),

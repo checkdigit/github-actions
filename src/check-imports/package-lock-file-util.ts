@@ -1,9 +1,12 @@
 // check-imports/package-lock-file-util.ts
 
+// eslint-disable-next-line @checkdigit/no-util, unicorn/prevent-abbreviations
 import path from 'node:path';
 import { readFile } from 'node:fs/promises';
+
 import * as semver from 'semver';
-import type { Name, Range } from './packages-not-allowed';
+
+import type { Name, Range } from './packages-not-allowed.ts';
 
 export interface Descriptor {
   version: string;
