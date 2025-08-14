@@ -35,6 +35,28 @@ describe('validate-npm-package', async () => {
     await verifyNpmPackage();
   });
 
+  it('configuration only package that imports json directly should work', { timeout: 300_000 }, async () => {
+    getInputMock.mock.mockImplementationOnce((name) => {
+      if (name === 'betaPackage') {
+        return '@checkdigit/prettier-config@7.1.1';
+      }
+      return '';
+    });
+
+    await verifyNpmPackage();
+  });
+
+  it('service without serve-runtime should not have dependency conflicts', { timeout: 300_000 }, async () => {
+    getInputMock.mock.mockImplementationOnce((name) => {
+      if (name === 'betaPackage') {
+        return '@checkdigit/connector@4.0.2-PR.141-c066';
+      }
+      return '';
+    });
+
+    await verifyNpmPackage();
+  });
+
   // Test uses a bad version of approval package
   // and requires skipLibCheck: false in tsconfig.json
   // we set it manually in validate npm package as
