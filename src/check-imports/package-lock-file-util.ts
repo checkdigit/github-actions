@@ -34,7 +34,9 @@ export interface PackageLock {
   packages: Record<string, Descriptor>;
 }
 
-export async function getPackageLock(rootProjectDirectory: string): Promise<PackageLock> {
+export async function getPackageLock(
+  rootProjectDirectory: string,
+): Promise<PackageLock> {
   const filePath = path.join(rootProjectDirectory, 'package-lock.json');
   return JSON.parse(await readFile(filePath, 'utf8')) as PackageLock;
 }
@@ -62,5 +64,7 @@ export function satisfiesNameAndRange(
   packageVersion: string,
   [name, range]: [Name, Range],
 ): boolean {
-  return isMatchingName(packageName, name) && semver.satisfies(packageVersion, range);
+  return (
+    isMatchingName(packageName, name) && semver.satisfies(packageVersion, range)
+  );
 }

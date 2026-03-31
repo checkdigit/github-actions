@@ -24,7 +24,9 @@ async function getLocalPackageJson(fileName: string): Promise<PackageJSON> {
 }
 
 async function getVersionFromNPM(packageName: string): Promise<string> {
-  const { stdout: latestVersion } = await execAsync(`npm show ${packageName} version`);
+  const { stdout: latestVersion } = await execAsync(
+    `npm show ${packageName} version`,
+  );
   return latestVersion.replaceAll(/[\n\r]/gu, '').trim(); // rm any new lines
 }
 
@@ -41,7 +43,9 @@ export default async function (): Promise<void> {
     throw new Error(errorMessage);
   }
 
-  log(`Main package.json - name ${mainPackageJson.name} - version ${mainPackageJson.version}`);
+  log(
+    `Main package.json - name ${mainPackageJson.name} - version ${mainPackageJson.version}`,
+  );
 
   if (mainPackageJson.name.toLowerCase().includes('template')) {
     log(
@@ -64,8 +68,14 @@ export default async function (): Promise<void> {
 
   if (mainPackageJson.version !== latestVersion) {
     log('Action failed - version published does not match');
-    await slackPost(mainPackageJson.name, mainPackageJson.version, latestVersion);
-    throw new Error(`Version published does not match - ${mainPackageJson.version} !== ${latestVersion}`);
+    await slackPost(
+      mainPackageJson.name,
+      mainPackageJson.version,
+      latestVersion,
+    );
+    throw new Error(
+      `Version published does not match - ${mainPackageJson.version} !== ${latestVersion}`,
+    );
   }
 
   log('Action end');

@@ -4,7 +4,11 @@ import { strict as assert } from 'node:assert';
 
 import debug from 'debug';
 
-import { extractPackageName, getPackageLock, satisfiesNameAndRange } from './package-lock-file-util.ts';
+import {
+  extractPackageName,
+  getPackageLock,
+  satisfiesNameAndRange,
+} from './package-lock-file-util.ts';
 import notAllowed from './packages-not-allowed.ts';
 
 const log = debug('github-actions:check-imports');

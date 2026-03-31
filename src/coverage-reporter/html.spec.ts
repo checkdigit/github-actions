@@ -8,7 +8,19 @@
 import { strict as assert } from 'node:assert';
 import { describe, it } from 'node:test';
 
-import { a, b, details, fragment, span, summary, table, tbody, td, th, tr } from './html.ts';
+import {
+  a,
+  b,
+  details,
+  fragment,
+  span,
+  summary,
+  table,
+  tbody,
+  td,
+  th,
+  tr,
+} from './html.ts';
 
 describe('html', async () => {
   it('html tags should return the correct html', () => {
@@ -31,7 +43,10 @@ describe('html', async () => {
   });
 
   it('html tags should accept props', () => {
-    assert.equal(a({ href: 'http://www.example.com' }, 'example'), "<a href='http://www.example.com'>example</a>");
+    assert.equal(
+      a({ href: 'http://www.example.com' }, 'example'),
+      "<a href='http://www.example.com'>example</a>",
+    );
     assert.equal(
       a({ href: 'http://www.example.com', target: '_blank' }, 'example'),
       "<a href='http://www.example.com' target='_blank'>example</a>",

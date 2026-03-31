@@ -17,10 +17,16 @@ export default async function (): Promise<void> {
 
   await compile(process.cwd());
   const packageNameAndBetaVersion = await packageJSONUpdate(process.cwd());
-  await copyNonTSFiles(path.join(process.cwd(), 'src'), path.join(process.cwd(), 'dist'));
+  await copyNonTSFiles(
+    path.join(process.cwd(), 'src'),
+    path.join(process.cwd(), 'dist'),
+  );
   await publish(process.cwd());
   await publishCommentAndRemovePrevious(
-    `Beta Published - Install Command: \`npm install ${packageNameAndBetaVersion}\` `.replaceAll('"', ''),
+    `Beta Published - Install Command: \`npm install ${packageNameAndBetaVersion}\` `.replaceAll(
+      '"',
+      '',
+    ),
     'Beta Published - Install Command: ',
   );
 

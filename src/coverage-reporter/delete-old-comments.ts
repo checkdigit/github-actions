@@ -18,7 +18,11 @@ async function getExistingComments(
   githubContext: typeof context,
 ): Promise<{ id: number }[]> {
   let page = 0;
-  let results: { id: number; user: Record<string, unknown> | null; body?: string }[] = [];
+  let results: {
+    id: number;
+    user: Record<string, unknown> | null;
+    body?: string;
+  }[] = [];
   let finished = false;
   do {
     // eslint-disable-next-line no-await-in-loop
@@ -55,7 +59,11 @@ export async function deleteOldComments(
   options: Options,
   githubContext: typeof context,
 ): Promise<void> {
-  const existingComments = await getExistingComments(githubClient, options, githubContext);
+  const existingComments = await getExistingComments(
+    githubClient,
+    options,
+    githubContext,
+  );
   for (const comment of existingComments) {
     debug(`Deleting comment: ${comment.id}`);
     try {

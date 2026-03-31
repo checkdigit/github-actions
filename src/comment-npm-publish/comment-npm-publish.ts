@@ -14,7 +14,10 @@ export default async function (): Promise<void> {
   log('Package Name and Version obtained: ', packageNameAndBetaVersion);
 
   await publishCommentAndRemovePrevious(
-    `Beta Published - Install Command: \`npm install ${packageNameAndBetaVersion}\` `.replaceAll('"', ''),
+    `Beta Published - Install Command: \`npm install ${packageNameAndBetaVersion}\` `.replaceAll(
+      '"',
+      '',
+    ),
     'Beta Published - Install Command: ',
   );
 

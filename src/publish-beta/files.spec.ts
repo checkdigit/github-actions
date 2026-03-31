@@ -25,22 +25,44 @@ describe('copy', async () => {
 
     await fs.writeFile(path.join(sourceV1, 'test.ts'), 'test');
     await fs.writeFile(path.join(sourceV2, 'test2.ts'), 'test');
-    await fs.writeFile(path.join(sourceV1, 'actiontestv1.yml'), 'actiontestv1.yml');
-    await fs.writeFile(path.join(sourceV2, 'actiontestv2.yml'), 'actiontestv2.yml');
-    await fs.writeFile(path.join(sourceDirectory, 'testfile.json'), 'testfile.json');
+    await fs.writeFile(
+      path.join(sourceV1, 'actiontestv1.yml'),
+      'actiontestv1.yml',
+    );
+    await fs.writeFile(
+      path.join(sourceV2, 'actiontestv2.yml'),
+      'actiontestv2.yml',
+    );
+    await fs.writeFile(
+      path.join(sourceDirectory, 'testfile.json'),
+      'testfile.json',
+    );
     await copyNonTSFiles(sourceDirectory, destinationDirectory);
 
-    const file1 = await fs.readFile(path.join(destinationDirectory, 'testfile.json'), 'utf8');
+    const file1 = await fs.readFile(
+      path.join(destinationDirectory, 'testfile.json'),
+      'utf8',
+    );
     assert.equal(file1, 'testfile.json');
-    const file2 = await fs.readFile(path.join(destinationDirectory, 'api/v1/actiontestv1.yml'), 'utf8');
+    const file2 = await fs.readFile(
+      path.join(destinationDirectory, 'api/v1/actiontestv1.yml'),
+      'utf8',
+    );
     assert.equal(file2, 'actiontestv1.yml');
-    const file3 = await fs.readFile(path.join(destinationDirectory, 'api/v2/actiontestv2.yml'), 'utf8');
+    const file3 = await fs.readFile(
+      path.join(destinationDirectory, 'api/v2/actiontestv2.yml'),
+      'utf8',
+    );
     assert.equal(file3, 'actiontestv2.yml');
 
     // eslint-disable-next-line @checkdigit/require-assert-predicate-rejects-throws
-    await assert.rejects(fs.readFile(path.join(destinationDirectory, 'api/v1/test.ts'), 'utf8'));
+    await assert.rejects(
+      fs.readFile(path.join(destinationDirectory, 'api/v1/test.ts'), 'utf8'),
+    );
     // eslint-disable-next-line @checkdigit/require-assert-predicate-rejects-throws
-    await assert.rejects(fs.readFile(path.join(destinationDirectory, 'api/v2/test2.ts'), 'utf8'));
+    await assert.rejects(
+      fs.readFile(path.join(destinationDirectory, 'api/v2/test2.ts'), 'utf8'),
+    );
   });
 
   it('test removal of all files except .ts (excluding .spec.ts and .test.ts)', async () => {

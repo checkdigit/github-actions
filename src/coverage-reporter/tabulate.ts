@@ -115,15 +115,23 @@ function uncovered(file: LcovFile, options: Options) {
     .map((branch) => branch.line);
 
   // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-  const lines = (file.lines ? file.lines.details : []).filter((line) => line.hit === 0).map((line) => line.line);
+  const lines = (file.lines ? file.lines.details : [])
+    .filter((line) => line.hit === 0)
+    .map((line) => line.line);
 
   const all = ranges([...branches, ...lines]);
 
   return all
     .map((range) => {
-      const uncoveredFragment = range.start === range.end ? `L${range.start}` : `L${range.start}-L${range.end}`;
+      const uncoveredFragment =
+        range.start === range.end
+          ? `L${range.start}`
+          : `L${range.start}-L${range.end}`;
       const { href } = createHref(options, file);
-      const text = range.start === range.end ? range.start : `${range.start}&ndash;${range.end}`;
+      const text =
+        range.start === range.end
+          ? range.start
+          : `${range.start}&ndash;${range.end}`;
 
       return a({ href: `${href}#${uncoveredFragment}` }, text);
     })
@@ -143,7 +151,14 @@ function toRow(file: LcovFile, indent: boolean, options: Options) {
 
 // Tabulate the lcov data in an HTML table.
 export function tabulate(lcov: Lcov, options: Options): string {
-  const head = tr(th('File'), th('Stmts'), th('Branches'), th('Funcs'), th('Lines'), th('Uncovered Lines'));
+  const head = tr(
+    th('File'),
+    th('Stmts'),
+    th('Branches'),
+    th('Funcs'),
+    th('Lines'),
+    th('Uncovered Lines'),
+  );
 
   const folders = {} as Record<string, LcovFile[]>;
   for (const file of filterAndNormalizeLcov(lcov, options)) {
@@ -161,7 +176,8 @@ export function tabulate(lcov: Lcov, options: Options): string {
       (accumulator: unknown[], key: string) => [
         ...accumulator,
         toFolder(key),
-        ...(folders[key]?.map((file) => toRow(file, key !== '', options)) ?? []),
+        ...(folders[key]?.map((file) => toRow(file, key !== '', options)) ??
+          []),
       ],
       [],
     );

@@ -46,12 +46,17 @@ export function getPRNumber(): string {
   return prNumberSearch[0];
 }
 
-export async function getPullRequestContext(): Promise<GithubConfigurationResponse | undefined> {
+export async function getPullRequestContext(): Promise<
+  GithubConfigurationResponse | undefined
+> {
   try {
     // eslint-disable-next-line n/no-process-env
     log('getGithubContext Path:', process.env['GITHUB_EVENT_PATH']);
-    // eslint-disable-next-line n/no-process-env
-    const gitContextFile = await readFile(process.env['GITHUB_EVENT_PATH'] ?? '', { encoding: 'utf8' });
+    const gitContextFile = await readFile(
+      // eslint-disable-next-line n/no-process-env
+      process.env['GITHUB_EVENT_PATH'] ?? '',
+      { encoding: 'utf8' },
+    );
     const payload = JSON.parse(gitContextFile) as {
       issue?: { number: number };
       pull_request?: { number: number };
@@ -60,11 +65,17 @@ export async function getPullRequestContext(): Promise<GithubConfigurationRespon
     // eslint-disable-next-line n/no-process-env
     const gitHubRepo = process.env['GITHUB_REPOSITORY'] ?? '';
     const [owner, repo] = gitHubRepo.split('/');
-    if (owner === undefined || owner === '' || repo === undefined || repo === '') {
+    if (
+      owner === undefined ||
+      owner === '' ||
+      repo === undefined ||
+      repo === ''
+    ) {
       log('Unable to find repo: Context File', JSON.stringify(gitContextFile));
       throw new Error('unable to get repo');
     }
-    const number = (payload.issue ?? payload.pull_request ?? payload).number as number;
+    const number = (payload.issue ?? payload.pull_request ?? payload)
+      .number as number;
     return { owner, repo, number };
   } catch {
     log('Throw - getGithubContext - returning undefined');
@@ -72,10 +83,18 @@ export async function getPullRequestContext(): Promise<GithubConfigurationRespon
   }
 }
 
-export async function getFileFromMain(filename: string): Promise<string | undefined> {
-  // eslint-disable-next-line n/no-process-env
-  if (process.env['GITHUB_TOKEN'] === undefined || process.env['GITHUB_TOKEN'] === '') {
-    log('getFileFromMain - GITHUB_TOKEN is not set - check action configuration');
+export async function getFileFromMain(
+  filename: string,
+): Promise<string | undefined> {
+  if (
+    // eslint-disable-next-line n/no-process-env
+    process.env['GITHUB_TOKEN'] === undefined ||
+    // eslint-disable-next-line n/no-process-env
+    process.env['GITHUB_TOKEN'] === ''
+  ) {
+    log(
+      'getFileFromMain - GITHUB_TOKEN is not set - check action configuration',
+    );
     throw new Error(THROW_ACTION_ERROR_MESSAGE);
   }
   // eslint-disable-next-line n/no-process-env
@@ -107,8 +126,12 @@ export async function getFileFromMain(filename: string): Promise<string | undefi
 }
 
 export async function getLabelsOnPR(): Promise<string[]> {
-  // eslint-disable-next-line n/no-process-env
-  if (process.env['GITHUB_TOKEN'] === undefined || process.env['GITHUB_TOKEN'] === '') {
+  if (
+    // eslint-disable-next-line n/no-process-env
+    process.env['GITHUB_TOKEN'] === undefined ||
+    // eslint-disable-next-line n/no-process-env
+    process.env['GITHUB_TOKEN'] === ''
+  ) {
     log('getLabelsOnPR - GITHUB_TOKEN is not set - check action configuration');
     throw new Error(THROW_ACTION_ERROR_MESSAGE);
   }
@@ -135,16 +158,24 @@ export async function publishCommentAndRemovePrevious(
   message: string,
   prefixOfPreviousMessageToRemove?: string,
 ): Promise<void> {
-  // eslint-disable-next-line n/no-process-env
-  if (process.env['GITHUB_TOKEN'] === undefined || process.env['GITHUB_TOKEN'] === '') {
-    log('publishCommentAndRemovePrevious: GITHUB_TOKEN is not set - check action configuration');
+  if (
+    // eslint-disable-next-line n/no-process-env
+    process.env['GITHUB_TOKEN'] === undefined ||
+    // eslint-disable-next-line n/no-process-env
+    process.env['GITHUB_TOKEN'] === ''
+  ) {
+    log(
+      'publishCommentAndRemovePrevious: GITHUB_TOKEN is not set - check action configuration',
+    );
     throw new Error(THROW_ACTION_ERROR_MESSAGE);
   }
   // eslint-disable-next-line n/no-process-env
   const octokit = new Octokit({ auth: process.env['GITHUB_TOKEN'] });
   const githubContext = await getPullRequestContext();
   if (!githubContext) {
-    log('publishCommentAndRemovePrevious: Error - unable to get github context');
+    log(
+      'publishCommentAndRemovePrevious: Error - unable to get github context',
+    );
     throw new Error(THROW_UNABLE_TO_GET_CONTEXT);
   }
   let prComments;
@@ -164,7 +195,8 @@ export async function publishCommentAndRemovePrevious(
       if (
         prefixOfPreviousMessageToRemove !== undefined &&
         prefixOfPreviousMessageToRemove !== '' &&
-        (comment.body === undefined || comment.body.includes(prefixOfPreviousMessageToRemove))
+        (comment.body === undefined ||
+          comment.body.includes(prefixOfPreviousMessageToRemove))
       ) {
         log('Comment removed');
         // eslint-disable-next-line no-await-in-loop
@@ -189,8 +221,12 @@ export async function publishCommentAndRemovePrevious(
 }
 
 export async function haveAllReviewersReviewed(): Promise<number> {
-  // eslint-disable-next-line n/no-process-env
-  if (process.env['GITHUB_TOKEN'] === undefined || process.env['GITHUB_TOKEN'] === '') {
+  if (
+    // eslint-disable-next-line n/no-process-env
+    process.env['GITHUB_TOKEN'] === undefined ||
+    // eslint-disable-next-line n/no-process-env
+    process.env['GITHUB_TOKEN'] === ''
+  ) {
     log('GITHUB_TOKEN is not set - check action configuration');
     throw new Error(THROW_ACTION_ERROR_MESSAGE);
   }
@@ -214,8 +250,12 @@ export async function haveAllReviewersReviewed(): Promise<number> {
 }
 
 export async function approvedReviews(): Promise<GithubReviewStatus> {
-  // eslint-disable-next-line n/no-process-env
-  if (process.env['GITHUB_TOKEN'] === undefined || process.env['GITHUB_TOKEN'] === '') {
+  if (
+    // eslint-disable-next-line n/no-process-env
+    process.env['GITHUB_TOKEN'] === undefined ||
+    // eslint-disable-next-line n/no-process-env
+    process.env['GITHUB_TOKEN'] === ''
+  ) {
     log('GITHUB_TOKEN is not set - check action configuration');
     throw new Error(THROW_ACTION_ERROR_MESSAGE);
   }
@@ -270,7 +310,10 @@ export async function approvedReviews(): Promise<GithubReviewStatus> {
       continue;
     }
     // skip if the user is the one who created the PR makes a comment - that is not a review
-    if (pullRequestState?.user?.login === review.user.login && review.state === 'COMMENTED') {
+    if (
+      pullRequestState?.user?.login === review.user.login &&
+      review.state === 'COMMENTED'
+    ) {
       // eslint-disable-next-line no-continue
       continue;
     }

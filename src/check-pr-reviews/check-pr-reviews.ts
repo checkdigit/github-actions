@@ -5,7 +5,11 @@ import { setFailed } from '@actions/core';
 
 import { differenceInCalendarDays } from '@checkdigit/time';
 
-import { approvedReviews, haveAllReviewersReviewed, publishCommentAndRemovePrevious } from '../github-api/index.ts';
+import {
+  approvedReviews,
+  haveAllReviewersReviewed,
+  publishCommentAndRemovePrevious,
+} from '../github-api/index.ts';
 
 const MAXIMUM_DAYS_SINCE_REVIEW = 90;
 const PULL_REQUEST_MESSAGE_KEYWORD = 'PR review status ';
@@ -17,13 +21,19 @@ export default async function (): Promise<void> {
   const yetToReview = await haveAllReviewersReviewed();
   if (yetToReview > 0) {
     const reviewOutstandingMessage =
-      yetToReview === 1 ? `has ${yetToReview} reviewer outstanding` : `has ${yetToReview} reviewers outstanding`;
+      yetToReview === 1
+        ? `has ${yetToReview} reviewer outstanding`
+        : `has ${yetToReview} reviewers outstanding`;
     await publishCommentAndRemovePrevious(
       `:x: PR review status - ${reviewOutstandingMessage}`,
       PULL_REQUEST_MESSAGE_KEYWORD,
     );
-    setFailed(`PR has not been reviewed correctly - ${reviewOutstandingMessage}`);
-    throw new Error(`PR has not been reviewed correctly - ${reviewOutstandingMessage}`);
+    setFailed(
+      `PR has not been reviewed correctly - ${reviewOutstandingMessage}`,
+    );
+    throw new Error(
+      `PR has not been reviewed correctly - ${reviewOutstandingMessage}`,
+    );
   }
 
   const reviews = await approvedReviews();
@@ -40,8 +50,12 @@ export default async function (): Promise<void> {
       `:x: PR review status - ${approvedReviewsOutstandingMessage}`,
       PULL_REQUEST_MESSAGE_KEYWORD,
     );
-    setFailed(`PR has not been reviewed correctly - ${approvedReviewsOutstandingMessage}`);
-    throw new Error('PR has not been reviewed correctly - not all reviewers have approved');
+    setFailed(
+      `PR has not been reviewed correctly - ${approvedReviewsOutstandingMessage}`,
+    );
+    throw new Error(
+      'PR has not been reviewed correctly - not all reviewers have approved',
+    );
   }
 
   const daysSinceOldestApprovedReview = differenceInCalendarDays(

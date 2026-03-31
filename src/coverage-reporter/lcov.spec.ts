@@ -117,12 +117,17 @@ describe('lcov', async () => {
   });
 
   it('parse should fail on invalid lcov', async () => {
-    assert.throws(() => parse('invalid'), { message: 'Failed to parse string' });
+    assert.throws(() => parse('invalid'), {
+      message: 'Failed to parse string',
+    });
   });
 
   it('percentage should calculate the correct percentage', () => {
     assert.equal(
-      percentage([{ lines: { hit: 20, found: 25, details: [] } }, { lines: { hit: 10, found: 15, details: [] } }]),
+      percentage([
+        { lines: { hit: 20, found: 25, details: [] } },
+        { lines: { hit: 10, found: 15, details: [] } },
+      ]),
       75,
     );
   });

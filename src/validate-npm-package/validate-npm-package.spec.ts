@@ -11,7 +11,8 @@ describe('validate-npm-package', async () => {
     },
   });
   // must use dynamic import after mocking to ensure the mock is applied
-  const { default: verifyNpmPackage } = await import('./validate-npm-package.ts');
+  const { default: verifyNpmPackage } =
+    await import('./validate-npm-package.ts');
 
   it('successfully verify good npm package', { timeout: 300_000 }, async () => {
     getInputMock.mock.mockImplementationOnce((name: string) => {
@@ -24,38 +25,50 @@ describe('validate-npm-package', async () => {
     await verifyNpmPackage();
   });
 
-  it('successfully verify good beta npm package with the latest standards', { timeout: 300_000 }, async () => {
-    getInputMock.mock.mockImplementationOnce((name) => {
-      if (name === 'betaPackage') {
-        return '@checkdigit/test-checkdigit@3.4.1-PR.134-31bc';
-      }
-      return '';
-    });
+  it(
+    'successfully verify good beta npm package with the latest standards',
+    { timeout: 300_000 },
+    async () => {
+      getInputMock.mock.mockImplementationOnce((name) => {
+        if (name === 'betaPackage') {
+          return '@checkdigit/test-checkdigit@3.4.1-PR.134-31bc';
+        }
+        return '';
+      });
 
-    await verifyNpmPackage();
-  });
+      await verifyNpmPackage();
+    },
+  );
 
-  it('configuration only package that imports json directly should work', { timeout: 300_000 }, async () => {
-    getInputMock.mock.mockImplementationOnce((name) => {
-      if (name === 'betaPackage') {
-        return '@checkdigit/prettier-config@7.1.1';
-      }
-      return '';
-    });
+  it(
+    'configuration only package that imports json directly should work',
+    { timeout: 300_000 },
+    async () => {
+      getInputMock.mock.mockImplementationOnce((name) => {
+        if (name === 'betaPackage') {
+          return '@checkdigit/prettier-config@8.0.0';
+        }
+        return '';
+      });
 
-    await verifyNpmPackage();
-  });
+      await verifyNpmPackage();
+    },
+  );
 
-  it('service without serve-runtime should not have dependency conflicts', { timeout: 300_000 }, async () => {
-    getInputMock.mock.mockImplementationOnce((name) => {
-      if (name === 'betaPackage') {
-        return '@checkdigit/connector@4.0.2-PR.141-c066';
-      }
-      return '';
-    });
+  it(
+    'service without serve-runtime should not have dependency conflicts',
+    { timeout: 300_000 },
+    async () => {
+      getInputMock.mock.mockImplementationOnce((name) => {
+        if (name === 'betaPackage') {
+          return '@checkdigit/connector@4.0.2-PR.141-c066';
+        }
+        return '';
+      });
 
-    await verifyNpmPackage();
-  });
+      await verifyNpmPackage();
+    },
+  );
 
   // Test uses a bad version of approval package
   // and requires skipLibCheck: false in tsconfig.json

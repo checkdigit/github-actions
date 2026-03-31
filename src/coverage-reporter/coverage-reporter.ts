@@ -31,10 +31,20 @@ export default async function (): Promise<void> {
     const token = getInput('github-token');
     const githubClient = getOctokit(token);
     const workingDirectory = getInput('working-directory') || './';
-    const prLcovFile = path.join(workingDirectory, getInput('coverage-results-folder-pr'), LCOV_FILE_NAME);
-    const baseLcovFile = path.join(workingDirectory, getInput('coverage-results-folder-base'), LCOV_FILE_NAME);
-    const shouldFilterChangedFiles = getInput('filter-changed-files').toLowerCase() === 'true';
-    const shouldDeleteOldComments = getInput('delete-old-comments').toLowerCase() === 'true';
+    const prLcovFile = path.join(
+      workingDirectory,
+      getInput('coverage-results-folder-pr'),
+      LCOV_FILE_NAME,
+    );
+    const baseLcovFile = path.join(
+      workingDirectory,
+      getInput('coverage-results-folder-base'),
+      LCOV_FILE_NAME,
+    );
+    const shouldFilterChangedFiles =
+      getInput('filter-changed-files').toLowerCase() === 'true';
+    const shouldDeleteOldComments =
+      getInput('delete-old-comments').toLowerCase() === 'true';
     const title = getInput('title');
 
     // eslint-disable-next-line @checkdigit/no-promise-instance-method
@@ -45,8 +55,10 @@ export default async function (): Promise<void> {
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @checkdigit/no-promise-instance-method
-    const baseRaw = baseLcovFile && (await fs.readFile(baseLcovFile, 'utf8').catch(() => null))!;
+    const baseRaw =
+      baseLcovFile &&
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @checkdigit/no-promise-instance-method
+      (await fs.readFile(baseLcovFile, 'utf8').catch(() => null))!;
     if (baseLcovFile && !baseRaw) {
       // eslint-disable-next-line no-console
       console.log(`No coverage report found at '${baseLcovFile}', ignoring...`);
@@ -60,10 +72,18 @@ export default async function (): Promise<void> {
     } as Options;
 
     if (context.eventName === 'pull_request') {
-      options.commit = (context.payload.pull_request?.['head'] as { sha: string }).sha;
-      options.baseCommit = (context.payload.pull_request?.['base'] as { sha: string }).sha;
-      options.head = (context.payload.pull_request?.['head'] as { ref: string }).ref;
-      options.base = (context.payload.pull_request?.['base'] as { ref: string }).ref;
+      options.commit = (
+        context.payload.pull_request?.['head'] as { sha: string }
+      ).sha;
+      options.baseCommit = (
+        context.payload.pull_request?.['base'] as { sha: string }
+      ).sha;
+      options.head = (
+        context.payload.pull_request?.['head'] as { ref: string }
+      ).ref;
+      options.base = (
+        context.payload.pull_request?.['base'] as { ref: string }
+      ).ref;
     } else if (context.eventName === 'push') {
       options.commit = context.payload['after'] as string;
       options.baseCommit = context.payload['before'] as string;
@@ -74,12 +94,19 @@ export default async function (): Promise<void> {
     options.title = title;
 
     if (shouldFilterChangedFiles) {
-      options.changedFiles = await getChangedFiles(githubClient, options, context);
+      options.changedFiles = await getChangedFiles(
+        githubClient,
+        options,
+        context,
+      );
     }
 
     const lcov = parse(raw);
     const baseLcov = parse(baseRaw);
-    const body = diff(lcov, baseLcov, options).slice(0, Math.max(0, MAX_COMMENT_CHARS));
+    const body = diff(lcov, baseLcov, options).slice(
+      0,
+      Math.max(0, MAX_COMMENT_CHARS),
+    );
 
     if (shouldDeleteOldComments) {
       await deleteOldComments(githubClient, options, context);
