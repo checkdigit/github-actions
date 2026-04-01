@@ -17,7 +17,8 @@ export const SECURITY_RISK = 'Security risk: contains remote access trojan';
  */
 const notAllowed: NotAllowed[] = [
   // ['@aws-sdk/client-*', '>3.387.0', UNSTABLE], // example of an unstable package
-  ['axios', '0.30.4 || >=1.14.1', SECURITY_RISK],
+  ['axios', '*', SECURITY_RISK],
+  ['got', '*', SECURITY_RISK],
 ];
 
 export default notAllowed;
