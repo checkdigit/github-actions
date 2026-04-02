@@ -3,7 +3,10 @@
 import { strict as assert } from 'node:assert';
 import { describe, it } from 'node:test';
 
-import { type PackageJSON, validateNameAndResourceLength } from './validate-name-and-resource-length.ts';
+import {
+  type PackageJSON,
+  validateNameAndResourceLength,
+} from './validate-name-and-resource-length.ts';
 
 describe('Test name and resource length', async () => {
   it('No services property', async () => {
@@ -150,7 +153,8 @@ describe('Test name and resource length', async () => {
   });
 
   it('S3 bucket name too long - exempt bucket', async () => {
-    process.env['S3_BUCKET_NAME_LENGTH_EXCEPTIONS'] = 'ach.teampay.armor.inbound';
+    process.env['S3_BUCKET_NAME_LENGTH_EXCEPTIONS'] =
+      'ach.teampay.armor.inbound';
     const packageJSON: PackageJSON = {
       service: {
         name: 'TestName',
@@ -178,7 +182,8 @@ describe('Test name and resource length', async () => {
   });
 
   it('S3 bucket name too long - multiple exempt bucket', async () => {
-    process.env['S3_BUCKET_NAME_LENGTH_EXCEPTIONS'] = 'mastercard.armor.inbound,ach.teampay.armor.inbound';
+    process.env['S3_BUCKET_NAME_LENGTH_EXCEPTIONS'] =
+      'mastercard.armor.inbound,ach.teampay.armor.inbound';
     const packageJSON: PackageJSON = {
       service: {
         name: 'TestName',

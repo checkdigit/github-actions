@@ -14,7 +14,9 @@ export interface GithubNock {
   labelPackageVersionMain?: string;
 }
 
-export async function createGithubEventFile(prNumber: number = PR_NUMBER_DEFAULT): Promise<string> {
+export async function createGithubEventFile(
+  prNumber: number = PR_NUMBER_DEFAULT,
+): Promise<string> {
   const filePath = path.join(os.tmpdir(), crypto.randomUUID());
   await fs.writeFile(
     filePath,
@@ -58,14 +60,18 @@ export default function (options?: GithubNock): void {
 
   nock('https://api.github.com/')
     .persist()
-    .get(`/repos/checkdigit/preview/pulls/${PR_NUMBER_DEFAULT}/requested_reviewers`)
+    .get(
+      `/repos/checkdigit/preview/pulls/${PR_NUMBER_DEFAULT}/requested_reviewers`,
+    )
     .reply(200, () => ({
       users: [],
     }));
 
   nock('https://api.github.com/')
     .persist()
-    .get(`/repos/checkdigit/previewOutstanding/pulls/${PR_NUMBER_DEFAULT}/requested_reviewers`)
+    .get(
+      `/repos/checkdigit/previewOutstanding/pulls/${PR_NUMBER_DEFAULT}/requested_reviewers`,
+    )
     .reply(200, () => ({
       users: [
         {
@@ -79,7 +85,9 @@ export default function (options?: GithubNock): void {
 
   nock('https://api.github.com/')
     .persist()
-    .get(`/repos/checkdigit/previewOldReviews/pulls/${PR_NUMBER_DEFAULT}/requested_reviewers`)
+    .get(
+      `/repos/checkdigit/previewOldReviews/pulls/${PR_NUMBER_DEFAULT}/requested_reviewers`,
+    )
     .reply(200, () => ({
       users: [],
     }));
@@ -142,7 +150,9 @@ export default function (options?: GithubNock): void {
 
   nock('https://api.github.com/')
     .persist()
-    .get(`/repos/checkdigit/previewOldReviews/pulls/${PR_NUMBER_DEFAULT}/reviews`)
+    .get(
+      `/repos/checkdigit/previewOldReviews/pulls/${PR_NUMBER_DEFAULT}/reviews`,
+    )
     .reply(200, () => [
       {
         id: '1234prReviewPull',
@@ -211,7 +221,10 @@ export default function (options?: GithubNock): void {
     }));
 
   // allow POST of comments to the PRs
-  nock('https://api.github.com/').persist().post('/repos/checkdigit/previewOldReviews/issues/1/comments').reply(200);
+  nock('https://api.github.com/')
+    .persist()
+    .post('/repos/checkdigit/previewOldReviews/issues/1/comments')
+    .reply(200);
 
   // return label
   nock('https://api.github.com/')
@@ -238,15 +251,25 @@ export default function (options?: GithubNock): void {
   // return a raw package json file
   nock('https://api.github.com/')
     .get('/repos/checkdigit/testlabel/contents/package.json?ref=main')
-    .reply(200, () => JSON.stringify({ version: options?.labelPackageVersionMain ?? '1.0.0' }));
+    .reply(200, () =>
+      JSON.stringify({ version: options?.labelPackageVersionMain ?? '1.0.0' }),
+    );
 
   nock('https://api.github.com/')
     .get('/repos/checkdigit/testlabel/contents/package-lock.json?ref=main')
-    .reply(200, () => JSON.stringify({ version: options?.labelPackageVersionMain ?? '1.0.0' }));
+    .reply(200, () =>
+      JSON.stringify({ version: options?.labelPackageVersionMain ?? '1.0.0' }),
+    );
 
   // allow delete operations to the two comments that should be deleted
-  nock('https://api.github.com/').persist().delete('/repos/checkdigit/comments/issues/comments/1').reply(200);
-  nock('https://api.github.com/').persist().delete('/repos/checkdigit/comments/issues/comments/3').reply(200);
+  nock('https://api.github.com/')
+    .persist()
+    .delete('/repos/checkdigit/comments/issues/comments/1')
+    .reply(200);
+  nock('https://api.github.com/')
+    .persist()
+    .delete('/repos/checkdigit/comments/issues/comments/3')
+    .reply(200);
 
   nock('https://api.github.com/')
     .persist()

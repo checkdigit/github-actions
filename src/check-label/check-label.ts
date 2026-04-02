@@ -31,7 +31,9 @@ export function validateVersion(
   prLabel: string,
 ): true {
   if (semver.gt(mainPackageJsonVersion, branchPackageJsonVersion)) {
-    log(`Main branch version: ${mainPackageJsonVersion} vs branch version: ${branchPackageJsonVersion}`);
+    log(
+      `Main branch version: ${mainPackageJsonVersion} vs branch version: ${branchPackageJsonVersion}`,
+    );
     throw new Error('main version is ahead of branch version');
   }
 
@@ -51,7 +53,11 @@ export function validateVersion(
   }
 
   const expectedVersion = mainVersionSplit.join('.');
-  assert.equal(branchPackageJsonVersion, expectedVersion, 'Version is incorrect based on Pull Request label');
+  assert.equal(
+    branchPackageJsonVersion,
+    expectedVersion,
+    'Version is incorrect based on Pull Request label',
+  );
   return true;
 }
 
@@ -65,18 +71,29 @@ export default async function (): Promise<void> {
   const label = labelsPullRequest[0]?.toLowerCase();
   assert.ok(label !== undefined, 'Unable to get label from PR');
 
-  const branchPackageJsonVersion = await getLocalPackageJsonVersion('package.json');
+  const branchPackageJsonVersion =
+    await getLocalPackageJsonVersion('package.json');
   const mainPackageJsonVersionRaw = await getFileFromMain('package.json');
 
   if (mainPackageJsonVersionRaw === undefined) {
     throw new Error('Unable to get package.json from main branch');
   }
-  const mainPackageJsonVersion = JSON.parse(mainPackageJsonVersionRaw) as PackageJSON;
+  const mainPackageJsonVersion = JSON.parse(
+    mainPackageJsonVersionRaw,
+  ) as PackageJSON;
 
-  validateVersion(branchPackageJsonVersion, mainPackageJsonVersion.version, label);
+  validateVersion(
+    branchPackageJsonVersion,
+    mainPackageJsonVersion.version,
+    label,
+  );
 
   const branchLockFile = await getLocalPackageJsonVersion('package-lock.json');
-  assert.equal(branchPackageJsonVersion, branchLockFile, 'package.json and package-lock.json versions do not match');
+  assert.equal(
+    branchPackageJsonVersion,
+    branchLockFile,
+    'package.json and package-lock.json versions do not match',
+  );
 
   log('Action end');
 }

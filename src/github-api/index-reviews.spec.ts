@@ -12,7 +12,8 @@ describe('github review', async () => {
   it('review two outstanding reviewers', async () => {
     gitHubNock();
     process.env['GITHUB_REPOSITORY'] = 'checkdigit/previewOutstanding';
-    process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
+    process.env['GITHUB_TOKEN'] =
+      'token 0000000000000000000000000000000000000001';
     process.env['GITHUB_EVENT_PATH'] = await createGithubEventFile();
     const result = await haveAllReviewersReviewed();
     assert.equal(result, 2);
@@ -21,7 +22,8 @@ describe('github review', async () => {
   it('No outstanding reviewers and all approved reviews', async () => {
     gitHubNock();
     process.env['GITHUB_REPOSITORY'] = 'checkdigit/preview';
-    process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
+    process.env['GITHUB_TOKEN'] =
+      'token 0000000000000000000000000000000000000001';
     process.env['GITHUB_EVENT_PATH'] = await createGithubEventFile();
     const result = await approvedReviews();
     assert.equal(result.approvedReviews, 2);
@@ -31,7 +33,8 @@ describe('github review', async () => {
   it('Ensure reviews arent stale', async () => {
     gitHubNock();
     process.env['GITHUB_REPOSITORY'] = 'checkdigit/previewOldReviews';
-    process.env['GITHUB_TOKEN'] = 'token 0000000000000000000000000000000000000001';
+    process.env['GITHUB_TOKEN'] =
+      'token 0000000000000000000000000000000000000001';
     process.env['GITHUB_EVENT_PATH'] = await createGithubEventFile();
     const result = await approvedReviews();
     assert.equal(result.approvedReviews, 3);

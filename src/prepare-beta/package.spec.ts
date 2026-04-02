@@ -23,7 +23,14 @@ describe('package', async () => {
     const filePath = path.join(workFolder, 'package.json');
     process.env['GITHUB_REF'] = '/ref/87/branch';
     process.env['GITHUB_SHA'] = '12345678ad90';
-    await fs.writeFile(filePath, JSON.stringify({ name: 'testpackage', version: '1.2.10', files: ['/dist/'] }));
+    await fs.writeFile(
+      filePath,
+      JSON.stringify({
+        name: 'testpackage',
+        version: '1.2.10',
+        files: ['/dist/'],
+      }),
+    );
     await fs.mkdir(path.join(workFolder, 'src'));
 
     await packageJSONUpdate(workFolder);

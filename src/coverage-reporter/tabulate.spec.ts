@@ -137,7 +137,14 @@ describe('tabulate', async () => {
 
     const html = table(
       tbody(
-        tr(th('File'), th('Stmts'), th('Branches'), th('Funcs'), th('Lines'), th('Uncovered Lines')),
+        tr(
+          th('File'),
+          th('Stmts'),
+          th('Branches'),
+          th('Funcs'),
+          th('Lines'),
+          th('Uncovered Lines'),
+        ),
         tr(
           td(
             a(
@@ -337,7 +344,14 @@ describe('tabulate', async () => {
 
     const html = table(
       tbody(
-        tr(th('File'), th('Stmts'), th('Branches'), th('Funcs'), th('Lines'), th('Uncovered Lines')),
+        tr(
+          th('File'),
+          th('Stmts'),
+          th('Branches'),
+          th('Funcs'),
+          th('Lines'),
+          th('Uncovered Lines'),
+        ),
         tr(td({ colspan: 6 }, b('src'))),
         tr(
           td(
@@ -491,7 +505,14 @@ describe('tabulate', async () => {
 
     const html = table(
       tbody(
-        tr(th('File'), th('Stmts'), th('Branches'), th('Funcs'), th('Lines'), th('Uncovered Lines')),
+        tr(
+          th('File'),
+          th('Stmts'),
+          th('Branches'),
+          th('Funcs'),
+          th('Lines'),
+          th('Uncovered Lines'),
+        ),
         tr(td({ colspan: 6 }, b('src'))),
         tr(
           td(

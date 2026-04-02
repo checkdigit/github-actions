@@ -10,11 +10,15 @@ function tag(name: string) {
     const properties =
       typeof children[0] === 'object'
         ? Object.keys(children[0] as Record<string, unknown>)
-            .map((key) => ` ${key}='${(children[0] as Record<string, unknown>)[key] as string}'`)
+            .map(
+              (key) =>
+                ` ${key}='${(children[0] as Record<string, unknown>)[key] as string}'`,
+            )
             .join('')
         : '';
 
-    const child = typeof children[0] === 'string' ? children : children.slice(1);
+    const child =
+      typeof children[0] === 'string' ? children : children.slice(1);
 
     return `<${name}${properties}>${child.join('')}</${name}>`;
   };

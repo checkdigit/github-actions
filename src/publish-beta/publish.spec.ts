@@ -14,7 +14,10 @@ describe('package', async () => {
     await fs.mkdir(rootdirectory);
     await addNPMRCFile(rootdirectory);
 
-    const npmrcFile = await fs.readFile(path.join(rootdirectory, '.npmrc'), 'utf8');
+    const npmrcFile = await fs.readFile(
+      path.join(rootdirectory, '.npmrc'),
+      'utf8',
+    );
     // eslint-disable-next-line no-template-curly-in-string
     assert.equal(npmrcFile, '//registry.npmjs.org/:_authToken=${NPM_TOKEN}');
   });
@@ -25,7 +28,10 @@ describe('package', async () => {
     await fs.writeFile(path.join(rootdirectory, '.npmrc'), 'test', 'utf8');
     await addNPMRCFile(rootdirectory);
 
-    const npmrcFile = await fs.readFile(path.join(rootdirectory, '.npmrc'), 'utf8');
+    const npmrcFile = await fs.readFile(
+      path.join(rootdirectory, '.npmrc'),
+      'utf8',
+    );
     assert.equal(npmrcFile, 'test');
   });
 });

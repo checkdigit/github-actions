@@ -15,8 +15,14 @@ export async function getChangedFiles(
   options: Options,
   githubContext: typeof context,
 ): Promise<string[]> {
-  if (!options.commit || options.baseCommit === undefined || options.baseCommit === '') {
-    setFailed(`The base and head commits are missing from the payload for this ${githubContext.eventName} event.`);
+  if (
+    !options.commit ||
+    options.baseCommit === undefined ||
+    options.baseCommit === ''
+  ) {
+    setFailed(
+      `The base and head commits are missing from the payload for this ${githubContext.eventName} event.`,
+    );
   }
 
   const response = await githubClient.rest.repos.compareCommits({

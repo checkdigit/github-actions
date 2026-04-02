@@ -35,7 +35,9 @@ function checkFilesPropertyExists(packageJSON: string): void {
   }
 }
 
-export async function packageJSONUpdate(rootProjectDirectory: string): Promise<string> {
+export async function packageJSONUpdate(
+  rootProjectDirectory: string,
+): Promise<string> {
   const packageJSONPath = path.join(rootProjectDirectory, 'package.json');
   const readPackageJson = await readFile(packageJSONPath, 'utf8');
   checkFilesPropertyExists(readPackageJson);
@@ -46,6 +48,8 @@ export async function packageJSONUpdate(rootProjectDirectory: string): Promise<s
   const newVersion = `${packageJson.version}-${generatePackageBetaTag()}`;
   packageJson.version = newVersion;
   await writeFile(packageJSONPath, JSON.stringify(packageJson));
-  log(`Updated package.json - new version is: ${packageJson.name}@${newVersion}`);
+  log(
+    `Updated package.json - new version is: ${packageJson.name}@${newVersion}`,
+  );
   return `${packageJson.name}@${newVersion}`;
 }

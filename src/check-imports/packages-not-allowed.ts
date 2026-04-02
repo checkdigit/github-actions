@@ -11,11 +11,14 @@ export type NotAllowed = [Name, Range, Reason];
 // const UNSTABLE =
 //   'Higher versions are unstable and break tests in Check Digit services. This can be removed from the Not Allowed list when stability improves.';
 
-/*
+export const SECURITY_RISK =
+  'Blocked by security policy due to security concerns'; /*
   This is the list of packages that are not allowed to be imported.
  */
 const notAllowed: NotAllowed[] = [
   // ['@aws-sdk/client-*', '>3.387.0', UNSTABLE], // example of an unstable package
+  ['axios', '*', SECURITY_RISK],
+  ['got', '*', SECURITY_RISK],
 ];
 
 export default notAllowed;

@@ -2,7 +2,10 @@
 import path from 'node:path';
 import fs from 'node:fs/promises';
 
-export default async function copyNonTSFiles(sourceDirectory: string, destinationDirectory: string): Promise<void> {
+export default async function copyNonTSFiles(
+  sourceDirectory: string,
+  destinationDirectory: string,
+): Promise<void> {
   const files = await fs.readdir(sourceDirectory, { withFileTypes: true });
   await Promise.all(
     files.map(async (item) => {
@@ -10,7 +13,10 @@ export default async function copyNonTSFiles(sourceDirectory: string, destinatio
       const destinationItem = path.join(destinationDirectory, item.name);
       if (item.isDirectory()) {
         await fs.mkdir(destinationItem, { recursive: true });
-        await copyNonTSFiles(sourceItem, path.join(destinationDirectory, item.name));
+        await copyNonTSFiles(
+          sourceItem,
+          path.join(destinationDirectory, item.name),
+        );
         return;
       }
       if (!item.name.endsWith('.ts')) {
@@ -20,7 +26,9 @@ export default async function copyNonTSFiles(sourceDirectory: string, destinatio
   );
 }
 
-export async function removeTestFilesFromSource(sourceDirectory: string): Promise<void> {
+export async function removeTestFilesFromSource(
+  sourceDirectory: string,
+): Promise<void> {
   const files = await fs.readdir(sourceDirectory, { withFileTypes: true });
   await Promise.all(
     files.map(async (item) => {

@@ -6,7 +6,7 @@ import { promises as fs } from 'node:fs';
 import childProcess from 'node:child_process';
 import { promisify } from 'node:util';
 
-import core from '@actions/core';
+import { getInput } from '@actions/core';
 import debug from 'debug';
 
 import { addNPMRCFile } from '../publish-beta/publish.ts';
@@ -26,8 +26,14 @@ interface PackageJson {
 const exec = promisify(childProcess.exec);
 const log = debug('github-actions:validate-npm-package');
 
-async function retrievePackageJson(workFolder: string, packageNameAndBetaVersion: string): Promise<PackageJson> {
-  const execResult = await exec(`npm view ${packageNameAndBetaVersion} --json`, { cwd: workFolder });
+async function retrievePackageJson(
+  workFolder: string,
+  packageNameAndBetaVersion: string,
+): Promise<PackageJson> {
+  const execResult = await exec(
+    `npm view ${packageNameAndBetaVersion} --json`,
+    { cwd: workFolder },
+  );
   log('retrievePackageJson - execResult', execResult);
 
   const packageJson = JSON.parse(execResult.stdout) as PackageJson;
@@ -37,19 +43,26 @@ async function retrievePackageJson(workFolder: string, packageNameAndBetaVersion
 }
 
 // create a minimal project with the package as a dependency
-async function generateProject(workFolder: string, packageJson: PackageJson): Promise<void> {
+async function generateProject(
+  workFolder: string,
+  packageJson: PackageJson,
+): Promise<void> {
   // create package.json with the dependency
   const projectPackageJson = {
     name: 'test',
     version: '0.0.1',
-    description: 'test project for validating a target library or service npm package',
+    description:
+      'test project for validating a target library or service npm package',
     ...(packageJson.engine === undefined ? {} : { engine: packageJson.engine }),
     type: 'module',
     dependencies: {
       [packageJson.name]: packageJson.version,
     },
   };
-  await fs.writeFile(`${workFolder}/package.json`, JSON.stringify(projectPackageJson, null, 2));
+  await fs.writeFile(
+    `${workFolder}/package.json`,
+    JSON.stringify(projectPackageJson, null, 2),
+  );
 }
 
 async function installDependencies(workFolder: string): Promise<void> {
@@ -60,8 +73,14 @@ async function installDependencies(workFolder: string): Promise<void> {
   log('installNpmDependencies - execResult', execResult);
 }
 
-async function verifyDefaultImport(workFolder: string, packageName: string, importEntryPoint: string): Promise<void> {
-  const importType = importEntryPoint.endsWith('.json') ? ` with { type: 'json' }` : '';
+async function verifyDefaultImport(
+  workFolder: string,
+  packageName: string,
+  importEntryPoint: string,
+): Promise<void> {
+  const importType = importEntryPoint.endsWith('.json')
+    ? ` with { type: 'json' }`
+    : '';
   const importStatement = `import '${packageName}'${importType};`;
   const commandLine = `node -e "${importStatement}"`;
   log('verifyDefaultImport - commandLine', commandLine);
@@ -73,7 +92,7 @@ async function verifyDefaultImport(workFolder: string, packageName: string, impo
 export default async function (): Promise<void> {
   log('Action start');
 
-  const packageNameAndBetaVersion = core.getInput('betaPackage');
+  const packageNameAndBetaVersion = getInput('betaPackage');
   log('packageNameAndBetaVersion', packageNameAndBetaVersion);
 
   // eslint-disable-next-line @checkdigit/no-random-v4-uuid
@@ -83,10 +102,16 @@ export default async function (): Promise<void> {
 
   await addNPMRCFile(workFolder);
 
-  const packageJson = await retrievePackageJson(workFolder, packageNameAndBetaVersion);
-  const importEntryPoint = packageJson.exports?.['.']?.import ?? packageJson.main;
+  const packageJson = await retrievePackageJson(
+    workFolder,
+    packageNameAndBetaVersion,
+  );
+  const importEntryPoint =
+    packageJson.exports?.['.']?.import ?? packageJson.main;
   if (typeof importEntryPoint !== 'string') {
-    throw new TypeError('no import entry point found, or not defined following our standards.');
+    throw new TypeError(
+      'no import entry point found, or not defined following our standards.',
+    );
   }
 
   await generateProject(workFolder, packageJson);
