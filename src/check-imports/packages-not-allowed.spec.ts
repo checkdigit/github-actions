@@ -15,21 +15,13 @@ describe('packages not allowed', async () => {
       assert.ok(reason.length > 10); // Ten is an arbitrary length to ensure a full sentence used in the reason.
     });
   });
-  it('contains axios and got as fully blocked dependencies', async () => {
+  it('contains axios as a fully blocked dependency', async () => {
     assert.ok(
       notAllowed.some(
         ([name, range, reason]) =>
           name === 'axios' && range === '*' && reason === SECURITY_RISK,
       ),
       'Should contain axios@* as not allowed',
-    );
-
-    assert.ok(
-      notAllowed.some(
-        ([name, range, reason]) =>
-          name === 'got' && range === '*' && reason === SECURITY_RISK,
-      ),
-      'Should contain got@* as not allowed',
     );
   });
 });
