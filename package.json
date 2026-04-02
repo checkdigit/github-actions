@@ -1,6 +1,6 @@
 {
   "name": "@checkdigit/github-actions",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": " Provides supporting operations for github action builds.",
   "homepage": "https://github.com/checkdigit/github-actions#readme",
   "bugs": {
