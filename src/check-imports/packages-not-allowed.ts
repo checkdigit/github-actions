@@ -18,7 +18,6 @@ export const SECURITY_RISK =
 const notAllowed: NotAllowed[] = [
   // ['@aws-sdk/client-*', '>3.387.0', UNSTABLE], // example of an unstable package
   ['axios', '*', SECURITY_RISK],
-  ['got', '*', SECURITY_RISK],
 ];
 
 export default notAllowed;
