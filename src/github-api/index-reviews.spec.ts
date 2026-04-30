@@ -19,6 +19,16 @@ describe('github review', async () => {
     assert.equal(result, 2);
   });
 
+  it('ignores copilot when counting outstanding reviewers', async () => {
+    gitHubNock();
+    process.env['GITHUB_REPOSITORY'] = 'checkdigit/previewCopilotOutstanding';
+    process.env['GITHUB_TOKEN'] =
+      'token 0000000000000000000000000000000000000001';
+    process.env['GITHUB_EVENT_PATH'] = await createGithubEventFile();
+    const result = await haveAllReviewersReviewed();
+    assert.equal(result, 1);
+  });
+
   it('No outstanding reviewers and all approved reviews', async () => {
     gitHubNock();
     process.env['GITHUB_REPOSITORY'] = 'checkdigit/preview';
