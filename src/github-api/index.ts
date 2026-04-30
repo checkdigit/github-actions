@@ -36,6 +36,10 @@ export interface PullRequestState {
 
 const log = debug('github-actions:publish-beta:github');
 
+function isHumanReviewer(user?: { type?: string; login?: string }): boolean {
+  return !(user?.login === 'Copilot' || user?.type === 'Bot');
+}
+
 export function getPRNumber(): string {
   // eslint-disable-next-line n/no-process-env, sonarjs/concise-regex
   const prNumberSearch = process.env['GITHUB_REF']?.match(/[0-9]+/gu); // matches the PR number
@@ -246,7 +250,8 @@ export async function haveAllReviewersReviewed(): Promise<number> {
     // eslint-disable-next-line camelcase
     pull_number: githubContext.number,
   });
-  return requestedReviewers.data.users.length;
+  return requestedReviewers.data.users.filter((user) => isHumanReviewer(user))
+    .length;
 }
 
 export async function approvedReviews(): Promise<GithubReviewStatus> {

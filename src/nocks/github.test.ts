@@ -86,6 +86,28 @@ export default function (options?: GithubNock): void {
   nock('https://api.github.com/')
     .persist()
     .get(
+      `/repos/checkdigit/previewCopilotOutstanding/pulls/${PR_NUMBER_DEFAULT}/requested_reviewers`,
+    )
+    .reply(200, () => ({
+      users: [
+        {
+          login: 'bob',
+          type: 'User',
+        },
+        {
+          login: 'Copilot',
+          type: 'Bot',
+        },
+        {
+          login: 'Copilot',
+          type: 'User',
+        },
+      ],
+    }));
+
+  nock('https://api.github.com/')
+    .persist()
+    .get(
       `/repos/checkdigit/previewOldReviews/pulls/${PR_NUMBER_DEFAULT}/requested_reviewers`,
     )
     .reply(200, () => ({
