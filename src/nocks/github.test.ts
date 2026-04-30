@@ -98,6 +98,10 @@ export default function (options?: GithubNock): void {
           login: 'Copilot',
           type: 'Bot',
         },
+        {
+          login: 'Copilot',
+          type: 'User',
+        },
       ],
     }));
 

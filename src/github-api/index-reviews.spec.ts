@@ -19,7 +19,7 @@ describe('github review', async () => {
     assert.equal(result, 2);
   });
 
-  it('ignores copilot when counting outstanding reviewers', async () => {
+  it('ignores bots and copilot when counting outstanding reviewers', async () => {
     gitHubNock();
     process.env['GITHUB_REPOSITORY'] = 'checkdigit/previewCopilotOutstanding';
     process.env['GITHUB_TOKEN'] =
