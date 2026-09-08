@@ -1,13 +1,11 @@
 // check-imports/check-imports.ts
 
-import { strict as assert } from 'node:assert';
-
 import debug from 'debug';
 
 import {
   extractPackageName,
   getPackageLock,
-  satisfiesNameAndRange,
+  isMatchingNameAndRange,
 } from './package-lock-file-util.ts';
 import notAllowed from './packages-not-allowed.ts';
 
@@ -19,21 +17,17 @@ export default async function main(): Promise<void> {
   const { packages } = await getPackageLock(process.cwd());
 
   log('Reviewing package-lock');
-  for (const key in packages) {
-    if (Object.hasOwn(packages, key)) {
-      const descriptor = packages[key];
-      assert.ok(descriptor !== undefined, 'Package version is missing');
-      const packageVersion = descriptor.version;
-      const packageName = extractPackageName(key);
+  for (const [key, descriptor] of Object.entries(packages)) {
+    const packageVersion = descriptor.version;
+    const packageName = extractPackageName(key);
 
-      for (const [name, range, reason] of notAllowed) {
-        if (satisfiesNameAndRange(packageName, packageVersion, [name, range])) {
-          throw new Error(
-            `Package ${packageName}@${packageVersion} is not allowed to be imported because it is included in ${JSON.stringify(
-              [name, range],
-            )}. Package ${name}@${range} is not allowed for the following reason: ${reason}`,
-          );
-        }
+    for (const [name, range, reason] of notAllowed) {
+      if (isMatchingNameAndRange(packageName, packageVersion, [name, range])) {
+        throw new Error(
+          `Package ${packageName}@${packageVersion} is not allowed to be imported because it is included in ${JSON.stringify(
+            [name, range],
+          )}. Package ${name}@${range} is not allowed for the following reason: ${reason}`,
+        );
       }
     }
   }

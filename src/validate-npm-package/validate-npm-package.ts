@@ -36,7 +36,17 @@ async function retrievePackageJson(
   );
   log('retrievePackageJson - execResult', execResult);
 
-  const packageJson = JSON.parse(execResult.stdout) as PackageJson;
+  // npm 12 always returns an array; npm 11 returns an object for one version.
+  const result = JSON.parse(execResult.stdout) as PackageJson | PackageJson[];
+  const packageJson = Array.isArray(result) ? result[0] : result;
+  if (
+    packageJson === undefined ||
+    (Array.isArray(result) && result.length !== 1)
+  ) {
+    throw new TypeError(
+      'Expected npm view to return exactly one package version.',
+    );
+  }
   log('retrievePackageJson - name', packageJson.name);
   log('retrievePackageJson - version', packageJson.version);
   return packageJson;
@@ -53,7 +63,7 @@ async function generateProject(
     version: '0.0.1',
     description:
       'test project for validating a target library or service npm package',
-    ...(packageJson.engine === undefined ? {} : { engine: packageJson.engine }),
+    ...(packageJson.engine !== undefined && { engine: packageJson.engine }),
     type: 'module',
     dependencies: {
       [packageJson.name]: packageJson.version,

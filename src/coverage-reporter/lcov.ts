@@ -68,86 +68,91 @@ function emptyItem(): LcovFile {
   } as unknown as LcovFile;
 }
 
+function parseLine(item: LcovFile, line: string): void {
+  const allParts = line.split(':');
+
+  const parts = [allParts.shift(), allParts.join(':')] as [string, string];
+
+  switch (parts[0].toUpperCase()) {
+    case 'TN': {
+      item.title = parts[1].trim();
+      break;
+    }
+    case 'SF': {
+      item.file = parts.slice(1).join(':').trim();
+      break;
+    }
+    case 'FNF': {
+      item.functions.found = Number(parts[1].trim());
+      break;
+    }
+    case 'FNH': {
+      item.functions.hit = Number(parts[1].trim());
+      break;
+    }
+    case 'LF': {
+      item.lines.found = Number(parts[1].trim());
+      break;
+    }
+    case 'LH': {
+      item.lines.hit = Number(parts[1].trim());
+      break;
+    }
+    case 'DA': {
+      const [lineNumber, hit] = parts[1].split(',');
+      item.lines.details.push({
+        line: Number(lineNumber),
+        hit: Number(hit),
+      });
+      break;
+    }
+    case 'FN': {
+      const [lineNumber, name] = parts[1].split(',') as [string, string];
+      item.functions.details.push({
+        name,
+        line: Number(lineNumber),
+      });
+      break;
+    }
+    case 'FNDA': {
+      const [lineNumber, name] = parts[1].split(',');
+      item.functions.details.some((lcovFunction) => {
+        if (lcovFunction.name === name && lcovFunction.hit === undefined) {
+          lcovFunction.hit = Number(lineNumber);
+          return true;
+        }
+        return false;
+      });
+      break;
+    }
+    case 'BRDA': {
+      const [lineNumber, block, branch, taken] = parts[1].split(',');
+      item.branches.details.push({
+        line: Number(lineNumber),
+        block: Number(block),
+        branch: Number(branch),
+        taken: taken === '-' ? 0 : Number(taken),
+      });
+      break;
+    }
+    case 'BRF': {
+      item.branches.found = Number(parts[1]);
+      break;
+    }
+    case 'BRH': {
+      item.branches.hit = Number(parts[1]);
+      break;
+    }
+  }
+}
+
 export function parse(input: string): Lcov {
   const result = [] as Lcov;
   let item = emptyItem();
 
-  for (const line of input.split('\n').map((lineToTrim) => lineToTrim.trim())) {
-    const allParts = line.split(':');
-
-    const parts = [allParts.shift(), allParts.join(':')] as [string, string];
-
-    switch (parts[0].toUpperCase()) {
-      case 'TN': {
-        item.title = parts[1].trim();
-        break;
-      }
-      case 'SF': {
-        item.file = parts.slice(1).join(':').trim();
-        break;
-      }
-      case 'FNF': {
-        item.functions.found = Number(parts[1].trim());
-        break;
-      }
-      case 'FNH': {
-        item.functions.hit = Number(parts[1].trim());
-        break;
-      }
-      case 'LF': {
-        item.lines.found = Number(parts[1].trim());
-        break;
-      }
-      case 'LH': {
-        item.lines.hit = Number(parts[1].trim());
-        break;
-      }
-      case 'DA': {
-        const [lineNumber, hit] = parts[1].split(',');
-        item.lines.details.push({
-          line: Number(lineNumber),
-          hit: Number(hit),
-        });
-        break;
-      }
-      case 'FN': {
-        const [lineNumber, name] = parts[1].split(',') as [string, string];
-        item.functions.details.push({
-          name,
-          line: Number(lineNumber),
-        });
-        break;
-      }
-      case 'FNDA': {
-        const [lineNumber, name] = parts[1].split(',');
-        item.functions.details.some((lcovFunction) => {
-          if (lcovFunction.name === name && lcovFunction.hit === undefined) {
-            lcovFunction.hit = Number(lineNumber);
-            return true;
-          }
-          return false;
-        });
-        break;
-      }
-      case 'BRDA': {
-        const [lineNumber, block, branch, taken] = parts[1].split(',');
-        item.branches.details.push({
-          line: Number(lineNumber),
-          block: Number(block),
-          branch: Number(branch),
-          taken: taken === '-' ? 0 : Number(taken),
-        });
-        break;
-      }
-      case 'BRF': {
-        item.branches.found = Number(parts[1]);
-        break;
-      }
-      case 'BRH': {
-        item.branches.hit = Number(parts[1]);
-        break;
-      }
-    }
+  for (const rawLine of input.split('\n')) {
+    const line = rawLine.trim();
+    parseLine(item, line);
 
     if (line.includes('end_of_record')) {
       result.push(item);

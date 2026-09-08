@@ -9,7 +9,9 @@ describe('check pr reviews', async () => {
   // we have to mock setFailed as it is used in the code to signal failure,
   //  behind the scenes it calls process.exit(1) which marks the test as failed even though it is not
   mock.module('@actions/core', {
-    namedExports: {
+    // node:test added `exports` in Node 24.15.0. Node 26 also supports it.
+    // `namedExports` is deprecated and fails with our --throw-deprecation flag.
+    exports: {
       setFailed: mock.fn(),
     },
   });

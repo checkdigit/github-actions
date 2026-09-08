@@ -7,7 +7,7 @@ import { differenceInCalendarDays } from '@checkdigit/time';
 
 import {
   approvedReviews,
-  haveAllReviewersReviewed,
+  getPendingReviewerCount,
   publishCommentAndRemovePrevious,
 } from '../github-api/index.ts';
 
@@ -18,7 +18,7 @@ const log = debug('github-actions:check-pr-reviews');
 export default async function (): Promise<void> {
   log('Action start');
 
-  const yetToReview = await haveAllReviewersReviewed();
+  const yetToReview = await getPendingReviewerCount();
   if (yetToReview > 0) {
     const reviewOutstandingMessage =
       yetToReview === 1
