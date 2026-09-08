@@ -73,11 +73,13 @@ describe('validate-npm-package', async () => {
   );
 
   it(
-    'package requiring a browser fails default import',
+    'rejects a package that throws during import',
     { timeout: 300_000 },
     async () => {
       getInputMock.mock.mockImplementationOnce((name) => {
         if (name === 'betaPackage') {
+          // This public package installs successfully, but importing it in Node
+          // throws because it accesses the browser's `document` global.
           return 'keymaster@1.6.2';
         }
         return '';
