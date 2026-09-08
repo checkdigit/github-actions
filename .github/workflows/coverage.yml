@@ -2,42 +2,75 @@ name: Coverage
 
 on:
   pull_request:
-    branches:
-      - 'main'
+    branches: [main]
+
+concurrency:
+  group: coverage-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
-  coverage:
-    name: Coverage
+  base:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '26.x'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Run coverage
+        run: npm run ci:coverage
+        # The base commit can still contain private npm package fixtures.
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN_PUBLISH }}
+      - uses: actions/upload-artifact@v7
+        with:
+          name: base-coverage
+          path: coverage/lcov.info
+          if-no-files-found: error
+
+  pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      - name: Use Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: '24.x'
+          node-version: '26.x'
           cache: 'npm'
-      - name: Install latest npm
-        run: npm install -g npm@11.4.2
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm ci --ignore-scripts
-      - name: Prepare
-        run: npm run prepare
-      - name: Calculate Code Coverage
+      - name: Run coverage
         run: npm run ci:coverage
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN_PUBLISH }}
-      - name: Create Coverage Report for base branch
-        run: |
-          mv coverage coverage-pr
-          git fetch
-          git checkout origin/${{ github.event.pull_request.base.ref }}
-          npm ci --ignore-scripts && npm run prepare && npm run ci:coverage
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN_PUBLISH }}
-      - name: Post Coverage Report
+      - uses: actions/upload-artifact@v7
+        with:
+          name: pr-coverage
+          path: coverage/lcov.info
+          if-no-files-found: error
+
+  report:
+    name: Coverage
+    needs: [base, pr]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Require successful coverage jobs
+        if: ${{ needs.base.result != 'success' || needs.pr.result != 'success' }}
+        run: exit 1
+      - uses: actions/download-artifact@v8
+        with: { name: base-coverage, path: coverage }
+      - uses: actions/download-artifact@v8
+        with: { name: pr-coverage, path: coverage-pr }
+      - name: Post coverage report
         uses: checkdigit/github-actions/coverage-reporter@main
         with:
           coverage-results-folder-pr: 'coverage-pr'

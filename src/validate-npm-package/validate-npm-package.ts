@@ -53,7 +53,7 @@ async function generateProject(
     version: '0.0.1',
     description:
       'test project for validating a target library or service npm package',
-    ...(packageJson.engine === undefined ? {} : { engine: packageJson.engine }),
+    ...(packageJson.engine !== undefined && { engine: packageJson.engine }),
     type: 'module',
     dependencies: {
       [packageJson.name]: packageJson.version,

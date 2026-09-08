@@ -6,7 +6,7 @@ import { describe, it, mock } from 'node:test';
 describe('validate-npm-package', async () => {
   const getInputMock = mock.fn<(name: string) => string>();
   mock.module('@actions/core', {
-    namedExports: {
+    exports: {
       getInput: getInputMock,
     },
   });
@@ -17,7 +17,7 @@ describe('validate-npm-package', async () => {
   it('successfully verify good npm package', { timeout: 300_000 }, async () => {
     getInputMock.mock.mockImplementationOnce((name: string) => {
       if (name === 'betaPackage') {
-        return '@checkdigit/approval@2.0.3';
+        return '@checkdigit/hash@4.0.1';
       }
       return '';
     });
@@ -31,7 +31,7 @@ describe('validate-npm-package', async () => {
     async () => {
       getInputMock.mock.mockImplementationOnce((name) => {
         if (name === 'betaPackage') {
-          return '@checkdigit/test-checkdigit@3.4.1-PR.134-31bc';
+          return '@checkdigit/hash@5.0.0-PR.32-b512';
         }
         return '';
       });
@@ -46,7 +46,7 @@ describe('validate-npm-package', async () => {
     async () => {
       getInputMock.mock.mockImplementationOnce((name) => {
         if (name === 'betaPackage') {
-          return '@checkdigit/prettier-config@8.0.0';
+          return '@checkdigit/prettier-config@8.1.1';
         }
         return '';
       });
@@ -56,12 +56,12 @@ describe('validate-npm-package', async () => {
   );
 
   it(
-    'service without serve-runtime should not have dependency conflicts',
+    'package with peer dependencies should not have dependency conflicts',
     { timeout: 300_000 },
     async () => {
       getInputMock.mock.mockImplementationOnce((name) => {
         if (name === 'betaPackage') {
-          return '@checkdigit/connector@4.0.2-PR.141-c066';
+          return '@checkdigit/typescript-config@10.2.1';
         }
         return '';
       });
@@ -70,18 +70,21 @@ describe('validate-npm-package', async () => {
     },
   );
 
-  // Test uses a bad version of approval package
-  // and requires skipLibCheck: false in tsconfig.json
-  // we set it manually in validate npm package as
-  // checkdigit/typescript-config is various versions of this setting
-  it('bad npm package results in error', { timeout: 300_000 }, async () => {
-    getInputMock.mock.mockImplementationOnce((name) => {
-      if (name === 'betaPackage') {
-        return '@checkdigit/approval@2.0.0-PR.196-b041';
-      }
-      return '';
-    });
+  it(
+    'package requiring a browser fails default import',
+    { timeout: 300_000 },
+    async () => {
+      getInputMock.mock.mockImplementationOnce((name) => {
+        if (name === 'betaPackage') {
+          return 'keymaster@1.6.2';
+        }
+        return '';
+      });
 
-    await assert.rejects(() => verifyNpmPackage(), Error);
-  });
+      await assert.rejects(
+        () => verifyNpmPackage(),
+        /document is not defined/u,
+      );
+    },
+  );
 });

@@ -9,7 +9,7 @@ describe('check pr reviews', async () => {
   // we have to mock setFailed as it is used in the code to signal failure,
   //  behind the scenes it calls process.exit(1) which marks the test as failed even though it is not
   mock.module('@actions/core', {
-    namedExports: {
+    exports: {
       setFailed: mock.fn(),
     },
   });

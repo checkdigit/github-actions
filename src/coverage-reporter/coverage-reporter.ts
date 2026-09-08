@@ -24,6 +24,14 @@ const log = debug('github-actions:coverage-reporter');
 
 const LCOV_FILE_NAME = 'lcov.info';
 
+async function readLcovFile(file: string): Promise<string | null> {
+  try {
+    return await fs.readFile(file, 'utf8');
+  } catch {
+    return null;
+  }
+}
+
 export default async function (): Promise<void> {
   try {
     log('Action start');
@@ -47,8 +55,7 @@ export default async function (): Promise<void> {
       getInput('delete-old-comments').toLowerCase() === 'true';
     const title = getInput('title');
 
-    // eslint-disable-next-line @checkdigit/no-promise-instance-method
-    const raw = await fs.readFile(prLcovFile, 'utf8').catch(() => null);
+    const raw = await readLcovFile(prLcovFile);
     if (raw === null || raw === '') {
       // eslint-disable-next-line no-console
       console.log(`No coverage report found at '${prLcovFile}', exiting...`);
@@ -57,8 +64,8 @@ export default async function (): Promise<void> {
 
     const baseRaw =
       baseLcovFile &&
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @checkdigit/no-promise-instance-method
-      (await fs.readFile(baseLcovFile, 'utf8').catch(() => null))!;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      (await readLcovFile(baseLcovFile))!;
     if (baseLcovFile && !baseRaw) {
       // eslint-disable-next-line no-console
       console.log(`No coverage report found at '${baseLcovFile}', ignoring...`);

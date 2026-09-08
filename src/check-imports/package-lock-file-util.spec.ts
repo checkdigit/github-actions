@@ -11,7 +11,7 @@ import examplePackageLock from './example-package-lock.json' with { type: 'json'
 import {
   extractPackageName,
   getPackageLock,
-  satisfiesNameAndRange,
+  isMatchingNameAndRange,
 } from './package-lock-file-util.ts';
 
 describe('package lock file utilities', async () => {
@@ -39,14 +39,14 @@ describe('package lock file utilities', async () => {
   it('can check if a package name and version matches name and range', () => {
     // matching package name different versions
     assert.equal(
-      satisfiesNameAndRange('@aws-sdk/client-sts', '3.2.0', [
+      isMatchingNameAndRange('@aws-sdk/client-sts', '3.2.0', [
         '@aws-sdk/client-sts',
         '>3.1.0',
       ]),
       true,
     );
     assert.equal(
-      satisfiesNameAndRange('@aws-sdk/client-sts', '3.1.0', [
+      isMatchingNameAndRange('@aws-sdk/client-sts', '3.1.0', [
         '@aws-sdk/client-sts',
         '>3.1.0',
       ]),
@@ -54,35 +54,35 @@ describe('package lock file utilities', async () => {
     );
 
     assert.equal(
-      satisfiesNameAndRange('@aws-sdk/client-sts', '4.0.0', [
+      isMatchingNameAndRange('@aws-sdk/client-sts', '4.0.0', [
         '@aws-sdk/client-sts',
         '>=3.1.0',
       ]),
       true,
     );
     assert.equal(
-      satisfiesNameAndRange('@aws-sdk/client-sts', '3.1.0', [
+      isMatchingNameAndRange('@aws-sdk/client-sts', '3.1.0', [
         '@aws-sdk/client-sts',
         '>=3.1.0',
       ]),
       true,
     );
     assert.equal(
-      satisfiesNameAndRange('@aws-sdk/client-sts', '2.1.0', [
+      isMatchingNameAndRange('@aws-sdk/client-sts', '2.1.0', [
         '@aws-sdk/client-sts',
         '>=3.1.0',
       ]),
       false,
     );
     assert.equal(
-      satisfiesNameAndRange('@aws-sdk/client-sts', '3.1.0', [
+      isMatchingNameAndRange('@aws-sdk/client-sts', '3.1.0', [
         '@aws-sdk/client-sts',
         '=3.1.0',
       ]),
       true,
     );
     assert.equal(
-      satisfiesNameAndRange('@aws-sdk/client-sts', '3.0.0', [
+      isMatchingNameAndRange('@aws-sdk/client-sts', '3.0.0', [
         '@aws-sdk/client-sts',
         '=3.1.0',
       ]),
@@ -90,21 +90,21 @@ describe('package lock file utilities', async () => {
     );
 
     assert.equal(
-      satisfiesNameAndRange('@aws-sdk/client-sts', '3.1.0', [
+      isMatchingNameAndRange('@aws-sdk/client-sts', '3.1.0', [
         '@aws-sdk/client-sts',
         '<=3.1.0',
       ]),
       true,
     );
     assert.equal(
-      satisfiesNameAndRange('@aws-sdk/client-sts', '3.0.0', [
+      isMatchingNameAndRange('@aws-sdk/client-sts', '3.0.0', [
         '@aws-sdk/client-sts',
         '<=3.1.0',
       ]),
       true,
     );
     assert.equal(
-      satisfiesNameAndRange('@aws-sdk/client-sts', '3.2.0', [
+      isMatchingNameAndRange('@aws-sdk/client-sts', '3.2.0', [
         '@aws-sdk/client-sts',
         '<=3.1.0',
       ]),
@@ -112,14 +112,14 @@ describe('package lock file utilities', async () => {
     );
 
     assert.equal(
-      satisfiesNameAndRange('@aws-sdk/client-sts', '3.2.0', [
+      isMatchingNameAndRange('@aws-sdk/client-sts', '3.2.0', [
         '@aws-sdk/client-sts',
         '>3.1.0',
       ]),
       true,
     );
     assert.equal(
-      satisfiesNameAndRange('@aws-sdk/client-sts', '3.1.0', [
+      isMatchingNameAndRange('@aws-sdk/client-sts', '3.1.0', [
         '@aws-sdk/client-sts',
         '>3.1.0',
       ]),
@@ -128,21 +128,21 @@ describe('package lock file utilities', async () => {
 
     // star notion for listed package
     assert.equal(
-      satisfiesNameAndRange('@aws-sdk/client-sts', '3.2.0', [
+      isMatchingNameAndRange('@aws-sdk/client-sts', '3.2.0', [
         '@aws-sdk/client-*',
         '>3.1.0',
       ]),
       true,
     );
     assert.equal(
-      satisfiesNameAndRange('@aws-sdk/client-sts', '3.1.0', [
+      isMatchingNameAndRange('@aws-sdk/client-sts', '3.1.0', [
         '@aws-sdk/client-*',
         '>3.1.0',
       ]),
       false,
     );
     assert.equal(
-      satisfiesNameAndRange('@aws-sdk', '3.2.0', [
+      isMatchingNameAndRange('@aws-sdk', '3.2.0', [
         '@aws-sdk/client-*',
         '>3.1.0',
       ]),
@@ -151,21 +151,21 @@ describe('package lock file utilities', async () => {
 
     // star notion for incoming package
     assert.equal(
-      satisfiesNameAndRange('@aws-sdk/client-*', '3.2.0', [
+      isMatchingNameAndRange('@aws-sdk/client-*', '3.2.0', [
         '@aws-sdk/client-sts',
         '>3.1.0',
       ]),
       true,
     );
     assert.equal(
-      satisfiesNameAndRange('@aws-sdk/client-*', '3.1.0', [
+      isMatchingNameAndRange('@aws-sdk/client-*', '3.1.0', [
         '@aws-sdk/client-sts',
         '>3.1.0',
       ]),
       false,
     );
     assert.equal(
-      satisfiesNameAndRange('@aws-sdk/client-*', '3.2.0', [
+      isMatchingNameAndRange('@aws-sdk/client-*', '3.2.0', [
         '@aws-sdk',
         '>3.1.0',
       ]),
@@ -174,14 +174,14 @@ describe('package lock file utilities', async () => {
 
     // star notion for both
     assert.equal(
-      satisfiesNameAndRange('@aws-sdk/client-*', '3.2.0', [
+      isMatchingNameAndRange('@aws-sdk/client-*', '3.2.0', [
         '@aws-sdk/client-*',
         '>3.1.0',
       ]),
       true,
     );
     assert.equal(
-      satisfiesNameAndRange('@aws-sdk/client-*', '3.1.0', [
+      isMatchingNameAndRange('@aws-sdk/client-*', '3.1.0', [
         '@aws-sdk/client-*',
         '>3.1.0',
       ]),
