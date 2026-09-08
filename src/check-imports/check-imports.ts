@@ -1,7 +1,5 @@
 // check-imports/check-imports.ts
 
-import { strict as assert } from 'node:assert';
-
 import debug from 'debug';
 
 import {
@@ -19,13 +17,7 @@ export default async function main(): Promise<void> {
   const { packages } = await getPackageLock(process.cwd());
 
   log('Reviewing package-lock');
-  for (const key in packages) {
-    if (!Object.hasOwn(packages, key)) {
-      // eslint-disable-next-line no-continue
-      continue;
-    }
-    const descriptor = packages[key];
-    assert.ok(descriptor !== undefined, 'Package version is missing');
+  for (const [key, descriptor] of Object.entries(packages)) {
     const packageVersion = descriptor.version;
     const packageName = extractPackageName(key);
 

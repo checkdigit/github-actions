@@ -6,6 +6,8 @@ import { describe, it, mock } from 'node:test';
 describe('validate-npm-package', async () => {
   const getInputMock = mock.fn<(name: string) => string>();
   mock.module('@actions/core', {
+    // node:test added `exports` in Node 24.15.0. Node 26 also supports it.
+    // `namedExports` is deprecated and fails with our --throw-deprecation flag.
     exports: {
       getInput: getInputMock,
     },
