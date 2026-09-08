@@ -26,9 +26,6 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Run coverage
         run: npm run ci:coverage
-        # The base commit can still contain private npm package fixtures.
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN_PUBLISH }}
       - uses: actions/upload-artifact@v7
         with:
           name: base-coverage
