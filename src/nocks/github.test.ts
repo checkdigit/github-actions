@@ -12,6 +12,8 @@ export const PR_NUMBER_DEFAULT: typeof PR_NUMBER_PATCH = PR_NUMBER_PATCH;
 
 export interface GithubNock {
   labelPackageVersionMain?: string;
+  missingSwaggerFiles?: string[];
+  swaggerFiles?: Record<string, string>;
 }
 
 export async function createGithubEventFile(
@@ -282,6 +284,23 @@ export default function (options?: GithubNock): void {
     .reply(200, () =>
       JSON.stringify({ version: options?.labelPackageVersionMain ?? '1.0.0' }),
     );
+
+  for (const [swaggerPath, swagger] of Object.entries(
+    options?.swaggerFiles ?? {},
+  )) {
+    nock('https://api.github.com/')
+      .get(
+        `/repos/checkdigit/testlabel/contents/${encodeURIComponent(swaggerPath)}?ref=main`,
+      )
+      .reply(200, swagger);
+  }
+  for (const swaggerPath of options?.missingSwaggerFiles ?? []) {
+    nock('https://api.github.com/')
+      .get(
+        `/repos/checkdigit/testlabel/contents/${encodeURIComponent(swaggerPath)}?ref=main`,
+      )
+      .reply(404, { message: 'Not Found' });
+  }
 
   // allow delete operations to the two comments that should be deleted
   nock('https://api.github.com/')

@@ -150,4 +150,74 @@ describe('check label', async () => {
       }
     });
   });
+
+  it('checks every Swagger endpoint configured by the branch package', async () => {
+    process.env['GITHUB_TOKEN'] =
+      'token 0000000000000000000000000000000000000001';
+
+    const unchangedSwagger = `openapi: 3.0.0
+info:
+  version: 1.0.0
+paths: {}
+`;
+    const changedMainSwagger = `swagger: '2.0'
+info:
+  version: 2.3.4
+paths: {}
+`;
+    const changedBranchSwagger = changedMainSwagger.replace(
+      'version: 2.3.4',
+      'version: 2.3.5',
+    );
+    gitHubNock({
+      labelPackageVersionMain: '1.0.0',
+      missingSwaggerFiles: ['src/new/v99/swagger.yml'],
+      swaggerFiles: {
+        'src/api/v1/swagger.yml': unchangedSwagger,
+        'src/admin/v2/swagger.yml': changedMainSwagger,
+      },
+    });
+
+    const workFolder = path.join(os.tmpdir(), crypto.randomUUID());
+    await fs.mkdir(path.join(workFolder, 'src/api/v1'), { recursive: true });
+    await fs.mkdir(path.join(workFolder, 'src/admin/v2'), { recursive: true });
+    await fs.mkdir(path.join(workFolder, 'src/new/v99'), { recursive: true });
+    await fs.writeFile(
+      path.join(workFolder, 'package.json'),
+      JSON.stringify({
+        version: '1.0.1',
+        service: {
+          api: {
+            root: 'src',
+            endpoints: ['api/v1', 'admin/v2', 'new/v99'],
+          },
+        },
+      }),
+    );
+    await fs.writeFile(
+      path.join(workFolder, 'package-lock.json'),
+      JSON.stringify({ version: '1.0.1' }),
+    );
+    await fs.writeFile(
+      path.join(workFolder, 'src/api/v1/swagger.yml'),
+      unchangedSwagger,
+    );
+    await fs.writeFile(
+      path.join(workFolder, 'src/admin/v2/swagger.yml'),
+      changedBranchSwagger,
+    );
+    await fs.writeFile(
+      path.join(workFolder, 'src/new/v99/swagger.yml'),
+      changedMainSwagger.replace('version: 2.3.4', 'version: 99.0.0'),
+    );
+
+    const originalCwd = process.cwd();
+    try {
+      process.chdir(workFolder);
+      await createContext(PR_NUMBER_PATCH);
+      await assert.doesNotReject(checkLabel());
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
 });
