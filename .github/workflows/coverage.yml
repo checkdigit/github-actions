@@ -33,6 +33,8 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Calculate Code Coverage
         run: npm run ci:coverage
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Upload Base Coverage
         uses: actions/upload-artifact@v7
         with:
@@ -58,6 +60,8 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Calculate Code Coverage
         run: npm run ci:coverage
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Upload PR Coverage
         uses: actions/upload-artifact@v7
         with:

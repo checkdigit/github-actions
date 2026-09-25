@@ -41,6 +41,8 @@ jobs:
         run: npm run ci:lint
       - name: Run Tests
         run: npm run ci:test
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   branchBuild:
     name: Branch Build
@@ -72,3 +74,5 @@ jobs:
         run: npm run ci:lint
       - name: Run Tests
         run: npm run ci:test
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

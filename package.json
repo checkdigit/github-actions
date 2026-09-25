@@ -33,9 +33,7 @@
   "dependencies": {
     "@actions/core": "^3.0.1",
     "@actions/github": "^9.1.1",
-    "@checkdigit/retry": "^8.0.0",
     "@checkdigit/time": "^6.0.0",
-    "@checkdigit/timeout": "^6.0.0",
     "@octokit/rest": "^22.0.1",
     "debug": "^4.4.3",
     "semver": "^7.8.5"

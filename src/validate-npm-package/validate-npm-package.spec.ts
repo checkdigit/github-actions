@@ -1,30 +1,55 @@
 // validate-npm-package/validate-npm-package.spec.ts
 
 import { strict as assert } from 'node:assert';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import childProcess from 'node:child_process';
 import { describe, it, mock } from 'node:test';
 import { promisify } from 'node:util';
 
-describe('validate-npm-package', async () => {
-  const getInputMock = mock.fn<(name: string) => string>();
+interface TestScope {
+  betaPackage: string;
+  injectedFailure: { commandIndex: number; error: Error } | undefined;
+  executedCommandLines: string[];
+}
+
+// tests run concurrently, so mocks read per-test state from async context instead of shared mockImplementationOnce queues
+describe('validate-npm-package', { concurrency: true }, async () => {
+  const testScopeStorage = new AsyncLocalStorage<TestScope>();
+  function getTestScope(): TestScope {
+    const testScope = testScopeStorage.getStore();
+    assert.ok(
+      testScope,
+      'verifyNpmPackage must be called via testScopeStorage.run',
+    );
+    return testScope;
+  }
+
   mock.module('@actions/core', {
     exports: {
-      getInput: getInputMock,
+      getInput: (name: string) =>
+        name === 'betaPackage' ? getTestScope().betaPackage : '',
+      info: () => undefined,
     },
   });
   // production code promisifies exec, so the mock must expose promisify.custom to keep the { stdout, stderr } result
-  const execAsyncMock = mock.fn<
-    (
-      command: string,
-      options: childProcess.ExecOptions,
-    ) => Promise<{ stdout: string; stderr: string }>
-  >(promisify(childProcess.exec));
+  const realExecAsync = promisify(childProcess.exec);
   mock.module('node:child_process', {
     exports: {
       default: {
         ...childProcess,
         exec: Object.assign(() => undefined, {
-          [promisify.custom]: execAsyncMock,
+          [promisify.custom]: async (
+            commandLine: string,
+            options: childProcess.ExecOptions,
+          ) => {
+            const testScope = getTestScope();
+            const commandIndex = testScope.executedCommandLines.length;
+            testScope.executedCommandLines.push(commandLine);
+            if (testScope.injectedFailure?.commandIndex === commandIndex) {
+              throw testScope.injectedFailure.error;
+            }
+            return realExecAsync(commandLine, options);
+          },
         }),
       },
     },
@@ -34,28 +59,26 @@ describe('validate-npm-package', async () => {
     await import('./validate-npm-package.ts');
 
   it('successfully verify good npm package', { timeout: 300_000 }, async () => {
-    getInputMock.mock.mockImplementationOnce((name: string) => {
-      if (name === 'betaPackage') {
-        return '@checkdigit/approval@2.0.3';
-      }
-      return '';
-    });
+    const testScope: TestScope = {
+      betaPackage: '@checkdigit/approval@2.0.3',
+      injectedFailure: undefined,
+      executedCommandLines: [],
+    };
 
-    await verifyNpmPackage();
+    await testScopeStorage.run(testScope, () => verifyNpmPackage());
   });
 
   it(
     'successfully verify good beta npm package with the latest standards',
     { timeout: 300_000 },
     async () => {
-      getInputMock.mock.mockImplementationOnce((name) => {
-        if (name === 'betaPackage') {
-          return '@checkdigit/test-checkdigit@3.4.1-PR.134-31bc';
-        }
-        return '';
-      });
+      const testScope: TestScope = {
+        betaPackage: '@checkdigit/test-checkdigit@3.4.1-PR.134-31bc',
+        injectedFailure: undefined,
+        executedCommandLines: [],
+      };
 
-      await verifyNpmPackage();
+      await testScopeStorage.run(testScope, () => verifyNpmPackage());
     },
   );
 
@@ -63,14 +86,13 @@ describe('validate-npm-package', async () => {
     'configuration only package that imports json directly should work',
     { timeout: 300_000 },
     async () => {
-      getInputMock.mock.mockImplementationOnce((name) => {
-        if (name === 'betaPackage') {
-          return '@checkdigit/prettier-config@8.0.0';
-        }
-        return '';
-      });
+      const testScope: TestScope = {
+        betaPackage: '@checkdigit/prettier-config@8.0.0',
+        injectedFailure: undefined,
+        executedCommandLines: [],
+      };
 
-      await verifyNpmPackage();
+      await testScopeStorage.run(testScope, () => verifyNpmPackage());
     },
   );
 
@@ -78,69 +100,54 @@ describe('validate-npm-package', async () => {
     'service without serve-runtime should not have dependency conflicts',
     { timeout: 300_000 },
     async () => {
-      getInputMock.mock.mockImplementationOnce((name) => {
-        if (name === 'betaPackage') {
-          return '@checkdigit/connector@4.0.2-PR.141-c066';
-        }
-        return '';
-      });
+      const testScope: TestScope = {
+        betaPackage: '@checkdigit/connector@4.0.2-PR.141-c066',
+        injectedFailure: undefined,
+        executedCommandLines: [],
+      };
 
-      await verifyNpmPackage();
+      await testScopeStorage.run(testScope, () => verifyNpmPackage());
     },
   );
 
   it('retries npm install after a failure', { timeout: 300_000 }, async () => {
-    getInputMock.mock.mockImplementationOnce((name) => {
-      if (name === 'betaPackage') {
-        return '@checkdigit/prettier-config@8.0.0';
-      }
-      return '';
-    });
-    const firstCallIndex = execAsyncMock.mock.callCount();
-    execAsyncMock.mock.mockImplementationOnce(async () => {
-      throw new Error('npm error code ECONNRESET');
-    }, firstCallIndex + 1);
+    const testScope: TestScope = {
+      betaPackage: '@checkdigit/prettier-config@8.0.0',
+      injectedFailure: {
+        commandIndex: 1,
+        error: new Error('npm error code ECONNRESET'),
+      },
+      executedCommandLines: [],
+    };
 
-    await verifyNpmPackage();
+    await testScopeStorage.run(testScope, () => verifyNpmPackage());
 
-    assert.deepEqual(
-      execAsyncMock.mock.calls
-        .slice(firstCallIndex)
-        .map((call) => call.arguments[0]),
-      [
-        'npm view @checkdigit/prettier-config@8.0.0 --json',
-        'npm i --ignore-scripts',
-        'npm i --ignore-scripts',
-        `node -e "import '@checkdigit/prettier-config' with { type: 'json' };"`,
-      ],
-    );
+    assert.deepEqual(testScope.executedCommandLines, [
+      'npm view @checkdigit/prettier-config@8.0.0 --json',
+      'npm i --ignore-scripts',
+      'npm i --ignore-scripts',
+      `node -e "import '@checkdigit/prettier-config' with { type: 'json' };"`,
+    ]);
   });
 
   it('retries npm view after a failure', { timeout: 300_000 }, async () => {
-    getInputMock.mock.mockImplementationOnce((name) => {
-      if (name === 'betaPackage') {
-        return '@checkdigit/prettier-config@8.0.0';
-      }
-      return '';
-    });
-    const firstCallIndex = execAsyncMock.mock.callCount();
-    execAsyncMock.mock.mockImplementationOnce(async () => {
-      throw new Error('npm error code E404');
-    }, firstCallIndex);
+    const testScope: TestScope = {
+      betaPackage: '@checkdigit/prettier-config@8.0.0',
+      injectedFailure: {
+        commandIndex: 0,
+        error: new Error('npm error code E404'),
+      },
+      executedCommandLines: [],
+    };
 
-    await verifyNpmPackage();
+    await testScopeStorage.run(testScope, () => verifyNpmPackage());
 
-    assert.deepEqual(
-      execAsyncMock.mock.calls
-        .slice(firstCallIndex)
-        .map((call) => call.arguments[0]),
-      [
-        'npm view @checkdigit/prettier-config@8.0.0 --json',
-        'npm view @checkdigit/prettier-config@8.0.0 --json',
-        'npm i --ignore-scripts',
-        `node -e "import '@checkdigit/prettier-config' with { type: 'json' };"`,
-      ],
-    );
+    assert.deepEqual(testScope.executedCommandLines, [
+      'npm view @checkdigit/prettier-config@8.0.0 --json',
+      'npm view @checkdigit/prettier-config@8.0.0 --json',
+      'npm i --ignore-scripts',
+      `node -e "import '@checkdigit/prettier-config' with { type: 'json' };"`,
+    ]);
   });
 
   // Test uses a bad version of approval package
@@ -148,13 +155,15 @@ describe('validate-npm-package', async () => {
   // we set it manually in validate npm package as
   // checkdigit/typescript-config is various versions of this setting
   it('bad npm package results in error', { timeout: 300_000 }, async () => {
-    getInputMock.mock.mockImplementationOnce((name) => {
-      if (name === 'betaPackage') {
-        return '@checkdigit/approval@2.0.0-PR.196-b041';
-      }
-      return '';
-    });
+    const testScope: TestScope = {
+      betaPackage: '@checkdigit/approval@2.0.0-PR.196-b041',
+      injectedFailure: undefined,
+      executedCommandLines: [],
+    };
 
-    await assert.rejects(() => verifyNpmPackage(), Error);
+    await assert.rejects(
+      () => testScopeStorage.run(testScope, () => verifyNpmPackage()),
+      Error,
+    );
   });
 });

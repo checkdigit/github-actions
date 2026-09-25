@@ -4,11 +4,10 @@ import os from 'node:os';
 import path from 'node:path';
 import { promises as fs } from 'node:fs';
 import childProcess from 'node:child_process';
+import { setTimeout } from 'node:timers/promises';
 import { promisify } from 'node:util';
 
-import { getInput } from '@actions/core';
-import retry from '@checkdigit/retry';
-import timeout from '@checkdigit/timeout';
+import { getInput, info } from '@actions/core';
 import debug from 'debug';
 
 import { addNPMRCFile } from '../publish-beta/publish.ts';
@@ -29,38 +28,40 @@ const exec = promisify(childProcess.exec);
 const log = debug('github-actions:validate-npm-package');
 
 const NPM_RETRY_WINDOW_MILLISECONDS = 10 * 60 * 1000;
+const NPM_RETRY_INTERVAL_MILLISECONDS = 30 * 1000;
 
 async function execNpmWithRetry(
   commandLine: string,
   workFolder: string,
 ): Promise<{ stdout: string; stderr: string }> {
-  log('execNpmWithRetry - commandLine', commandLine);
-
-  const abortController = new AbortController();
-  const execWithRetry = retry(
-    async (_item: undefined, attempt: number) => {
-      log('execNpmWithRetry - attempt', commandLine, attempt);
-      try {
-        return await exec(commandLine, {
-          cwd: workFolder,
-          signal: abortController.signal,
+  // one signal bounds both the npm process and the retry sleep, so nothing keeps running once the window closes
+  const retryWindowSignal = AbortSignal.timeout(NPM_RETRY_WINDOW_MILLISECONDS);
+  for (let attempt = 0; ; attempt++) {
+    try {
+      if (attempt > 0) {
+        // eslint-disable-next-line no-await-in-loop
+        await setTimeout(NPM_RETRY_INTERVAL_MILLISECONDS, undefined, {
+          signal: retryWindowSignal,
         });
-      } catch (error) {
-        log('execNpmWithRetry - failed', commandLine, attempt, error);
-        throw error;
       }
-    },
-    // worst-case backoff 1+2+4+8+16+32 seconds then 9 x 60 seconds ~= 10 minutes, so retries last the whole window
-    { waitRatio: 1000, retries: 15, jitter: true, maximumBackoff: 60_000 },
-  );
-
-  try {
-    return await timeout(execWithRetry(), {
-      timeout: NPM_RETRY_WINDOW_MILLISECONDS,
-    });
-  } finally {
-    // timeout() does not cancel the retry loop, so kill any in-flight npm process and fail the remaining attempts
-    abortController.abort();
+      info(`${commandLine} - attempt ${attempt.toString()}`);
+      // eslint-disable-next-line no-await-in-loop
+      return await exec(commandLine, {
+        cwd: workFolder,
+        signal: retryWindowSignal,
+      });
+    } catch (error) {
+      info(
+        `${commandLine} - attempt ${attempt.toString()} failed: ${String(error)}`,
+      );
+      log('execNpmWithRetry - failed', commandLine, attempt, error);
+      if (retryWindowSignal.aborted) {
+        throw new Error(
+          `${commandLine} did not succeed within ${NPM_RETRY_WINDOW_MILLISECONDS.toString()}ms`,
+          { cause: error },
+        );
+      }
+    }
   }
 }
 
@@ -83,8 +84,7 @@ async function retrievePackageJson(
   if (packageJson === undefined) {
     throw new TypeError(`no package found for ${packageNameAndBetaVersion}`);
   }
-  log('retrievePackageJson - name', packageJson.name);
-  log('retrievePackageJson - version', packageJson.version);
+  info(`retrieved package ${packageJson.name}@${packageJson.version}`);
   return packageJson;
 }
 
@@ -117,6 +117,7 @@ async function installDependencies(workFolder: string): Promise<void> {
     workFolder,
   );
   log('installNpmDependencies - execResult', execResult);
+  info('dependencies installed');
 }
 
 async function verifyDefaultImport(
@@ -129,22 +130,21 @@ async function verifyDefaultImport(
     : '';
   const importStatement = `import '${packageName}'${importType};`;
   const commandLine = `node -e "${importStatement}"`;
-  log('verifyDefaultImport - commandLine', commandLine);
+  info(`verifying default import: ${commandLine}`);
 
   const execResult = await exec(commandLine, { cwd: workFolder });
   log('verifyDefaultImport - execResult', execResult);
+  info('default import verified');
 }
 
 export default async function (): Promise<void> {
-  log('Action start');
-
   const packageNameAndBetaVersion = getInput('betaPackage');
-  log('packageNameAndBetaVersion', packageNameAndBetaVersion);
+  info(`validating ${packageNameAndBetaVersion}`);
 
   // eslint-disable-next-line @checkdigit/no-random-v4-uuid
   const workFolder = path.join(os.tmpdir(), crypto.randomUUID());
   await fs.mkdir(workFolder);
-  log('temporary work folder created', workFolder);
+  info(`temporary work folder created: ${workFolder}`);
 
   await addNPMRCFile(workFolder);
 
@@ -166,5 +166,5 @@ export default async function (): Promise<void> {
 
   await verifyDefaultImport(workFolder, packageJson.name, importEntryPoint);
 
-  log('Action end');
+  info(`${packageNameAndBetaVersion} validated`);
 }
