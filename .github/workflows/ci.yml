@@ -31,8 +31,6 @@ jobs:
         run: npm install --global npm@latest
       - name: Install Dependencies
         run: npm ci --ignore-scripts
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Prepare
         run: npm run prepare
       - name: Compile
@@ -44,7 +42,7 @@ jobs:
       - name: Run Tests
         run: npm run ci:test
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN_PUBLISH }}
 
   branchBuild:
     name: Branch Build
@@ -66,8 +64,6 @@ jobs:
         run: npm install --global npm@latest
       - name: Install Dependencies
         run: npm ci --ignore-scripts
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Prepare
         run: npm run prepare
       - name: Compile
@@ -79,4 +75,4 @@ jobs:
       - name: Run Tests
         run: npm run ci:test
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN_PUBLISH }}
