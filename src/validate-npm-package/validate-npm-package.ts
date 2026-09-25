@@ -33,9 +33,13 @@ const NPM_RETRY_INTERVAL_MILLISECONDS = 30 * 1000;
 async function execNpmWithRetry(
   commandLine: string,
   workFolder: string,
+  cancelSignal: AbortSignal | undefined,
 ): Promise<{ stdout: string; stderr: string }> {
-  // one signal bounds both the npm process and the retry sleep, so nothing keeps running once the window closes
-  const retryWindowSignal = AbortSignal.timeout(NPM_RETRY_WINDOW_MILLISECONDS);
+  // one signal bounds both the npm process and the retry sleep, so nothing keeps running once the window closes or the caller cancels
+  const retryWindowSignal = AbortSignal.any([
+    AbortSignal.timeout(NPM_RETRY_WINDOW_MILLISECONDS),
+    ...(cancelSignal === undefined ? [] : [cancelSignal]),
+  ]);
   for (let attempt = 0; ; attempt++) {
     try {
       if (attempt > 0) {
@@ -55,6 +59,9 @@ async function execNpmWithRetry(
         `${commandLine} - attempt ${attempt.toString()} failed: ${String(error)}`,
       );
       log('execNpmWithRetry - failed', commandLine, attempt, error);
+      if (cancelSignal?.aborted === true) {
+        throw error;
+      }
       if (retryWindowSignal.aborted) {
         throw new Error(
           `${commandLine} did not succeed within ${NPM_RETRY_WINDOW_MILLISECONDS.toString()}ms`,
@@ -68,10 +75,12 @@ async function execNpmWithRetry(
 async function retrievePackageJson(
   workFolder: string,
   packageNameAndBetaVersion: string,
+  cancelSignal: AbortSignal | undefined,
 ): Promise<PackageJson> {
   const execResult = await execNpmWithRetry(
     `npm view ${packageNameAndBetaVersion} --json`,
     workFolder,
+    cancelSignal,
   );
   log('retrievePackageJson - execResult', execResult);
 
@@ -111,10 +120,14 @@ async function generateProject(
   );
 }
 
-async function installDependencies(workFolder: string): Promise<void> {
+async function installDependencies(
+  workFolder: string,
+  cancelSignal: AbortSignal | undefined,
+): Promise<void> {
   const execResult = await execNpmWithRetry(
     'npm i --ignore-scripts',
     workFolder,
+    cancelSignal,
   );
   log('installNpmDependencies - execResult', execResult);
   info('dependencies installed');
@@ -124,6 +137,7 @@ async function verifyDefaultImport(
   workFolder: string,
   packageName: string,
   importEntryPoint: string,
+  cancelSignal: AbortSignal | undefined,
 ): Promise<void> {
   const importType = importEntryPoint.endsWith('.json')
     ? ` with { type: 'json' }`
@@ -132,12 +146,16 @@ async function verifyDefaultImport(
   const commandLine = `node -e "${importStatement}"`;
   info(`verifying default import: ${commandLine}`);
 
-  const execResult = await exec(commandLine, { cwd: workFolder });
+  const execResult = await exec(commandLine, {
+    cwd: workFolder,
+    signal: cancelSignal,
+  });
   log('verifyDefaultImport - execResult', execResult);
   info('default import verified');
 }
 
-export default async function (): Promise<void> {
+// tests pass their t.signal so a timed-out test kills its npm processes instead of running out the retry window
+export default async function (cancelSignal?: AbortSignal): Promise<void> {
   const packageNameAndBetaVersion = getInput('betaPackage');
   info(`validating ${packageNameAndBetaVersion}`);
 
@@ -151,6 +169,7 @@ export default async function (): Promise<void> {
   const packageJson = await retrievePackageJson(
     workFolder,
     packageNameAndBetaVersion,
+    cancelSignal,
   );
   const importEntryPoint =
     packageJson.exports?.['.']?.import ?? packageJson.main;
@@ -162,9 +181,14 @@ export default async function (): Promise<void> {
 
   await generateProject(workFolder, packageJson);
 
-  await installDependencies(workFolder);
+  await installDependencies(workFolder, cancelSignal);
 
-  await verifyDefaultImport(workFolder, packageJson.name, importEntryPoint);
+  await verifyDefaultImport(
+    workFolder,
+    packageJson.name,
+    importEntryPoint,
+    cancelSignal,
+  );
 
   info(`${packageNameAndBetaVersion} validated`);
 }

@@ -61,97 +61,121 @@ describe('validate-npm-package', { concurrency: true }, async () => {
   const { default: verifyNpmPackage } =
     await import('./validate-npm-package.ts');
 
-  it('successfully verify good npm package', { timeout: 300_000 }, async () => {
-    const testScope: TestScope = {
-      betaPackage: '@checkdigit/ping@4.2.0',
-      injectedFailure: undefined,
-      executedCommandLines: [],
-    };
+  it(
+    'successfully verify good npm package',
+    { timeout: 60_000 },
+    async (context) => {
+      const testScope: TestScope = {
+        betaPackage: '@checkdigit/ping@4.2.0',
+        injectedFailure: undefined,
+        executedCommandLines: [],
+      };
 
-    await testScopeStorage.run(testScope, () => verifyNpmPackage());
-  });
+      await testScopeStorage.run(testScope, () =>
+        verifyNpmPackage(context.signal),
+      );
+    },
+  );
 
   it(
     'successfully verify good beta npm package with the latest standards',
-    { timeout: 300_000 },
-    async () => {
+    { timeout: 60_000 },
+    async (context) => {
       const testScope: TestScope = {
         betaPackage: '@checkdigit/ping@4.2.0-PR.44-dea4',
         injectedFailure: undefined,
         executedCommandLines: [],
       };
 
-      await testScopeStorage.run(testScope, () => verifyNpmPackage());
+      await testScopeStorage.run(testScope, () =>
+        verifyNpmPackage(context.signal),
+      );
     },
   );
 
   it(
     'configuration only package that imports json directly should work',
-    { timeout: 300_000 },
-    async () => {
+    { timeout: 60_000 },
+    async (context) => {
       const testScope: TestScope = {
         betaPackage: '@checkdigit/prettier-config@8.0.0',
         injectedFailure: undefined,
         executedCommandLines: [],
       };
 
-      await testScopeStorage.run(testScope, () => verifyNpmPackage());
+      await testScopeStorage.run(testScope, () =>
+        verifyNpmPackage(context.signal),
+      );
     },
   );
 
   it.skip(
     'service without serve-runtime should not have dependency conflicts',
-    { timeout: 300_000 },
-    async () => {
+    { timeout: 60_000 },
+    async (context) => {
       const testScope: TestScope = {
         betaPackage: '@checkdigit/connector@4.0.2-PR.141-c066',
         injectedFailure: undefined,
         executedCommandLines: [],
       };
 
-      await testScopeStorage.run(testScope, () => verifyNpmPackage());
+      await testScopeStorage.run(testScope, () =>
+        verifyNpmPackage(context.signal),
+      );
     },
   );
 
-  it('retries npm install after a failure', { timeout: 300_000 }, async () => {
-    const testScope: TestScope = {
-      betaPackage: '@checkdigit/ping@4.2.0',
-      injectedFailure: {
-        commandIndex: 1,
-        error: new Error('npm error code ECONNRESET'),
-      },
-      executedCommandLines: [],
-    };
+  it(
+    'retries npm install after a failure',
+    { timeout: 60_000 },
+    async (context) => {
+      const testScope: TestScope = {
+        betaPackage: '@checkdigit/ping@4.2.0',
+        injectedFailure: {
+          commandIndex: 1,
+          error: new Error('npm error code ECONNRESET'),
+        },
+        executedCommandLines: [],
+      };
 
-    await testScopeStorage.run(testScope, () => verifyNpmPackage());
+      await testScopeStorage.run(testScope, () =>
+        verifyNpmPackage(context.signal),
+      );
 
-    assert.deepEqual(testScope.executedCommandLines, [
-      'npm view @checkdigit/ping@4.2.0 --json',
-      'npm i --ignore-scripts',
-      'npm i --ignore-scripts',
-      `node -e "import '@checkdigit/ping';"`,
-    ]);
-  });
+      assert.deepEqual(testScope.executedCommandLines, [
+        'npm view @checkdigit/ping@4.2.0 --json',
+        'npm i --ignore-scripts',
+        'npm i --ignore-scripts',
+        `node -e "import '@checkdigit/ping';"`,
+      ]);
+    },
+  );
 
-  it('retries npm view after a failure', { timeout: 300_000 }, async () => {
-    const testScope: TestScope = {
-      betaPackage: '@checkdigit/ping@4.2.0',
-      injectedFailure: {
-        commandIndex: 0,
-        error: new Error('npm error code E404'),
-      },
-      executedCommandLines: [],
-    };
+  it(
+    'retries npm view after a failure',
+    { timeout: 60_000 },
+    async (context) => {
+      const testScope: TestScope = {
+        betaPackage: '@checkdigit/ping@4.2.0',
+        injectedFailure: {
+          commandIndex: 0,
+          error: new Error('npm error code E404'),
+        },
+        executedCommandLines: [],
+      };
 
-    await testScopeStorage.run(testScope, () => verifyNpmPackage());
+      await testScopeStorage.run(testScope, () =>
+        verifyNpmPackage(context.signal),
+      );
 
-    assert.deepEqual(testScope.executedCommandLines, [
-      'npm view @checkdigit/ping@4.2.0 --json',
-      'npm view @checkdigit/ping@4.2.0 --json',
-      'npm i --ignore-scripts',
-      `node -e "import '@checkdigit/ping';"`,
-    ]);
-  });
+      assert.deepEqual(testScope.executedCommandLines, [
+        'npm view @checkdigit/ping@4.2.0 --json',
+        'npm view @checkdigit/ping@4.2.0 --json',
+        'npm i --ignore-scripts',
+        `node -e "import '@checkdigit/ping';"`,
+      ]);
+    },
+  );
 
   // Test uses a bad version of approval package
   // and requires skipLibCheck: false in tsconfig.json
@@ -159,8 +183,8 @@ describe('validate-npm-package', { concurrency: true }, async () => {
   // checkdigit/typescript-config is various versions of this setting
   it.skip(
     'bad npm package results in error',
-    { timeout: 300_000 },
-    async () => {
+    { timeout: 60_000 },
+    async (context) => {
       const testScope: TestScope = {
         betaPackage: '@checkdigit/approval@2.0.0-PR.196-b041',
         injectedFailure: undefined,
@@ -168,7 +192,10 @@ describe('validate-npm-package', { concurrency: true }, async () => {
       };
 
       await assert.rejects(
-        () => testScopeStorage.run(testScope, () => verifyNpmPackage()),
+        () =>
+          testScopeStorage.run(testScope, () =>
+            verifyNpmPackage(context.signal),
+          ),
         Error,
       );
     },
