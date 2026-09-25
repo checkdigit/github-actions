@@ -1,11 +1,10 @@
-// coverage-reporter/util.ts
+// coverage-reporter/utility.ts
 
 /**
  * Based on code from lcov-report-action, see LICENSE.lcov-reporter-action.txt.
  * https://github.com/romeovs/lcov-reporter-action
  */
 
-// eslint-disable-next-line unicorn/prevent-abbreviations, @checkdigit/no-util
 import path from 'node:path';
 
 import type { Options } from './options.ts';

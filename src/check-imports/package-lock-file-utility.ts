@@ -1,6 +1,5 @@
-// check-imports/package-lock-file-util.ts
+// check-imports/package-lock-file-utility.ts
 
-// eslint-disable-next-line @checkdigit/no-util, unicorn/prevent-abbreviations
 import path from 'node:path';
 import { readFile } from 'node:fs/promises';
 
@@ -59,7 +58,7 @@ export function isMatchingName(nameA: string, nameB: string): boolean {
   return nameA === nameB;
 }
 
-export function satisfiesNameAndRange(
+export function isMatchingNameAndRange(
   packageName: string,
   packageVersion: string,
   [name, range]: [Name, Range],

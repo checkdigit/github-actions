@@ -30,11 +30,9 @@ describe('github publish', async () => {
     process.env['GITHUB_TOKEN'] =
       'token 0000000000000000000000000000000000000001';
     process.env['GITHUB_EVENT_PATH'] = await createGithubEventFile();
-    await publishCommentAndRemovePrevious(
-      crypto.randomUUID(),
-      crypto.randomUUID(),
+    await assert.doesNotReject(
+      publishCommentAndRemovePrevious(crypto.randomUUID(), crypto.randomUUID()),
     );
-    assert.ok(true);
   });
 
   it('publish comment - with existing comments', async () => {
@@ -44,10 +42,8 @@ describe('github publish', async () => {
     process.env['GITHUB_TOKEN'] =
       'token 0000000000000000000000000000000000000001';
     process.env['GITHUB_EVENT_PATH'] = await createGithubEventFile();
-    await publishCommentAndRemovePrevious(
-      crypto.randomUUID(),
-      crypto.randomUUID(),
+    await assert.doesNotReject(
+      publishCommentAndRemovePrevious(crypto.randomUUID(), crypto.randomUUID()),
     );
-    assert.ok(true);
   });
 });

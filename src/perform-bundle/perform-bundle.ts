@@ -15,12 +15,12 @@ function bytesToKB(bytes: number) {
   return Math.round(bytes / 1024);
 }
 
-async function readMetaDataFile(): Promise<Metafile> {
+async function readMetadataFile(): Promise<Metafile> {
   try {
     const rawFile = await readFile('esbuild-lambda/metafile.json', 'utf8');
     return JSON.parse(rawFile) as Metafile;
   } catch (error) {
-    log('Exception thrown attempting to read meta data file: ', String(error));
+    log('Exception thrown attempting to read metadata file: ', String(error));
     throw error;
   }
 }
@@ -29,8 +29,8 @@ export default async function main(): Promise<void> {
   log('Action start');
 
   await runDeployer();
-  const metaDataFile = await readMetaDataFile();
-  const results = analyze(metaDataFile);
+  const metadataFile = await readMetadataFile();
+  const results = analyze(metadataFile);
   await publishCommentAndRemovePrevious(
     `Bundle created - Total size ${bytesToKB(results.totalBytes)} KB - source ${bytesToKB(
       results.sourceBytes,

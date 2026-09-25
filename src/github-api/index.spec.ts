@@ -13,7 +13,7 @@ describe('github', async () => {
     process.env['GITHUB_REF'] = '/ref/46/bra4nch';
     assert.equal(getPRNumber(), '46');
 
-    process.env['GITHUB_REF'] = undefined;
+    delete process.env['GITHUB_REF'];
     assert.throws(() => getPRNumber(), Error);
   });
 });
