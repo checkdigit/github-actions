@@ -31,22 +31,22 @@
   },
   "prettier": "@checkdigit/prettier-config",
   "dependencies": {
-    "@actions/core": "^3.0.0",
-    "@actions/github": "^9.0.0",
+    "@actions/core": "^3.0.1",
+    "@actions/github": "^9.1.1",
     "@checkdigit/retry": "^8.0.0",
-    "@checkdigit/time": "^5.0.0",
+    "@checkdigit/time": "^6.0.0",
     "@checkdigit/timeout": "^6.0.0",
     "@octokit/rest": "^22.0.1",
     "debug": "^4.4.3",
-    "semver": "^7.7.4"
+    "semver": "^7.8.5"
   },
   "devDependencies": {
-    "@checkdigit/eslint-config": "^11.6.1",
-    "@checkdigit/prettier-config": "^8.0.0",
+    "@checkdigit/eslint-config": "^12.1.1",
+    "@checkdigit/prettier-config": "^8.3.0",
     "@checkdigit/typescript-config": "^10.2.2",
     "@types/debug": "^4.1.13",
-    "@types/semver": "^7.7.1",
-    "nock": "^14.0.11"
+    "@types/semver": "^7.8.0",
+    "nock": "^14.0.17"
   },
   "engines": {
     "node": ">=24.20"

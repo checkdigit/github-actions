@@ -9,11 +9,8 @@ function tag(name: string) {
   return function (...children: unknown[]) {
     const properties =
       typeof children[0] === 'object'
-        ? Object.keys(children[0] as Record<string, unknown>)
-            .map(
-              (key) =>
-                ` ${key}='${(children[0] as Record<string, unknown>)[key] as string}'`,
-            )
+        ? Object.entries(children[0] as Record<string, unknown>)
+            .map(([key, value]) => ` ${key}='${value as string}'`)
             .join('')
         : '';
 

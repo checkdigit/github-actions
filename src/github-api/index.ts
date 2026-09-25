@@ -195,22 +195,22 @@ export async function publishCommentAndRemovePrevious(
   }
 
   if (prComments?.data) {
-    for (const comment of prComments.data) {
-      if (
+    const commentsToRemove = prComments.data.filter(
+      (comment) =>
         prefixOfPreviousMessageToRemove !== undefined &&
         prefixOfPreviousMessageToRemove !== '' &&
         (comment.body === undefined ||
-          comment.body.includes(prefixOfPreviousMessageToRemove))
-      ) {
-        log('Comment removed');
-        // eslint-disable-next-line no-await-in-loop
-        await octokit.rest.issues.deleteComment({
-          // eslint-disable-next-line camelcase
-          comment_id: comment.id,
-          owner: githubContext.owner,
-          repo: githubContext.repo,
-        });
-      }
+          comment.body.includes(prefixOfPreviousMessageToRemove)),
+    );
+    for (const comment of commentsToRemove) {
+      log('Comment removed');
+      // eslint-disable-next-line no-await-in-loop
+      await octokit.rest.issues.deleteComment({
+        // eslint-disable-next-line camelcase
+        comment_id: comment.id,
+        owner: githubContext.owner,
+        repo: githubContext.repo,
+      });
     }
   }
 
@@ -224,7 +224,7 @@ export async function publishCommentAndRemovePrevious(
   });
 }
 
-export async function haveAllReviewersReviewed(): Promise<number> {
+export async function countReviewersYetToReview(): Promise<number> {
   if (
     // eslint-disable-next-line n/no-process-env
     process.env['GITHUB_TOKEN'] === undefined ||
@@ -333,8 +333,9 @@ export async function approvedReviews(): Promise<GithubReviewStatus> {
     }
   }
 
-  // eslint-disable-next-line sonarjs/no-misleading-array-reverse, sonarjs/no-alphabetical-sort
-  const oldestApprovedReviewDate = dateOfApprovedReviews.sort()[0];
+  const oldestApprovedReviewDate = dateOfApprovedReviews.toSorted(
+    (dateA, dateB) => Date.parse(dateA) - Date.parse(dateB),
+  )[0];
   if (oldestApprovedReviewDate === undefined) {
     throw new Error('Invalid date received from approved reviews');
   }
