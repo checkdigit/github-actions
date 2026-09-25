@@ -7,6 +7,8 @@ import childProcess from 'node:child_process';
 import { promisify } from 'node:util';
 
 import { getInput } from '@actions/core';
+import retry from '@checkdigit/retry';
+import timeout from '@checkdigit/timeout';
 import debug from 'debug';
 
 import { addNPMRCFile } from '../publish-beta/publish.ts';
@@ -26,17 +28,61 @@ interface PackageJson {
 const exec = promisify(childProcess.exec);
 const log = debug('github-actions:validate-npm-package');
 
+const NPM_RETRY_WINDOW_MILLISECONDS = 10 * 60 * 1000;
+
+async function execNpmWithRetry(
+  commandLine: string,
+  workFolder: string,
+): Promise<{ stdout: string; stderr: string }> {
+  log('execNpmWithRetry - commandLine', commandLine);
+
+  const abortController = new AbortController();
+  const execWithRetry = retry(
+    async (_item: undefined, attempt: number) => {
+      log('execNpmWithRetry - attempt', commandLine, attempt);
+      try {
+        return await exec(commandLine, {
+          cwd: workFolder,
+          signal: abortController.signal,
+        });
+      } catch (error) {
+        log('execNpmWithRetry - failed', commandLine, attempt, error);
+        throw error;
+      }
+    },
+    // worst-case backoff 1+2+4+8+16+32 seconds then 9 x 60 seconds ~= 10 minutes, so retries last the whole window
+    { waitRatio: 1000, retries: 15, jitter: true, maximumBackoff: 60_000 },
+  );
+
+  try {
+    return await timeout(execWithRetry(), {
+      timeout: NPM_RETRY_WINDOW_MILLISECONDS,
+    });
+  } finally {
+    // timeout() does not cancel the retry loop, so kill any in-flight npm process and fail the remaining attempts
+    abortController.abort();
+  }
+}
+
 async function retrievePackageJson(
   workFolder: string,
   packageNameAndBetaVersion: string,
 ): Promise<PackageJson> {
-  const execResult = await exec(
+  const execResult = await execNpmWithRetry(
     `npm view ${packageNameAndBetaVersion} --json`,
-    { cwd: workFolder },
+    workFolder,
   );
   log('retrievePackageJson - execResult', execResult);
 
-  const packageJson = JSON.parse(execResult.stdout) as PackageJson;
+  // npm 12+ returns an array even when a single version matches
+  const parsedOutput = JSON.parse(execResult.stdout) as
+    PackageJson | PackageJson[];
+  const packageJson = Array.isArray(parsedOutput)
+    ? parsedOutput.at(-1)
+    : parsedOutput;
+  if (packageJson === undefined) {
+    throw new TypeError(`no package found for ${packageNameAndBetaVersion}`);
+  }
   log('retrievePackageJson - name', packageJson.name);
   log('retrievePackageJson - version', packageJson.version);
   return packageJson;
@@ -66,10 +112,10 @@ async function generateProject(
 }
 
 async function installDependencies(workFolder: string): Promise<void> {
-  const fullCommandLine = `npm i --ignore-scripts`;
-  log('installNpmDependencies - fullCommandLine', fullCommandLine);
-
-  const execResult = await exec(fullCommandLine, { cwd: workFolder });
+  const execResult = await execNpmWithRetry(
+    'npm i --ignore-scripts',
+    workFolder,
+  );
   log('installNpmDependencies - execResult', execResult);
 }
 
