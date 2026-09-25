@@ -109,7 +109,7 @@ describe('validate-npm-package', { concurrency: true }, async () => {
     },
   );
 
-  it.skip(
+  it(
     'service without serve-runtime should not have dependency conflicts',
     { timeout: 60_000 },
     async (context) => {
@@ -181,7 +181,7 @@ describe('validate-npm-package', { concurrency: true }, async () => {
   // and requires skipLibCheck: false in tsconfig.json
   // we set it manually in validate npm package as
   // checkdigit/typescript-config is various versions of this setting
-  it.skip(
+  it(
     'bad npm package results in error',
     { timeout: 60_000 },
     async (context) => {
