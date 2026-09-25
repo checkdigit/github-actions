@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 concurrency:
-  group: coverage-${{ github.event.pull_request.number }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 permissions:
@@ -31,6 +31,8 @@ jobs:
         run: npm install --global npm@latest
       - name: Install Dependencies
         run: npm ci --ignore-scripts
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Calculate Code Coverage
         run: npm run ci:coverage
         env:
@@ -58,6 +60,8 @@ jobs:
         run: npm install --global npm@latest
       - name: Install Dependencies
         run: npm ci --ignore-scripts
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Calculate Code Coverage
         run: npm run ci:coverage
         env:
