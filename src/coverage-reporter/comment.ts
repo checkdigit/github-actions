@@ -22,7 +22,8 @@ import type { Options } from './options.ts';
 import { tabulate } from './tabulate.ts';
 
 export function comment(lcov: Lcov, options: Options): string {
-  const coverageTable = table(tbody(tr(th(percentage(lcov).toFixed(2), '%'))));
+  const coverageRow = tr(th(percentage(lcov).toFixed(2), '%'));
+
   return fragment(
     options.title !== undefined && options.title !== ''
       ? h2(options.title)
@@ -30,7 +31,7 @@ export function comment(lcov: Lcov, options: Options): string {
     options.base !== undefined && options.base !== ''
       ? `Coverage after merging ${b(options.head)} into ${b(options.base)} will be`
       : `Coverage for this commit`,
-    coverageTable,
+    table(tbody(coverageRow)),
     '\n\n',
     details(
       summary(
@@ -57,13 +58,9 @@ export function diff(
   const pdiff = pafter - pbefore;
   const plus = pdiff > 0 ? '+' : '';
   const arrow = pdiff === 0 ? '' : pdiff < 0 ? '▾' : '▴';
-  const coverageTable = table(
-    tbody(
-      tr(
-        th(pafter.toFixed(2), '%'),
-        th(arrow, ' ', plus, pdiff.toFixed(2), '%'),
-      ),
-    ),
+  const coverageRow = tr(
+    th(pafter.toFixed(2), '%'),
+    th(arrow, ' ', plus, pdiff.toFixed(2), '%'),
   );
 
   return fragment(
@@ -73,7 +70,7 @@ export function diff(
     options.base !== undefined && options.base !== ''
       ? `Coverage after merging ${b(options.head)} into ${b(options.base)} will be`
       : `Coverage for this commit`,
-    coverageTable,
+    table(tbody(coverageRow)),
     '\n\n',
     details(
       summary(

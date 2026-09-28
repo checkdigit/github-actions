@@ -195,14 +195,16 @@ export async function publishCommentAndRemovePrevious(
   }
 
   if (prComments?.data) {
-    const commentsToRemove = prComments.data.filter(
-      (comment) =>
-        prefixOfPreviousMessageToRemove !== undefined &&
-        prefixOfPreviousMessageToRemove !== '' &&
-        (comment.body === undefined ||
-          comment.body.includes(prefixOfPreviousMessageToRemove)),
-    );
-    for (const comment of commentsToRemove) {
+    for (const comment of prComments.data) {
+      if (
+        prefixOfPreviousMessageToRemove === undefined ||
+        prefixOfPreviousMessageToRemove === '' ||
+        (comment.body !== undefined &&
+          !comment.body.includes(prefixOfPreviousMessageToRemove))
+      ) {
+        // eslint-disable-next-line no-continue
+        continue;
+      }
       log('Comment removed');
       // eslint-disable-next-line no-await-in-loop
       await octokit.rest.issues.deleteComment({
@@ -224,7 +226,7 @@ export async function publishCommentAndRemovePrevious(
   });
 }
 
-export async function countReviewersYetToReview(): Promise<number> {
+export async function getPendingReviewerCount(): Promise<number> {
   if (
     // eslint-disable-next-line n/no-process-env
     process.env['GITHUB_TOKEN'] === undefined ||
@@ -334,7 +336,7 @@ export async function approvedReviews(): Promise<GithubReviewStatus> {
   }
 
   const oldestApprovedReviewDate = dateOfApprovedReviews.toSorted(
-    (dateA, dateB) => Date.parse(dateA) - Date.parse(dateB),
+    (first, second) => first.localeCompare(second),
   )[0];
   if (oldestApprovedReviewDate === undefined) {
     throw new Error('Invalid date received from approved reviews');

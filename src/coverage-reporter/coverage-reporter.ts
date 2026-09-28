@@ -24,9 +24,9 @@ const log = debug('github-actions:coverage-reporter');
 
 const LCOV_FILE_NAME = 'lcov.info';
 
-async function readFileIfExists(filePath: string): Promise<string | null> {
+async function readLcovFile(file: string): Promise<string | null> {
   try {
-    return await fs.readFile(filePath, 'utf8');
+    return await fs.readFile(file, 'utf8');
   } catch {
     return null;
   }
@@ -55,18 +55,15 @@ export default async function (): Promise<void> {
       getInput('delete-old-comments').toLowerCase() === 'true';
     const title = getInput('title');
 
-    const raw = await readFileIfExists(prLcovFile);
+    const raw = await readLcovFile(prLcovFile);
     if (raw === null || raw === '') {
       // eslint-disable-next-line no-console
       console.log(`No coverage report found at '${prLcovFile}', exiting...`);
       return;
     }
 
-    const baseRaw =
-      baseLcovFile &&
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      (await readFileIfExists(baseLcovFile))!;
-    if (baseLcovFile && !baseRaw) {
+    const baseRaw = await readLcovFile(baseLcovFile);
+    if (baseRaw === null || baseRaw === '') {
       // eslint-disable-next-line no-console
       console.log(`No coverage report found at '${baseLcovFile}', ignoring...`);
     }
@@ -109,7 +106,8 @@ export default async function (): Promise<void> {
     }
 
     const lcov = parse(raw);
-    const baseLcov = parse(baseRaw);
+    const baseLcov =
+      baseRaw === null || baseRaw === '' ? undefined : parse(baseRaw);
     const body = diff(lcov, baseLcov, options).slice(
       0,
       Math.max(0, MAX_COMMENT_CHARS),

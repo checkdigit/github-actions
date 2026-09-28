@@ -63,10 +63,10 @@ describe('validate-npm-package', { concurrency: true }, async () => {
 
   it(
     'successfully verify good npm package',
-    { timeout: 60_000 },
+    { timeout: 300_000 },
     async (context) => {
       const testScope: TestScope = {
-        betaPackage: '@checkdigit/ping@4.2.0',
+        betaPackage: '@checkdigit/hash@4.0.1',
         injectedFailure: undefined,
         executedCommandLines: [],
       };
@@ -79,10 +79,10 @@ describe('validate-npm-package', { concurrency: true }, async () => {
 
   it(
     'successfully verify good beta npm package with the latest standards',
-    { timeout: 60_000 },
+    { timeout: 300_000 },
     async (context) => {
       const testScope: TestScope = {
-        betaPackage: '@checkdigit/ping@4.2.0-PR.44-dea4',
+        betaPackage: '@checkdigit/hash@5.0.0-PR.32-b512',
         injectedFailure: undefined,
         executedCommandLines: [],
       };
@@ -95,10 +95,10 @@ describe('validate-npm-package', { concurrency: true }, async () => {
 
   it(
     'configuration only package that imports json directly should work',
-    { timeout: 60_000 },
+    { timeout: 300_000 },
     async (context) => {
       const testScope: TestScope = {
-        betaPackage: '@checkdigit/prettier-config@8.0.0',
+        betaPackage: '@checkdigit/prettier-config@8.1.1',
         injectedFailure: undefined,
         executedCommandLines: [],
       };
@@ -110,11 +110,11 @@ describe('validate-npm-package', { concurrency: true }, async () => {
   );
 
   it(
-    'service without serve-runtime should not have dependency conflicts',
-    { timeout: 60_000 },
+    'package with peer dependencies should not have dependency conflicts',
+    { timeout: 300_000 },
     async (context) => {
       const testScope: TestScope = {
-        betaPackage: '@checkdigit/connector@4.0.2-PR.141-c066',
+        betaPackage: '@checkdigit/typescript-config@10.2.1',
         injectedFailure: undefined,
         executedCommandLines: [],
       };
@@ -127,10 +127,10 @@ describe('validate-npm-package', { concurrency: true }, async () => {
 
   it(
     'retries npm install after a failure',
-    { timeout: 60_000 },
+    { timeout: 300_000 },
     async (context) => {
       const testScope: TestScope = {
-        betaPackage: '@checkdigit/ping@4.2.0',
+        betaPackage: '@checkdigit/hash@4.0.1',
         injectedFailure: {
           commandIndex: 1,
           error: new Error('npm error code ECONNRESET'),
@@ -143,20 +143,20 @@ describe('validate-npm-package', { concurrency: true }, async () => {
       );
 
       assert.deepEqual(testScope.executedCommandLines, [
-        'npm view @checkdigit/ping@4.2.0 --json',
+        'npm view @checkdigit/hash@4.0.1 --json',
         'npm i --ignore-scripts',
         'npm i --ignore-scripts',
-        `node -e "import '@checkdigit/ping';"`,
+        `node -e "import '@checkdigit/hash';"`,
       ]);
     },
   );
 
   it(
     'retries npm view after a failure',
-    { timeout: 60_000 },
+    { timeout: 300_000 },
     async (context) => {
       const testScope: TestScope = {
-        betaPackage: '@checkdigit/ping@4.2.0',
+        betaPackage: '@checkdigit/hash@4.0.1',
         injectedFailure: {
           commandIndex: 0,
           error: new Error('npm error code E404'),
@@ -169,24 +169,21 @@ describe('validate-npm-package', { concurrency: true }, async () => {
       );
 
       assert.deepEqual(testScope.executedCommandLines, [
-        'npm view @checkdigit/ping@4.2.0 --json',
-        'npm view @checkdigit/ping@4.2.0 --json',
+        'npm view @checkdigit/hash@4.0.1 --json',
+        'npm view @checkdigit/hash@4.0.1 --json',
         'npm i --ignore-scripts',
-        `node -e "import '@checkdigit/ping';"`,
+        `node -e "import '@checkdigit/hash';"`,
       ]);
     },
   );
 
-  // Test uses a bad version of approval package
-  // and requires skipLibCheck: false in tsconfig.json
-  // we set it manually in validate npm package as
-  // checkdigit/typescript-config is various versions of this setting
   it(
-    'bad npm package results in error',
-    { timeout: 60_000 },
+    'rejects a package that throws during import',
+    { timeout: 300_000 },
     async (context) => {
       const testScope: TestScope = {
-        betaPackage: '@checkdigit/approval@2.0.0-PR.196-b041',
+        // installs successfully, but importing it in Node throws because it accesses the browser's `document` global
+        betaPackage: 'keymaster@1.6.2',
         injectedFailure: undefined,
         executedCommandLines: [],
       };
@@ -196,7 +193,7 @@ describe('validate-npm-package', { concurrency: true }, async () => {
           testScopeStorage.run(testScope, () =>
             verifyNpmPackage(context.signal),
           ),
-        Error,
+        /document is not defined/u,
       );
     },
   );

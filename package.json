@@ -20,11 +20,10 @@
     "ci:coverage": "node -e \"const fs = require('node:fs'); fs.rmSync('coverage', { recursive: true, force: true }); fs.mkdirSync('coverage')\" && node --experimental-test-module-mocks --test-timeout 600000 --experimental-test-coverage --test-reporter=lcov --test-reporter-destination=coverage/lcov.info --test-reporter spec --test-reporter-destination stdout --test \"src/**/*.spec.ts\"",
     "ci:lint": "npm run lint",
     "ci:style": "npm run prettier",
-    "ci:test": "node --pending-deprecation --throw-deprecation --experimental-test-module-mocks --test-timeout 600000 --test \"src/**/*.spec.ts\"",
+    "ci:test": "node --experimental-test-module-mocks --pending-deprecation --throw-deprecation --test-timeout 600000 --test \"src/**/*.spec.ts\"",
     "coverage": "node --experimental-test-module-mocks --test-timeout 600000 --experimental-test-coverage --test \"src/**/*.spec.ts\"",
     "lint": "eslint --max-warnings 0 .",
     "lint:fix": "eslint . --fix",
-    "prepare": "",
     "prettier": "prettier . --check",
     "prettier:fix": "prettier . --write",
     "test": "npm run ci:compile && npm run ci:test && npm run ci:lint && npm run ci:style"
@@ -47,6 +46,10 @@
     "nock": "^14.0.17"
   },
   "engines": {
-    "node": ">=24.20"
+    "node": ">=24.20.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": false,
+    "unrs-resolver@1.12.2": false
   }
 }

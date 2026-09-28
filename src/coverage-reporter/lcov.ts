@@ -68,7 +68,11 @@ function emptyItem(): LcovFile {
   } as unknown as LcovFile;
 }
 
-function applyRecord(item: LcovFile, parts: [string, string]): void {
+function parseLine(item: LcovFile, line: string): void {
+  const allParts = line.split(':');
+
+  const parts = [allParts.shift(), allParts.join(':')] as [string, string];
+
   switch (parts[0].toUpperCase()) {
     case 'TN': {
       item.title = parts[1].trim();
@@ -146,13 +150,9 @@ export function parse(input: string): Lcov {
   const result = [] as Lcov;
   let item = emptyItem();
 
-  for (const untrimmedLine of input.split('\n')) {
-    const line = untrimmedLine.trim();
-    const allParts = line.split(':');
-
-    const parts = [allParts.shift(), allParts.join(':')] as [string, string];
-
-    applyRecord(item, parts);
+  for (const rawLine of input.split('\n')) {
+    const line = rawLine.trim();
+    parseLine(item, line);
 
     if (line.includes('end_of_record')) {
       result.push(item);

@@ -83,10 +83,10 @@ function ranges(lineNumbers: number[]) {
   const result = [];
 
   let last = null;
-
   const sortedLineNumbers = lineNumbers.toSorted(
     (lineA, lineB) => lineA - lineB,
   );
+
   for (const lineno of sortedLineNumbers) {
     if (last === null) {
       last = { start: lineno, end: lineno };
@@ -172,7 +172,9 @@ export function tabulate(lcov: Lcov, options: Options): string {
   }
 
   const rows = Object.keys(folders)
-    .toSorted((folderA, folderB) => folderA.localeCompare(folderB))
+    .toSorted((folderA, folderB) =>
+      folderA === folderB ? 0 : folderA < folderB ? -1 : 1,
+    )
     // eslint-disable-next-line unicorn/no-array-reduce
     .reduce(
       (accumulator: unknown[], key: string) => [

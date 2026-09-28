@@ -84,14 +84,16 @@ async function retrievePackageJson(
   );
   log('retrievePackageJson - execResult', execResult);
 
-  // npm 12+ returns an array even when a single version matches
-  const parsedOutput = JSON.parse(execResult.stdout) as
-    PackageJson | PackageJson[];
-  const packageJson = Array.isArray(parsedOutput)
-    ? parsedOutput.at(-1)
-    : parsedOutput;
-  if (packageJson === undefined) {
-    throw new TypeError(`no package found for ${packageNameAndBetaVersion}`);
+  // npm 12 always returns an array; npm 11 returns an object for one version.
+  const result = JSON.parse(execResult.stdout) as PackageJson | PackageJson[];
+  const packageJson = Array.isArray(result) ? result[0] : result;
+  if (
+    packageJson === undefined ||
+    (Array.isArray(result) && result.length !== 1)
+  ) {
+    throw new TypeError(
+      'Expected npm view to return exactly one package version.',
+    );
   }
   info(`retrieved package ${packageJson.name}@${packageJson.version}`);
   return packageJson;
