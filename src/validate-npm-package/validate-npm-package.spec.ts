@@ -12,7 +12,7 @@ interface TestScope {
   executedCommandLines: string[];
 }
 
-// tests run concurrently, so mocks read per-test state from async context instead of shared mockImplementationOnce queues
+// the long running tests now run concurrently, so mocks read per-test state from async context instead of shared mockImplementationOnce queues
 describe('validate-npm-package', { concurrency: true }, async () => {
   const testScopeStorage = new AsyncLocalStorage<TestScope>();
   function getTestScope(): TestScope {
