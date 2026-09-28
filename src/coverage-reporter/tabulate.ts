@@ -57,10 +57,10 @@ function getStatement(file: LcovFile) {
   );
 }
 
-function filename(file: LcovFile, indent: boolean, options: Options) {
+function filename(file: LcovFile, shouldIndent: boolean, options: Options) {
   // eslint-disable-next-line @typescript-eslint/no-shadow
   const { href, filename } = createHref(options, file);
-  const space = indent ? '&nbsp; &nbsp;' : '';
+  const space = shouldIndent ? '&nbsp; &nbsp;' : '';
   return fragment(space, a({ href }, filename));
 }
 
@@ -83,8 +83,11 @@ function ranges(lineNumbers: number[]) {
   const result = [];
 
   let last = null;
+  const sortedLineNumbers = lineNumbers.toSorted(
+    (lineA, lineB) => lineA - lineB,
+  );
 
-  for (const lineno of lineNumbers.toSorted((lineA, lineB) => lineA - lineB)) {
+  for (const lineno of sortedLineNumbers) {
     if (last === null) {
       last = { start: lineno, end: lineno };
       // eslint-disable-next-line no-continue
@@ -138,9 +141,9 @@ function uncovered(file: LcovFile, options: Options) {
     .join(', ');
 }
 
-function toRow(file: LcovFile, indent: boolean, options: Options) {
+function toRow(file: LcovFile, shouldIndent: boolean, options: Options) {
   return tr(
-    td(filename(file, indent, options)),
+    td(filename(file, shouldIndent, options)),
     td(percentage(getStatement(file))),
     td(percentage(file.branches)),
     td(percentage(file.functions)),
@@ -169,8 +172,9 @@ export function tabulate(lcov: Lcov, options: Options): string {
   }
 
   const rows = Object.keys(folders)
-    // eslint-disable-next-line sonarjs/no-alphabetical-sort
-    .sort()
+    .toSorted((folderA, folderB) =>
+      folderA === folderB ? 0 : folderA < folderB ? -1 : 1,
+    )
     // eslint-disable-next-line unicorn/no-array-reduce
     .reduce(
       (accumulator: unknown[], key: string) => [

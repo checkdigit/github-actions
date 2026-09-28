@@ -6,7 +6,9 @@ import { describe, it, mock } from 'node:test';
 describe('validate-npm-package', async () => {
   const getInputMock = mock.fn<(name: string) => string>();
   mock.module('@actions/core', {
-    namedExports: {
+    // node:test added `exports` in Node 24.15.0. Node 26 also supports it.
+    // `namedExports` is deprecated and fails with our --throw-deprecation flag.
+    exports: {
       getInput: getInputMock,
     },
   });
@@ -17,7 +19,7 @@ describe('validate-npm-package', async () => {
   it('successfully verify good npm package', { timeout: 300_000 }, async () => {
     getInputMock.mock.mockImplementationOnce((name: string) => {
       if (name === 'betaPackage') {
-        return '@checkdigit/approval@2.0.3';
+        return '@checkdigit/hash@4.0.1';
       }
       return '';
     });
@@ -31,7 +33,7 @@ describe('validate-npm-package', async () => {
     async () => {
       getInputMock.mock.mockImplementationOnce((name) => {
         if (name === 'betaPackage') {
-          return '@checkdigit/test-checkdigit@3.4.1-PR.134-31bc';
+          return '@checkdigit/hash@5.0.0-PR.32-b512';
         }
         return '';
       });
@@ -46,7 +48,7 @@ describe('validate-npm-package', async () => {
     async () => {
       getInputMock.mock.mockImplementationOnce((name) => {
         if (name === 'betaPackage') {
-          return '@checkdigit/prettier-config@8.0.0';
+          return '@checkdigit/prettier-config@8.1.1';
         }
         return '';
       });
@@ -56,12 +58,12 @@ describe('validate-npm-package', async () => {
   );
 
   it(
-    'service without serve-runtime should not have dependency conflicts',
+    'package with peer dependencies should not have dependency conflicts',
     { timeout: 300_000 },
     async () => {
       getInputMock.mock.mockImplementationOnce((name) => {
         if (name === 'betaPackage') {
-          return '@checkdigit/connector@4.0.2-PR.141-c066';
+          return '@checkdigit/typescript-config@10.2.1';
         }
         return '';
       });
@@ -70,18 +72,23 @@ describe('validate-npm-package', async () => {
     },
   );
 
-  // Test uses a bad version of approval package
-  // and requires skipLibCheck: false in tsconfig.json
-  // we set it manually in validate npm package as
-  // checkdigit/typescript-config is various versions of this setting
-  it('bad npm package results in error', { timeout: 300_000 }, async () => {
-    getInputMock.mock.mockImplementationOnce((name) => {
-      if (name === 'betaPackage') {
-        return '@checkdigit/approval@2.0.0-PR.196-b041';
-      }
-      return '';
-    });
+  it(
+    'rejects a package that throws during import',
+    { timeout: 300_000 },
+    async () => {
+      getInputMock.mock.mockImplementationOnce((name) => {
+        if (name === 'betaPackage') {
+          // This public package installs successfully, but importing it in Node
+          // throws because it accesses the browser's `document` global.
+          return 'keymaster@1.6.2';
+        }
+        return '';
+      });
 
-    await assert.rejects(() => verifyNpmPackage(), Error);
-  });
+      await assert.rejects(
+        () => verifyNpmPackage(),
+        /document is not defined/u,
+      );
+    },
+  );
 });

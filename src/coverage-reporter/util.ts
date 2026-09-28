@@ -5,7 +5,7 @@
  * https://github.com/romeovs/lcov-reporter-action
  */
 
-// eslint-disable-next-line unicorn/prevent-abbreviations, @checkdigit/no-util
+// eslint-disable-next-line unicorn/name-replacements, @checkdigit/no-util
 import path from 'node:path';
 
 import type { Options } from './options.ts';

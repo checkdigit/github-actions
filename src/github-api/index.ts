@@ -197,20 +197,22 @@ export async function publishCommentAndRemovePrevious(
   if (prComments?.data) {
     for (const comment of prComments.data) {
       if (
-        prefixOfPreviousMessageToRemove !== undefined &&
-        prefixOfPreviousMessageToRemove !== '' &&
-        (comment.body === undefined ||
-          comment.body.includes(prefixOfPreviousMessageToRemove))
+        prefixOfPreviousMessageToRemove === undefined ||
+        prefixOfPreviousMessageToRemove === '' ||
+        (comment.body !== undefined &&
+          !comment.body.includes(prefixOfPreviousMessageToRemove))
       ) {
-        log('Comment removed');
-        // eslint-disable-next-line no-await-in-loop
-        await octokit.rest.issues.deleteComment({
-          // eslint-disable-next-line camelcase
-          comment_id: comment.id,
-          owner: githubContext.owner,
-          repo: githubContext.repo,
-        });
+        // eslint-disable-next-line no-continue
+        continue;
       }
+      log('Comment removed');
+      // eslint-disable-next-line no-await-in-loop
+      await octokit.rest.issues.deleteComment({
+        // eslint-disable-next-line camelcase
+        comment_id: comment.id,
+        owner: githubContext.owner,
+        repo: githubContext.repo,
+      });
     }
   }
 
@@ -224,7 +226,7 @@ export async function publishCommentAndRemovePrevious(
   });
 }
 
-export async function haveAllReviewersReviewed(): Promise<number> {
+export async function getPendingReviewerCount(): Promise<number> {
   if (
     // eslint-disable-next-line n/no-process-env
     process.env['GITHUB_TOKEN'] === undefined ||
@@ -333,8 +335,9 @@ export async function approvedReviews(): Promise<GithubReviewStatus> {
     }
   }
 
-  // eslint-disable-next-line sonarjs/no-misleading-array-reverse, sonarjs/no-alphabetical-sort
-  const oldestApprovedReviewDate = dateOfApprovedReviews.sort()[0];
+  const oldestApprovedReviewDate = dateOfApprovedReviews.toSorted(
+    (first, second) => first.localeCompare(second),
+  )[0];
   if (oldestApprovedReviewDate === undefined) {
     throw new Error('Invalid date received from approved reviews');
   }

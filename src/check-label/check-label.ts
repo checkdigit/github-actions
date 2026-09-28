@@ -25,7 +25,7 @@ async function getLocalPackageJsonVersion(fileName: string): Promise<string> {
   return packageJson.version;
 }
 
-export function validateVersion(
+export function isVersionValid(
   branchPackageJsonVersion: string,
   mainPackageJsonVersion: string,
   prLabel: string,
@@ -82,7 +82,7 @@ export default async function (): Promise<void> {
     mainPackageJsonVersionRaw,
   ) as PackageJSON;
 
-  validateVersion(
+  isVersionValid(
     branchPackageJsonVersion,
     mainPackageJsonVersion.version,
     label,

@@ -23,7 +23,7 @@ async function getExistingComments(
     user: Record<string, unknown> | null;
     body?: string;
   }[] = [];
-  let finished = false;
+  let isFinished = false;
   do {
     // eslint-disable-next-line no-await-in-loop
     const response = await githubClient.rest.issues.listComments({
@@ -38,9 +38,9 @@ async function getExistingComments(
     results = [...results, ...response.data];
     page++;
     if (response.data.length < REQUESTED_COMMENTS_PER_PAGE) {
-      finished = true;
+      isFinished = true;
     }
-  } while (!finished);
+  } while (!isFinished);
 
   return results.filter(
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions

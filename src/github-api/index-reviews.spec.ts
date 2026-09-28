@@ -6,7 +6,7 @@ import { describe, it } from 'node:test';
 import { differenceInCalendarDays } from '@checkdigit/time';
 
 import gitHubNock, { createGithubEventFile } from '../nocks/github.test.ts';
-import { approvedReviews, haveAllReviewersReviewed } from './index.ts';
+import { approvedReviews, getPendingReviewerCount } from './index.ts';
 
 describe('github review', async () => {
   it('review two outstanding reviewers', async () => {
@@ -15,7 +15,7 @@ describe('github review', async () => {
     process.env['GITHUB_TOKEN'] =
       'token 0000000000000000000000000000000000000001';
     process.env['GITHUB_EVENT_PATH'] = await createGithubEventFile();
-    const result = await haveAllReviewersReviewed();
+    const result = await getPendingReviewerCount();
     assert.equal(result, 2);
   });
 
@@ -25,7 +25,7 @@ describe('github review', async () => {
     process.env['GITHUB_TOKEN'] =
       'token 0000000000000000000000000000000000000001';
     process.env['GITHUB_EVENT_PATH'] = await createGithubEventFile();
-    const result = await haveAllReviewersReviewed();
+    const result = await getPendingReviewerCount();
     assert.equal(result, 1);
   });
 
