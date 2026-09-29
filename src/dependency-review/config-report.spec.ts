@@ -49,6 +49,15 @@ describe('dependency review configuration and reporting', () => {
       inputs({ 'github-token': 'token', 'allow-advisories': 'MAL-2026-ABC' }),
     );
     assert.ok(arbitrary.allowedAdvisories.has('MAL-2026-ABC'));
+    assert.doesNotThrow(() =>
+      readConfiguration(
+        inputs({
+          'github-token': 'token',
+          'allow-licenses':
+            'MIT, Apache-2.0, Apache-2.0 AND MIT, ISC AND MIT AND MPL-2.0, Apache-2.0 AND LicenseRef-scancode-unknown-license-reference',
+        }),
+      ),
+    );
     assert.throws(
       () =>
         readConfiguration(

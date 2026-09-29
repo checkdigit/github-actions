@@ -42,23 +42,44 @@ function licenseLeaf(node: Exclude<SpdxNode, SpdxConjunctionNode>): string {
   return `${node.license}${node.plus === true ? '+' : ''}${exceptionSuffix}`;
 }
 
+function conjunctionTerms(
+  node: SpdxNode,
+  conjunction: SpdxConjunctionNode['conjunction'],
+): SpdxNode[] {
+  if (isConjunction(node) && node.conjunction === conjunction) {
+    return [
+      ...conjunctionTerms(node.left, conjunction),
+      ...conjunctionTerms(node.right, conjunction),
+    ];
+  }
+  return [node];
+}
+
+function licenseExpressionKey(node: SpdxNode): string {
+  if (!isConjunction(node)) {
+    return licenseLeaf(node);
+  }
+  const terms = conjunctionTerms(node, node.conjunction)
+    .map(licenseExpressionKey)
+    .toSorted((left, right) => left.localeCompare(right));
+  return `${node.conjunction.toUpperCase()}(${terms.join(',')})`;
+}
+
 export function validateLicenseIdentifiers(identifiers: string[]): Set<string> {
   const result = new Set<string>();
   for (const identifier of identifiers) {
     const node = parseLicenseExpression(identifier);
-    if (isConjunction(node)) {
-      throw new Error(
-        `License policy entry ${JSON.stringify(identifier)} must be one SPDX license leaf rather than an AND/OR expression`,
-      );
-    }
-    result.add(licenseLeaf(node));
+    result.add(licenseExpressionKey(node));
   }
   return result;
 }
 
 function allowedByExpression(node: SpdxNode, allowed: Set<string>): boolean {
+  if (allowed.has(licenseExpressionKey(node))) {
+    return true;
+  }
   if (!isConjunction(node)) {
-    return allowed.has(licenseLeaf(node));
+    return false;
   }
   return node.conjunction === 'and'
     ? allowedByExpression(node.left, allowed) &&
@@ -68,8 +89,11 @@ function allowedByExpression(node: SpdxNode, allowed: Set<string>): boolean {
 }
 
 function deniedByExpression(node: SpdxNode, denied: Set<string>): boolean {
+  if (denied.has(licenseExpressionKey(node))) {
+    return true;
+  }
   if (!isConjunction(node)) {
-    return denied.has(licenseLeaf(node));
+    return false;
   }
   return node.conjunction === 'and'
     ? deniedByExpression(node.left, denied) ||

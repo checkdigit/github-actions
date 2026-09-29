@@ -78,15 +78,17 @@ read-only tokens is reported as a warning and does not hide the review result.
       @untrusted
 ```
 
-`allow-licenses` and `deny-licenses` are mutually exclusive and accept complete
-SPDX leaf terms, including `+` and `WITH` exceptions. Package SPDX expressions
-are evaluated correctly: every
-part of an `AND` expression must be allowed, while one allowed alternative is
-enough for `OR`; a denied `OR` expression is blocking only when every
-alternative is denied. Invalid expressions are blocking. Unknown licenses are
-reported as warnings when no allow/deny policy is configured and are blocking
-when a license policy is configured. Reviewed private or unavailable packages
-can be exempted with `allow-dependencies-licenses` using an npm name or PURL.
+`allow-licenses` and `deny-licenses` are mutually exclusive and accept SPDX
+license identifiers or complete expressions, including `AND`, `OR`, `+`, and
+`WITH` exceptions. Equivalent compound expressions are matched regardless of
+term order or grouping. An exact compound allowlist entry permits that complete
+expression. Otherwise, every part of an `AND` expression must be allowed, while
+one allowed alternative is enough for `OR`; a denied `OR` expression is
+blocking only when every alternative is denied. Invalid expressions are
+blocking. Unknown licenses are reported as warnings when no allow/deny policy
+is configured and are blocking when a license policy is configured. Reviewed
+private or unavailable packages can be exempted with
+`allow-dependencies-licenses` using an npm name or PURL.
 
 License requests go only to `registry.npmjs.org` and are anonymous: the action
 neither accepts nor forwards private npm credentials. Registry metadata is

@@ -71,7 +71,28 @@ describe('dependency review policy', () => {
     );
   });
 
-  it('uses registry metadata over a conflicting lockfile and preserves SPDX leaf semantics', async () => {
+  it('accepts complete SPDX expressions in license policy entries', async () => {
+    nock('https://registry.npmjs.org').get('/pkg/3.0.0').reply(200, {
+      license: 'MIT AND Apache-2.0',
+    });
+    assert.deepEqual(
+      await checkLicenses([dependency({ version: '3.0.0' })], {
+        allowLicenses: validateLicenseIdentifiers(['Apache-2.0 AND MIT']),
+        denyLicenses: new Set(),
+        allowedDependencies: [],
+      }),
+      [],
+    );
+
+    assert.doesNotThrow(() =>
+      validateLicenseIdentifiers([
+        'ISC AND MIT AND MPL-2.0',
+        'Apache-2.0 AND LicenseRef-scancode-unknown-license-reference',
+      ]),
+    );
+  });
+
+  it('uses registry metadata over a conflicting lockfile and preserves SPDX expression semantics', async () => {
     nock('https://registry.npmjs.org').get('/pkg/1.0.0').reply(200, {
       license: 'GPL-3.0-only',
     });

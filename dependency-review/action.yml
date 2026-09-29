@@ -36,10 +36,10 @@ inputs:
     description: Inspect SPDX license metadata for newly added or changed dependencies.
     default: 'true'
   allow-licenses:
-    description: Comma- or newline-separated SPDX license leaf terms, including optional + or WITH exception. Mutually exclusive with deny-licenses.
+    description: Comma- or newline-separated SPDX license identifiers or complete expressions, including AND, OR, +, and WITH. Mutually exclusive with deny-licenses.
     required: false
   deny-licenses:
-    description: Comma- or newline-separated SPDX license leaf terms, including optional + or WITH exception. Mutually exclusive with allow-licenses.
+    description: Comma- or newline-separated SPDX license identifiers or complete expressions, including AND, OR, +, and WITH. Mutually exclusive with allow-licenses.
     required: false
   allow-dependencies-licenses:
     description: Package names or npm PURLs exempt from license policy (optionally versioned).
