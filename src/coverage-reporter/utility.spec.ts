@@ -1,15 +1,14 @@
-// coverage-reporter/util.spec.ts
+// coverage-reporter/utility.spec.ts
 
 /**
  * Based on code from lcov-report-action, see LICENSE.lcov-reporter-action.txt.
  * https://github.com/romeovs/lcov-reporter-action
  */
 
-// eslint-disable-next-line @checkdigit/no-util
 import { strict as assert } from 'node:assert';
 import { describe, it } from 'node:test';
 
-import { createHref } from './util.ts';
+import { createHref } from './utility.ts';
 
 describe('util', async () => {
   it('create simple url to file', () => {

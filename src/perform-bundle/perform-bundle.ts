@@ -20,7 +20,7 @@ async function readMetadataFile(): Promise<Metafile> {
     const rawFile = await readFile('esbuild-lambda/metafile.json', 'utf8');
     return JSON.parse(rawFile) as Metafile;
   } catch (error) {
-    log('Exception thrown attempting to read meta data file: ', String(error));
+    log('Exception thrown attempting to read metadata file: ', String(error));
     throw error;
   }
 }

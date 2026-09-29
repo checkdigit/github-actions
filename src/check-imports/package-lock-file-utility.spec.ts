@@ -1,6 +1,5 @@
-// check-imports/package-lock-file-util.spec.ts
+// check-imports/package-lock-file-utility.spec.ts
 
-// eslint-disable-next-line @checkdigit/no-util
 import { strict as assert } from 'node:assert';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
@@ -12,7 +11,7 @@ import {
   extractPackageName,
   getPackageLock,
   isMatchingNameAndRange,
-} from './package-lock-file-util.ts';
+} from './package-lock-file-utility.ts';
 
 describe('package lock file utilities', async () => {
   it('can get a package-lock file', async () => {

@@ -1,6 +1,5 @@
-// check-imports/package-lock-file-util.ts
+// check-imports/package-lock-file-utility.ts
 
-// eslint-disable-next-line @checkdigit/no-util, unicorn/name-replacements
 import path from 'node:path';
 import { readFile } from 'node:fs/promises';
 

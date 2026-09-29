@@ -8,7 +8,7 @@
 import { a, b, fragment, table, tbody, td, th, tr } from './html.ts';
 import type { Lcov, LcovFile } from './lcov.ts';
 import type { Options } from './options.ts';
-import { createHref, normalizePath } from './util.ts';
+import { createHref, normalizePath } from './utility.ts';
 
 function shouldBeIncluded(fileName: string, options: Options) {
   if (options.shouldFilterChangedFiles !== true) {

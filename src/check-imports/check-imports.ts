@@ -6,7 +6,7 @@ import {
   extractPackageName,
   getPackageLock,
   isMatchingNameAndRange,
-} from './package-lock-file-util.ts';
+} from './package-lock-file-utility.ts';
 import notAllowed from './packages-not-allowed.ts';
 
 const log = debug('github-actions:check-imports');

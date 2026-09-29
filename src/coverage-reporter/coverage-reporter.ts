@@ -17,7 +17,7 @@ import { diff } from './comment.ts';
 import { getChangedFiles } from './get-changes.ts';
 import { deleteOldComments } from './delete-old-comments.ts';
 import type { Options } from './options.ts';
-import { normalizePath } from './util.ts';
+import { normalizePath } from './utility.ts';
 
 const MAX_COMMENT_CHARS = 65_536;
 const log = debug('github-actions:coverage-reporter');
