@@ -1,0 +1,73 @@
+name: Check Digit Node Dependency Review
+description: Compare npm package-lock.json files, query OSV, and enforce vulnerability, license, and package policy
+author: Check Digit, LLC
+inputs:
+  github-token:
+    description: GitHub token used only to read repository Git objects and optionally manage one PR comment.
+    required: true
+  base-ref:
+    description: Optional base commit SHA or ref. Inferred for pull_request, pull_request_target, and merge_group events.
+    required: false
+  head-ref:
+    description: Optional head commit SHA or ref. Inferred for pull_request, pull_request_target, and merge_group events.
+    required: false
+  fail-on-severity:
+    description: Lowest vulnerability severity that fails the action (low, moderate, high, critical).
+    default: low
+  fail-on-scopes:
+    description: Comma- or newline-separated npm scopes that fail (runtime, development).
+    default: runtime
+  allow-advisories:
+    description: Comma- or newline-separated GHSA, CVE, or OSV advisory identifiers to allow.
+    required: false
+  allow-ghsas:
+    description: Compatibility alias for allowed GHSA advisory identifiers.
+    required: false
+  vulnerability-check:
+    description: Query OSV and enforce vulnerability policy.
+    default: 'true'
+  warn-only:
+    description: Report policy violations without failing the job.
+    default: 'false'
+  show-patched-versions:
+    description: Include the first fixed version reported by OSV.
+    default: 'true'
+  license-check:
+    description: Inspect SPDX license metadata for newly added or changed dependencies.
+    default: 'true'
+  allow-licenses:
+    description: Comma- or newline-separated SPDX license leaf terms, including optional + or WITH exception. Mutually exclusive with deny-licenses.
+    required: false
+  deny-licenses:
+    description: Comma- or newline-separated SPDX license leaf terms, including optional + or WITH exception. Mutually exclusive with allow-licenses.
+    required: false
+  allow-dependencies-licenses:
+    description: Package names or npm PURLs exempt from license policy (optionally versioned).
+    required: false
+  deny-packages:
+    description: Newly added package names or npm PURLs to deny (optionally versioned).
+    required: false
+  deny-groups:
+    description: Newly added npm scopes to deny, such as @example or pkg:npm/%40example.
+    required: false
+  comment-summary-in-pr:
+    description: Maintain one marked PR comment (never, on-failure, always). Requires pull-requests write when enabled.
+    default: never
+outputs:
+  dependency-changes:
+    description: JSON array of added, removed, and changed dependency occurrences.
+  vulnerable-changes:
+    description: JSON array of newly introduced vulnerabilities that match policy.
+  invalid-license-changes:
+    description: JSON array of unknown, invalid, denied, or not-allowed license findings.
+  denied-changes:
+    description: JSON array of newly added dependencies denied by package policy.
+  comment-content:
+    description: Rendered Markdown report suitable for a PR comment.
+runs:
+  using: node24
+  pre: '../src/setup.ts'
+  main: '../src/dependency-review/index.ts'
+branding:
+  icon: shield
+  color: blue

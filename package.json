@@ -36,7 +36,8 @@
     "@checkdigit/time": "^5.0.0",
     "@octokit/rest": "^22.0.1",
     "debug": "^4.4.3",
-    "semver": "^7.7.4"
+    "semver": "^7.7.4",
+    "spdx-expression-parse": "^4.0.0"
   },
   "devDependencies": {
     "@checkdigit/eslint-config": "^11.6.1",
