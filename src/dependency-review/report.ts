@@ -7,6 +7,7 @@ import type {
   DependencyChange,
   LicenseFinding,
   ReviewResult,
+  ReviewStatistics,
   VulnerabilityFinding,
 } from './types.ts';
 
@@ -115,6 +116,75 @@ function deniedSection(findings: DeniedFinding[]): string {
   );
 }
 
+export function statisticsLogLines(statistics: ReviewStatistics): string[] {
+  return [
+    `Inventory: lockfiles base=${statistics.lockfiles.base}, head=${statistics.lockfiles.head}; dependency occurrences base=${statistics.dependencyOccurrences.base}, head=${statistics.dependencyOccurrences.head}`,
+    `Dependency changes: added=${statistics.changes.added}, changed=${statistics.changes.changed}, removed=${statistics.changes.removed}; runtime=${statistics.changes.runtime}, development=${statistics.changes.development}`,
+    `Vulnerability check (${statistics.vulnerabilities.enabled ? 'enabled' : 'disabled'}): OSV package/version queries=${statistics.vulnerabilities.osvQueries}, base findings=${statistics.vulnerabilities.baseFindings}, head findings=${statistics.vulnerabilities.headFindings}, newly introduced=${statistics.vulnerabilities.introduced}, policy-matching=${statistics.vulnerabilities.policyMatching}`,
+    `License check (${statistics.licenses.enabled ? 'enabled' : 'disabled'}): changed npm candidates=${statistics.licenses.candidates}, issues=${statistics.licenses.issues}, blocking=${statistics.licenses.blockingIssues}`,
+    `Package policy: denied=${statistics.policy.denied}, unsupported sources=${statistics.policy.unsupportedSources}; total blocking findings=${statistics.blockingFindings}`,
+  ];
+}
+
+function statisticsSection(statistics: ReviewStatistics): string {
+  return table(
+    ['Area', 'Statistic', 'Value'],
+    [
+      ['Inventory', 'Base lockfiles', statistics.lockfiles.base],
+      ['Inventory', 'Head lockfiles', statistics.lockfiles.head],
+      [
+        'Inventory',
+        'Base dependency occurrences',
+        statistics.dependencyOccurrences.base,
+      ],
+      [
+        'Inventory',
+        'Head dependency occurrences',
+        statistics.dependencyOccurrences.head,
+      ],
+      ['Changes', 'Added', statistics.changes.added],
+      ['Changes', 'Changed', statistics.changes.changed],
+      ['Changes', 'Removed', statistics.changes.removed],
+      ['Changes', 'Runtime', statistics.changes.runtime],
+      ['Changes', 'Development', statistics.changes.development],
+      [
+        'Vulnerabilities',
+        `OSV queries (${statistics.vulnerabilities.enabled ? 'enabled' : 'disabled'})`,
+        statistics.vulnerabilities.osvQueries,
+      ],
+      [
+        'Vulnerabilities',
+        'Head vulnerable occurrences',
+        statistics.vulnerabilities.headFindings,
+      ],
+      [
+        'Vulnerabilities',
+        'Newly introduced before policy',
+        statistics.vulnerabilities.introduced,
+      ],
+      [
+        'Vulnerabilities',
+        'Policy-matching findings',
+        statistics.vulnerabilities.policyMatching,
+      ],
+      [
+        'Licenses',
+        `Changed npm candidates (${statistics.licenses.enabled ? 'enabled' : 'disabled'})`,
+        statistics.licenses.candidates,
+      ],
+      ['Licenses', 'Issues', statistics.licenses.issues],
+      ['Licenses', 'Blocking issues', statistics.licenses.blockingIssues],
+      ['Package policy', 'Denied', statistics.policy.denied],
+      [
+        'Package policy',
+        'Unsupported sources',
+        statistics.policy.unsupportedSources,
+      ],
+      ['Outcome', 'Total blocking findings', statistics.blockingFindings],
+    ],
+  );
+}
+
 export function renderReport(
   result: ReviewResult,
   showPatchedVersions: boolean,
@@ -124,6 +194,9 @@ export function renderReport(
     '',
     `Scanned lockfiles: ${result.scannedFiles.length}; dependency changes: ${result.changes.length}; new policy-matching vulnerabilities: ${result.vulnerabilities.length}; license issues: ${result.licenseIssues.length}; denied or unsupported packages: ${result.denied.length}.`,
     '',
+    '## Check statistics',
+    '',
+    statisticsSection(result.statistics),
     '## Scanned files',
     '',
     result.scannedFiles.length === 0

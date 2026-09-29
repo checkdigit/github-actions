@@ -5,6 +5,7 @@
 import {
   error as annotateError,
   getInput,
+  info,
   setOutput,
   summary,
   warning,
@@ -27,7 +28,12 @@ import {
   filterVulnerabilities,
   unsupportedSourceDependencies,
 } from './policy.ts';
-import { renderReport, safeJsonOutput, truncateUtf8 } from './report.ts';
+import {
+  renderReport,
+  safeJsonOutput,
+  statisticsLogLines,
+  truncateUtf8,
+} from './report.ts';
 import type { Dependency, ReviewAnnotation, ReviewResult } from './types.ts';
 
 function changedHeadDependencies(
@@ -42,6 +48,14 @@ function changedHeadDependencies(
   return head.filter((dependency) =>
     locations.has(`${dependency.manifest}\0${dependency.path}`),
   );
+}
+
+function uniquePackageVersions(dependencies: Dependency[]): number {
+  return new Set(
+    dependencies.map(
+      (dependency) => `${dependency.name}\0${dependency.version}`,
+    ),
+  ).size;
 }
 
 export function buildAnnotations(
@@ -104,6 +118,10 @@ export default async function main(): Promise<void> {
   );
 
   let vulnerabilities: ReviewResult['vulnerabilities'] = [];
+  let osvQueries = 0;
+  let baseVulnerabilityFindings = 0;
+  let headVulnerabilityFindings = 0;
+  let introducedVulnerabilityFindings = 0;
   if (configuration.vulnerabilityCheck) {
     const baseNpmDependencies = baseDependencies.filter(
       (dependency) => dependency.source === 'npm',
@@ -115,14 +133,21 @@ export default async function main(): Promise<void> {
       scanVulnerabilities(baseNpmDependencies),
       scanVulnerabilities(headNpmDependencies),
     ]);
-    vulnerabilities = filterVulnerabilities(
-      newlyIntroducedVulnerabilities(baseFindings, headFindings),
-      {
-        threshold: configuration.failOnSeverity,
-        scopes: configuration.failOnScopes,
-        allowedAdvisories: configuration.allowedAdvisories,
-      },
+    osvQueries =
+      uniquePackageVersions(baseNpmDependencies) +
+      uniquePackageVersions(headNpmDependencies);
+    baseVulnerabilityFindings = baseFindings.length;
+    headVulnerabilityFindings = headFindings.length;
+    const introducedFindings = newlyIntroducedVulnerabilities(
+      baseFindings,
+      headFindings,
     );
+    introducedVulnerabilityFindings = introducedFindings.length;
+    vulnerabilities = filterVulnerabilities(introducedFindings, {
+      threshold: configuration.failOnSeverity,
+      scopes: configuration.failOnScopes,
+      allowedAdvisories: configuration.allowedAdvisories,
+    });
   }
 
   const licenseIssues = configuration.licenseCheck
@@ -132,24 +157,13 @@ export default async function main(): Promise<void> {
         allowedDependencies: configuration.allowDependenciesLicenses,
       })
     : [];
-  const denied = [
-    ...unsupportedSourceDependencies(changedDependencies),
-    ...deniedDependencies(
-      changedDependencies.filter((dependency) => dependency.source === 'npm'),
-      configuration.denyPackages,
-      configuration.denyGroups,
-    ),
-  ];
-  const result: ReviewResult = {
-    changes,
-    vulnerabilities,
-    licenseIssues,
-    denied,
-    scannedFiles: [
-      ...baseLockfiles.map((lockfile) => `base:${lockfile.path}`),
-      ...headLockfiles.map((lockfile) => `head:${lockfile.path}`),
-    ],
-  };
+  const unsupportedSources = unsupportedSourceDependencies(changedDependencies);
+  const policyDenied = deniedDependencies(
+    changedDependencies.filter((dependency) => dependency.source === 'npm'),
+    configuration.denyPackages,
+    configuration.denyGroups,
+  );
+  const denied = [...unsupportedSources, ...policyDenied];
 
   const hasLicensePolicy =
     configuration.allowLicenses.size > 0 || configuration.denyLicenses.size > 0;
@@ -160,6 +174,61 @@ export default async function main(): Promise<void> {
     vulnerabilities.length > 0 ||
     blockingLicenseIssues.length > 0 ||
     denied.length > 0;
+  const result: ReviewResult = {
+    changes,
+    vulnerabilities,
+    licenseIssues,
+    denied,
+    scannedFiles: [
+      ...baseLockfiles.map((lockfile) => `base:${lockfile.path}`),
+      ...headLockfiles.map((lockfile) => `head:${lockfile.path}`),
+    ],
+    statistics: {
+      lockfiles: { base: baseLockfiles.length, head: headLockfiles.length },
+      dependencyOccurrences: {
+        base: baseDependencies.length,
+        head: headDependencies.length,
+      },
+      changes: {
+        added: changes.filter((change) => change.changeType === 'added').length,
+        changed: changes.filter((change) => change.changeType === 'changed')
+          .length,
+        removed: changes.filter((change) => change.changeType === 'removed')
+          .length,
+        runtime: changes.filter((change) => change.scope === 'runtime').length,
+        development: changes.filter((change) => change.scope === 'development')
+          .length,
+      },
+      vulnerabilities: {
+        enabled: configuration.vulnerabilityCheck,
+        osvQueries,
+        baseFindings: baseVulnerabilityFindings,
+        headFindings: headVulnerabilityFindings,
+        introduced: introducedVulnerabilityFindings,
+        policyMatching: vulnerabilities.length,
+      },
+      licenses: {
+        enabled: configuration.licenseCheck,
+        candidates: configuration.licenseCheck
+          ? changedDependencies.filter(
+              (dependency) => dependency.source === 'npm',
+            ).length
+          : 0,
+        issues: licenseIssues.length,
+        blockingIssues: blockingLicenseIssues.length,
+      },
+      policy: {
+        denied: policyDenied.length,
+        unsupportedSources: unsupportedSources.length,
+      },
+      blockingFindings:
+        vulnerabilities.length + blockingLicenseIssues.length + denied.length,
+    },
+  };
+  info('Dependency review statistics:');
+  for (const line of statisticsLogLines(result.statistics)) {
+    info(line);
+  }
   for (const annotation of buildAnnotations(
     result,
     hasLicensePolicy,

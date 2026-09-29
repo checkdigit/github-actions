@@ -115,8 +115,12 @@ The action manifest documents every input. The main controls are:
 The action writes annotations and a job summary grouped by manifest and exposes
 valid JSON arrays as `dependency-changes`, `vulnerable-changes`,
 `invalid-license-changes`, and `denied-changes`. `comment-content` contains the
-rendered Markdown report. Very large summaries and outputs are shortened at
-safe boundaries and emit a warning rather than exceeding GitHub command limits.
+rendered Markdown report. The action log and job summary include statistics for
+lockfiles and dependency occurrences scanned, changes by type and scope, OSV
+queries and findings, license candidates and issues, package-policy findings,
+and the total blocking result. Very large summaries and outputs are shortened
+at safe boundaries and emit a warning rather than exceeding GitHub command
+limits.
 
 ### Scope and limitations
 

@@ -7,6 +7,7 @@ mock.module('@actions/core', {
   namedExports: {
     error: mock.fn(),
     getInput: mock.fn(),
+    info: mock.fn(),
     setOutput: mock.fn(),
     summary: {
       addRaw(): { write(): Promise<void> } {
@@ -19,8 +20,36 @@ mock.module('@actions/core', {
 
 const { readConfiguration } = await import('./config.ts');
 const { buildAnnotations } = await import('./dependency-review.ts');
-const { renderReport, safeJsonOutput, truncateUtf8 } =
+const { renderReport, safeJsonOutput, statisticsLogLines, truncateUtf8 } =
   await import('./report.ts');
+
+const statistics = {
+  lockfiles: { base: 1, head: 2 },
+  dependencyOccurrences: { base: 10, head: 12 },
+  changes: {
+    added: 2,
+    changed: 1,
+    removed: 1,
+    runtime: 3,
+    development: 1,
+  },
+  vulnerabilities: {
+    enabled: true,
+    osvQueries: 20,
+    baseFindings: 1,
+    headFindings: 2,
+    introduced: 1,
+    policyMatching: 1,
+  },
+  licenses: {
+    enabled: true,
+    candidates: 3,
+    issues: 1,
+    blockingIssues: 1,
+  },
+  policy: { denied: 0, unsupportedSources: 1 },
+  blockingFindings: 3,
+};
 
 function inputs(values: Record<string, string>): (name: string) => string {
   return (name) => values[name] ?? '';
@@ -91,6 +120,7 @@ describe('dependency review configuration and reporting', () => {
         licenseIssues: [],
         denied: [],
         scannedFiles: ['head:<script>|package-lock.json'],
+        statistics,
       },
       true,
     );
@@ -106,6 +136,17 @@ describe('dependency review configuration and reporting', () => {
     const truncated = truncateUtf8('a😀b', 5);
     assert.equal(truncated, 'a😀');
     assert.equal(Buffer.byteLength(truncated), 5);
+    // Match the heading added to the rendered job summary.
+    assert.match(report, /## Check statistics/u);
+    // Match the enabled OSV statistics row.
+    assert.match(report, /OSV queries \(enabled\)/u);
+    assert.deepEqual(statisticsLogLines(statistics), [
+      'Inventory: lockfiles base=1, head=2; dependency occurrences base=10, head=12',
+      'Dependency changes: added=2, changed=1, removed=1; runtime=3, development=1',
+      'Vulnerability check (enabled): OSV package/version queries=20, base findings=1, head findings=2, newly introduced=1, policy-matching=1',
+      'License check (enabled): changed npm candidates=3, issues=1, blocking=1',
+      'Package policy: denied=0, unsupported sources=1; total blocking findings=3',
+    ]);
   });
 
   it('uses warning annotations for blocking findings in warn-only mode', () => {

@@ -91,10 +91,39 @@ export interface ReviewAnnotation {
   file: string;
 }
 
+export interface ReviewStatistics {
+  lockfiles: { base: number; head: number };
+  dependencyOccurrences: { base: number; head: number };
+  changes: {
+    added: number;
+    changed: number;
+    removed: number;
+    runtime: number;
+    development: number;
+  };
+  vulnerabilities: {
+    enabled: boolean;
+    osvQueries: number;
+    baseFindings: number;
+    headFindings: number;
+    introduced: number;
+    policyMatching: number;
+  };
+  licenses: {
+    enabled: boolean;
+    candidates: number;
+    issues: number;
+    blockingIssues: number;
+  };
+  policy: { denied: number; unsupportedSources: number };
+  blockingFindings: number;
+}
+
 export interface ReviewResult {
   changes: DependencyChange[];
   vulnerabilities: VulnerabilityFinding[];
   licenseIssues: LicenseFinding[];
   denied: DeniedFinding[];
   scannedFiles: string[];
+  statistics: ReviewStatistics;
 }
