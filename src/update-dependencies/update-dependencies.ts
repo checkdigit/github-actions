@@ -32,12 +32,31 @@ const INDENTATION = /^(?<indent>[\t ]+)"/mu;
 // npm script names, passed as a single argument rather than shell code.
 const SCRIPT_NAME = /^[\w:.-]+$/u;
 
-async function command(program: string, arguments_: string[]): Promise<string> {
-  const { stdout } = await execute(program, arguments_, {
-    encoding: 'utf8',
-    maxBuffer: 32 * 1024 * 1024,
-  });
-  return stdout.trim();
+async function command(
+  program: string,
+  commandArguments: string[],
+): Promise<string> {
+  try {
+    const { stdout } = await execute(program, commandArguments, {
+      encoding: 'utf8',
+      maxBuffer: 32 * 1024 * 1024,
+    });
+    return stdout.trim();
+  } catch (error) {
+    const failure = error as Error & {
+      stdout?: string;
+      stderr?: string;
+    };
+
+    if (failure.stdout !== undefined) {
+      info(failure.stdout);
+    }
+    if (failure.stderr !== undefined) {
+      info(failure.stderr);
+    }
+
+    throw error;
+  }
 }
 
 async function updateManifest(
