@@ -1,0 +1,31 @@
+name: Update Dependencies
+description: Prepare a signed npm dependency update PR from a manual workflow
+inputs:
+  github-token:
+    description: Automatic repository token
+    required: true
+    default: ${{ github.token }}
+  scope:
+    description: patch, minor, or latest (stable versions)
+    default: minor
+  packages:
+    description: Optional comma or whitespace separated direct package names
+    default: ''
+  validation-scripts:
+    description: Required comma or whitespace separated npm scripts
+    required: true
+  reviewers:
+    description: 'GitHub usernames and team slugs prefixed with team:'
+    default: ''
+  label:
+    description: Existing PR label
+    default: PATCH
+outputs:
+  issue-url:
+    description: Created issue URL
+  pull-request-url:
+    description: Created or existing PR URL
+runs:
+  using: node24
+  pre: ../src/setup.ts
+  main: ../src/update-dependencies/index.ts
