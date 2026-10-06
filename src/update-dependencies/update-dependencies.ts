@@ -185,9 +185,6 @@ export async function publishUpdate(
 }
 
 export default async function main(): Promise<void> {
-  if (context.eventName !== 'workflow_dispatch') {
-    throw new Error('This action requires a manual workflow_dispatch run.');
-  }
   const scope = getInput('scope') || 'minor';
   if (scope !== 'patch' && scope !== 'minor' && scope !== 'latest') {
     throw new Error('scope must be patch, minor, or latest');
@@ -196,9 +193,6 @@ export default async function main(): Promise<void> {
   const repo = context.repo;
   const { data: repo_ } = await api.rest.repos.get(repo);
   const base = repo_.default_branch;
-  if (context.ref !== `refs/heads/${base}`) {
-    throw new Error('Run this workflow from the default branch.');
-  }
   const branch = 'automation/dependency-updates';
   const { data: pulls } = await api.rest.pulls.list({
     ...repo,
