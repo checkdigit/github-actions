@@ -1,90 +1,102 @@
-# Update Dependencies
+# Dependency updates
 
-Manually prepare an npm dependency update PR using the automatic, short-lived
-repository `GITHUB_TOKEN`. No personal access token, GitHub App key, or commit
-signing key is required.
+The updater and scheduled checker are independent actions. Install the updater
+by itself to work from manually created issues; the checker is optional.
+GitHub operations live under `src/github-api/`, use `@octokit/rest`, and authenticate
+with the `GITHUB_TOKEN` environment variable, matching the existing actions.
+No manually created GitHub write token or signing key is needed. Private npm
+packages use the existing `NPM_TOKEN` and checked-in `.npmrc`.
 
-## Install
+## Install or replace the earlier implementation
 
-1. Publish this action in `checkdigit/github-actions`.
-2. Copy `examples/dependency-updates.yml` to `.github/workflows/dependency-updates.yml`
-   in each target repo or its template. Pin the shared action to the reviewed
-   commit SHA instead of `main` for production use.
-3. Configure the real reviewer usernames or `team:slug` entries and npm validation
-   scripts. Keep these settings in the workflow, not dispatch inputs.
-4. Ensure the existing `PATCH` label is present. Organization/repo Actions policy
-   must allow the shared action and allow Actions to create pull requests.
-5. Select Actions → Dependency updates → Run workflow on the default branch.
+1. Copy both action folders, both action source folders, and the new
+   `src/github-api/dependency-*.ts` helpers into `checkdigit/github-actions`.
+   Keep existing GitHub API helpers and `src/setup.ts` unchanged.
+2. Delete the old `src/dependency-maintenance/` folder and replace
+   `src/update-dependencies/` entirely, rather than overlaying it. The obsolete
+   `src/update-dependencies/publish.spec.ts` has moved into `src/github-api/`.
+   The checker now uses `src/check-dependency-maintenance/`. Keep all existing
+   unrelated files under `src/github-api/`.
+3. Copy the two workflows under `examples/` to each caller's `.github/workflows/`.
+   Both now explicitly pass `GITHUB_TOKEN: ${{ github.token }}` in `env`.
+4. Configure `max-age-days`, `contributor-lookback-days`, `fallback-assignee`,
+   update scope, and validation scripts. The checker alone accepts `issue-title` to recognize maintenance history.
+   The updater has no title or marker requirement.
+5. Ensure the existing `PATCH` label and Actions PR-creation permission are present.
+   Pin shared actions to a reviewed SHA before broad rollout. Schedule and
+   issue_comment workflows must reach the default branch through normal PR review.
 
-Alternatively, using your existing authenticated GitHub CLI account:
+## Scheduled check: issue history only
 
-```sh
-gh workflow run dependency-updates.yml --repo checkdigit/example \
-  -f scope=minor -f packages=''
-```
+The checker paginates repository issues and recognizes non-PR issues whose title
+matches `issue-title` (default `Update dependencies`, case-insensitive), or whose
+body contains the action's dependency-update marker. Manually created issues are
+supported; there is no requirement that the bot created them.
 
-No scheduled trigger is included. No release, merge, approval, or npm publish is
-automated. The normal human review, squash merge, and release process remains.
+- An open matching issue is reused. Its current assignees are preserved.
+- Otherwise, use the most recent `closed_at` among matching issues closed as
+  `completed`. If it is within the configured interval, do nothing.
+- If completion is overdue or no completed matching issue exists, create an
+  update issue immediately.
+- Issues closed as `not planned`, unrelated issues, PRs, and invalid timestamps do
+  not count as completed maintenance. Do not close an abandoned update as completed.
 
-## Behavior
+There is no baseline issue, machine-stored completion date, or separate scan of
+merged PR history. The checker trusts the team's use of completed update issues;
+it does not independently prove a closed issue resulted in a merged PR or inspect
+npm versions. Closing the linked issue on merge naturally advances maintenance.
+An old baseline issue from the previous implementation is ignored by default.
 
-- Update direct dependencies, devDependencies, and optionalDependencies. Preserve
-  exact/caret/tilde syntax. Peer dependencies are unchanged.
-- `patch` stays within each dependency's current major/minor; `minor` stays within
-  its current major; `latest` selects the highest stable registry version,
-  including major changes. Prereleases are excluded.
-- An empty package filter selects all supported direct dependencies. An explicit
-  unknown package or unsupported version specification fails the run. Unsupported
-  specifications in an unfiltered run are logged and skipped.
-- No eligible direct updates means no issue, version bump, branch, or PR.
-- Bump the project's stable semantic version by one patch, delete and regenerate
-  the lockfile, then install and run all configured validation scripts.
-- Installation disables lifecycle scripts, following this repo's CI convention.
-  Projects requiring generated install artifacts must include an explicit trusted
-  preparation script in `validation-scripts`.
-- Create an issue, branch, API commit, and linked PR after successful validation.
-  The PR has exactly the configured label (default `PATCH`) for compatibility with
-  Check Digit's existing single-label check.
-- Use GitHub's `createCommitOnBranch` mutation for signed commits. Verify the
-  returned commit with the REST API before opening a PR. No unsigned fallback.
-- Request configured user/team reviewers. Team entries use slugs, not display names.
-- Only package.json and package-lock.json are committed. This version does not
-  synchronize template files or support npm workspaces.
+Ownership remains the top eligible human GitHub commit author over the configured
+lookback on the default branch. Bots/unmapped authors are excluded; ties use
+username ordering. Candidates are checked for issue assignability. If no recent
+contributor is eligible, the configured fallback is tried; otherwise leave the
+issue unassigned. Squashed history counts merged commit authors.
 
-Deleting the lockfile re-resolves transitive versions, so the package filter only
-limits direct manifest changes. Review the full lockfile diff.
+## Update action
 
-## Concurrency and recovery
+A human with write, maintain, or admin repository permission comments exactly
+`/update-dependencies` on any open issue. PR comments, edited comments,
+read-only commenters, and commands with extra arguments are ignored. The caller
+checks out the default branch. Comment text is not executed as shell code.
 
-Use the example's concurrency group. An existing open update PR is returned
-without creating another issue or updating its contents. A leftover update branch
-without an open PR stops the run; inspect and delete it before retrying. Enable
-automatic branch deletion after merge, or delete the branch manually.
+The updater does not import checker code, require its metadata, or require a
+bot-created issue. Anyone can create the issue; only a writer can invoke updates.
+Its current assignees become the PR assignees.
 
-External API operations are not transactional. If an API call fails after issue
-creation, inspect the issue and `automation/dependency-updates` branch. A PR can
-also exist with missing labels/reviewer requests if a later API call fails; repair
-those settings manually. Validation failures happen before issue/branch creation.
+The updater changes supported direct dependencies, increments the package patch
+version, regenerates the lockfile, installs with lifecycle scripts disabled, and
+runs trusted workflow-configured validation scripts in order. Include `prepare`
+when needed, as in the existing CI. Failed command output is logged, and the issue
+receives a failure-log link and stays open for another attempt.
+
+After validation, GitHub creates a signed API commit; the action checks that its
+signature is verified before opening the PR. The PR closes the existing issue,
+has only `PATCH`, and receives the issue's current assignees. No reviewers are
+requested by the action. Assignees choose reviewers after checks pass and the PR
+is ready. Approval, squash merge, release, and npm publishing remain manual.
+
+If no eligible direct updates exist, comment on the issue and close it as completed.
+Its actual closing date becomes the maintenance date. This covers the configured
+scope, not updates outside it. An existing update PR is returned, not duplicated.
+
+## Limits and recovery
+
+Supported direct sections: dependencies, devDependencies, optionalDependencies.
+Only exact stable/caret/tilde specifications are updated. Peer dependencies stay
+unchanged. Workspaces and template synchronization are not included. Lockfile
+regeneration can re-resolve transitive dependencies outside a direct package filter.
+
 The default branch SHA is checked after validation to avoid publishing against a
-base that changed during the run.
+changed base. An orphaned `automation/dependency-updates` branch stops the action;
+inspect and delete it before retrying. Enable branch deletion after merging.
+API writes are not transactional: failures can leave a PR with incomplete labels,
+assignment, or issue comments. Inspect the run and repair partial results.
 
-## Existing CI and signed-commit policy
+`GITHUB_TOKEN`-created PR workflows can require approval; token-applied labels do
+not trigger label workflows automatically. In-action validation does not itself
+satisfy required PR check contexts. Verify checks attach to the PR commit before
+merging. CODEOWNERS/repository rules may independently request reviewers.
 
-Pilot in one target repo before distribution. Confirm GitHub recognizes the API
-commit as verified and that the organization rules permit the bot's branch/PR.
-There is no branch protection bypass.
-
-GitHub's current `GITHUB_TOKEN` behavior can require approval for PR workflow runs;
-label-triggered workflows are not started by token-applied labels. Validation in
-this action does not satisfy required PR checks automatically. Approve/run the
-existing checks through your supported GitHub flow and verify they attach to the
-PR commit before merging. No broader credential is introduced to avoid that rule.
-
-Private registry read authentication is separate from GitHub write authentication.
-Reuse your existing approved npm registry configuration if private packages need
-credentials; this action does not manufacture registry access.
-
-References:
-
-- https://docs.github.com/en/actions/concepts/security/github_token
-- https://docs.github.com/en/graphql/reference/commits#createcommitonbranch
+Scheduled times are UTC and can be delayed by GitHub. Stagger distribution across
+repositories. Verify signed-commit and permission policies in one repo first.

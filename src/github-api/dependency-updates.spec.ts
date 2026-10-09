@@ -1,4 +1,4 @@
-// update-dependencies/publish.spec.ts
+// github-api/dependency-updates.spec.ts
 /* eslint-disable camelcase -- Fixtures mirror GitHub API response fields. */
 // update-dependencies/publish.spec.ts
 
@@ -6,10 +6,10 @@ import { strict as assert } from 'node:assert';
 import { describe, it } from 'node:test';
 
 import { summary } from '@actions/core';
-import { getOctokit } from '@actions/github';
+import { Octokit } from '@octokit/rest';
 import nock from 'nock';
 
-import { publishUpdate } from './update-dependencies.ts';
+import { publishUpdate } from './dependency-updates.ts';
 
 const API = 'https://api.github.com';
 const repo = { owner: 'checkdigit', repo: 'example' };
@@ -21,12 +21,11 @@ function prepare(isVerified: boolean) {
   return nock(API)
     .get(`${ROOT}/labels/PATCH`)
     .reply(200, { name: 'PATCH' })
-    .post(`${ROOT}/issues`, (body: { title: string }) =>
-      body.title.includes('1.0.1'),
-    )
-    .reply(201, {
+    .get(`${ROOT}/issues/10`)
+    .reply(200, {
       number: 10,
       html_url: 'https://github.com/checkdigit/example/issues/10',
+      assignees: [{ login: 'alice' }],
     })
     .post(`${ROOT}/git/refs`, {
       ref: 'refs/heads/automation/dependency-updates',
@@ -58,9 +57,9 @@ function prepare(isVerified: boolean) {
 }
 
 describe('dependency update publishing', () => {
-  it('opens a linked PR only after signature verification and requests reviewers', async (testContext) => {
+  it('opens a linked PR only after signature verification and copies current issue assignees', async (testContext) => {
     testContext.mock.method(summary, 'write', async () => summary);
-    process.env['INPUT_REVIEWERS'] = 'alice,team:maintainers';
+
     const requests = prepare(true)
       .post(
         `${ROOT}/pulls`,
@@ -74,25 +73,23 @@ describe('dependency update publishing', () => {
       })
       .post(`${ROOT}/issues/11/labels`, { labels: ['PATCH'] })
       .reply(200, [])
-      .post(`${ROOT}/pulls/11/requested_reviewers`, {
-        reviewers: ['alice'],
-        team_reviewers: ['maintainers'],
-      })
+      .post(`${ROOT}/issues/11/assignees`, { assignees: ['alice'] })
+      .reply(201, {})
+      .post(`${ROOT}/issues/10/comments`)
       .reply(201, {});
     try {
       await publishUpdate(
-        getOctokit('test-token', { request: { fetch } }),
+        new Octokit({ auth: 'test-token', request: { fetch } }),
         repo,
         'main',
         head,
         '1.0.1',
         ['- example: 1.0.0 → 1.1.0'],
         ['test'],
-        'minor',
+        { scope: 'minor', issueNumber: 10 },
       );
       assert.ok(requests.isDone());
     } finally {
-      delete process.env['INPUT_REVIEWERS'];
       nock.cleanAll();
     }
   });
@@ -102,14 +99,14 @@ describe('dependency update publishing', () => {
     try {
       await assert.rejects(
         publishUpdate(
-          getOctokit('test-token', { request: { fetch } }),
+          new Octokit({ auth: 'test-token', request: { fetch } }),
           repo,
           'main',
           head,
           '1.0.1',
           ['update'],
           ['test'],
-          'minor',
+          { scope: 'minor', issueNumber: 10 },
         ),
         { message: /Commit is not verified/u },
       );

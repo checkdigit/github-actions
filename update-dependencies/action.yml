@@ -1,10 +1,6 @@
 name: Update Dependencies
-description: Prepare a signed npm dependency update PR from a manual workflow
+description: Prepare a signed npm dependency update PR from an authorized issue comment
 inputs:
-  github-token:
-    description: Automatic repository token
-    required: true
-    default: ${{ github.token }}
   scope:
     description: patch, minor, or latest (stable versions)
     default: minor
@@ -14,15 +10,15 @@ inputs:
   validation-scripts:
     description: Required comma or whitespace separated npm scripts
     required: true
-  reviewers:
-    description: 'GitHub usernames and team slugs prefixed with team:'
-    default: ''
+  command:
+    description: Exact authorized issue comment
+    default: /update-dependencies
   label:
     description: Existing PR label
     default: PATCH
 outputs:
   issue-url:
-    description: Created issue URL
+    description: Linked existing issue URL
   pull-request-url:
     description: Created or existing PR URL
 runs:

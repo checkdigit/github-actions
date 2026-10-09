@@ -1,14 +1,28 @@
 // update-dependencies/update-dependencies.ts
 
-/* eslint-disable camelcase -- GitHub REST API uses snake_case parameter names. */
-
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { readFile, unlink, writeFile } from 'node:fs/promises';
 
-import { getInput, info, setOutput, summary } from '@actions/core';
-import { context, getOctokit } from '@actions/github';
+import { getInput, info, setOutput } from '@actions/core';
+import { context } from '@actions/github';
 import semver from 'semver';
+
+import {
+  assertUpdateBranchAvailable,
+  completeDependencyIssue,
+  getDefaultBranch,
+  getExistingDependencyPR,
+  publishDependencyComment,
+  publishUpdate,
+  verifyDefaultBranch,
+} from '../github-api/dependency-updates.ts';
+import {
+  getDependencyClient,
+  getDependencyRepo,
+} from '../github-api/dependency-client.ts';
+
+import { authorizeComment } from '../github-api/dependency-issue-command.ts';
 
 import { type Scope, selectVersion } from './versions.ts';
 
@@ -21,8 +35,7 @@ interface Manifest {
 }
 
 const execute = promisify(execFile);
-const NOT_FOUND = 404;
-const TEAM_PREFIX = 'team:';
+
 // Commas and whitespace separate package names, reviewers, and script names.
 const SEPARATOR = /[\s,]+/u;
 // Only plain stable versions with an optional caret or tilde are supported.
@@ -32,29 +45,21 @@ const INDENTATION = /^(?<indent>[\t ]+)"/mu;
 // npm script names, passed as a single argument rather than shell code.
 const SCRIPT_NAME = /^[\w:.-]+$/u;
 
-async function command(
-  program: string,
-  commandArguments: string[],
-): Promise<string> {
+async function command(program: string, arguments_: string[]): Promise<string> {
   try {
-    const { stdout } = await execute(program, commandArguments, {
+    const { stdout } = await execute(program, arguments_, {
       encoding: 'utf8',
       maxBuffer: 32 * 1024 * 1024,
     });
     return stdout.trim();
   } catch (error) {
-    const failure = error as Error & {
-      stdout?: string;
-      stderr?: string;
-    };
-
-    if (failure.stdout !== undefined) {
+    const failure = error as Error & { stdout?: string; stderr?: string };
+    if (failure.stdout !== undefined && failure.stdout !== '') {
       info(failure.stdout);
     }
-    if (failure.stderr !== undefined) {
+    if (failure.stderr !== undefined && failure.stderr !== '') {
       info(failure.stderr);
     }
-
     throw error;
   }
 }
@@ -109,130 +114,40 @@ async function updateManifest(
   return changes;
 }
 
-export async function publishUpdate(
-  api: ReturnType<typeof getOctokit>,
-  repo: { owner: string; repo: string },
-  base: string,
-  head: string,
-  version: string,
-  changes: string[],
-  scripts: string[],
-  scope: Scope,
-): Promise<void> {
-  const branch = 'automation/dependency-updates';
-  // Resolve the label before creating the issue or branch.
-  const label = getInput('label') || 'PATCH';
-  await api.rest.issues.getLabel({ ...repo, name: label });
-  const reviewers = getInput('reviewers').split(SEPARATOR).filter(Boolean);
-  const users = reviewers.filter((reviewer) => !reviewer.startsWith('team:'));
-  const teams = reviewers
-    .filter((reviewer) => reviewer.startsWith('team:'))
-    .map((reviewer) => reviewer.slice(TEAM_PREFIX.length));
-  const title = `Update dependencies (${version})`;
-  const details = `${changes.join('\n')}\n\nValidation: ${scripts.join(', ')}.\nScope: ${scope}. Peer dependencies are unchanged.\nLockfile regenerated; transitive dependencies may also change.`;
-  const { data: issue } = await api.rest.issues.create({
-    ...repo,
-    title,
-    body: details,
-  });
-  await api.rest.git.createRef({
-    ...repo,
-    ref: `refs/heads/${branch}`,
-    sha: head,
-  });
-  // GitHub signs API-created bot commits; do not supply custom identity/signature.
-  const result = await api.graphql<{
-    createCommitOnBranch: { commit: { oid: string } };
-  }>(
-    `mutation($input: CreateCommitOnBranchInput!) {
-      createCommitOnBranch(input: $input) { commit { oid } }
-    }`,
-    {
-      input: {
-        branch: {
-          repositoryNameWithOwner: `${repo.owner}/${repo.repo}`,
-          branchName: branch,
-        },
-        expectedHeadOid: head,
-        message: { headline: title, body: `Refs #${issue.number}` },
-        fileChanges: {
-          additions: await Promise.all(
-            ['package.json', 'package-lock.json'].map(async (file) => ({
-              path: file,
-              contents: Buffer.from(await readFile(file)).toString('base64'),
-            })),
-          ),
-        },
-      },
-    },
-  );
-  const { data: commit } = await api.rest.repos.getCommit({
-    ...repo,
-    ref: result.createCommitOnBranch.commit.oid,
-  });
-  if (commit.commit.verification?.verified !== true) {
-    throw new Error(
-      `Commit is not verified. Inspect ${branch} and issue #${issue.number}; no PR was opened.`,
-    );
-  }
-  const { data: pull } = await api.rest.pulls.create({
-    ...repo,
-    head: branch,
-    base,
-    title,
-    body: `Closes #${issue.number}\n\n${details}\n\nReview, squash merge, and release manually.`,
-  });
-  await api.rest.issues.addLabels({
-    ...repo,
-    issue_number: pull.number,
-    labels: [label],
-  });
-  if (users.length > 0 || teams.length > 0) {
-    await api.rest.pulls.requestReviewers({
-      ...repo,
-      pull_number: pull.number,
-      reviewers: users,
-      team_reviewers: teams,
-    });
-  }
-  setOutput('issue-url', issue.html_url);
-  setOutput('pull-request-url', pull.html_url);
-  await summary
-    .addLink('Dependency update PR', pull.html_url)
-    .addRaw(`\n\n${details}\n`)
-    .write();
-}
-
 export default async function main(): Promise<void> {
+  if (context.eventName !== 'issue_comment') {
+    throw new Error('This action requires an issue comment.');
+  }
+  const api = getDependencyClient();
+  const repo = await getDependencyRepo();
+  const issueNumber = await authorizeComment(
+    api,
+    repo,
+    context.payload as unknown as Parameters<typeof authorizeComment>[2],
+    getInput('command') || '/update-dependencies',
+  );
+  if (issueNumber === undefined) {
+    info('Ignoring unrelated or unauthorized comment.');
+    return;
+  }
   const scope = getInput('scope') || 'minor';
   if (scope !== 'patch' && scope !== 'minor' && scope !== 'latest') {
     throw new Error('scope must be patch, minor, or latest');
   }
-  const api = getOctokit(getInput('github-token', { required: true }));
-  const repo = context.repo;
-  const { data: repo_ } = await api.rest.repos.get(repo);
-  const base = repo_.default_branch;
-  const branch = 'automation/dependency-updates';
-  const { data: pulls } = await api.rest.pulls.list({
-    ...repo,
-    state: 'open',
-    head: `${repo.owner}:${branch}`,
-  });
-  if (pulls.length > 0) {
-    info(`Existing update PR: ${pulls[0]?.html_url}`);
-    setOutput('pull-request-url', pulls[0]?.html_url);
+  const base = await getDefaultBranch(api, repo);
+  const existing = await getExistingDependencyPR(api, repo);
+  if (existing !== undefined) {
+    info(`Existing update PR: ${existing}`);
+    setOutput('pull-request-url', existing);
+    await publishDependencyComment(
+      api,
+      repo,
+      issueNumber,
+      `An update PR already exists: ${existing}`,
+    );
     return;
   }
-  try {
-    await api.rest.git.getRef({ ...repo, ref: `heads/${branch}` });
-    throw new Error(
-      `Delete the stale ${branch} branch before starting another update.`,
-    );
-  } catch (error) {
-    if ((error as { status?: number }).status !== NOT_FOUND) {
-      throw error;
-    }
-  }
+  await assertUpdateBranchAvailable(api, repo);
   const original = await readFile('package.json', 'utf8');
   const manifest = JSON.parse(original) as Manifest;
   if (manifest.workspaces !== undefined) {
@@ -251,7 +166,7 @@ export default async function main(): Promise<void> {
   const selected = getInput('packages').split(SEPARATOR).filter(Boolean);
   const changes = await updateManifest(manifest, selected, scope);
   if (changes.length === 0) {
-    info('No eligible direct dependency updates.');
+    await completeDependencyIssue(api, repo, issueNumber);
     return;
   }
   manifest.version = semver.inc(manifest.version, 'patch') ?? manifest.version;
@@ -296,13 +211,7 @@ export default async function main(): Promise<void> {
   ) {
     throw new Error('Validation modified files outside the package manifests.');
   }
-  const { data: baseReference } = await api.rest.git.getRef({
-    ...repo,
-    ref: `heads/${base}`,
-  });
-  if (baseReference.object.sha !== head) {
-    throw new Error('The default branch changed during validation. Run again.');
-  }
+  await verifyDefaultBranch(api, repo, base, head);
   await publishUpdate(
     api,
     repo,
@@ -311,8 +220,6 @@ export default async function main(): Promise<void> {
     manifest.version,
     changes,
     scripts,
-    scope,
+    { scope, issueNumber, label: getInput('label') || 'PATCH' },
   );
 }
-
-/* eslint-enable camelcase */

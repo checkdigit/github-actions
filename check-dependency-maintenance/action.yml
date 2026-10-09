@@ -1,0 +1,25 @@
+name: Check Dependency Maintenance
+description: Create one overdue maintenance issue with recent-contributor ownership
+inputs:
+  issue-title:
+    description: Exact title identifying dependency-update issues, including existing manual issues
+    default: Update dependencies
+  max-age-days:
+    description: Days since the latest dependency-update issue closed as completed
+    default: '30'
+  contributor-lookback-days:
+    description: Days of default-branch commit authorship to rank
+    default: '90'
+  fallback-assignee:
+    description: GitHub username to try after eligible recent contributors
+    default: ''
+  command:
+    description: Exact issue comment that starts updates
+    default: /update-dependencies
+outputs:
+  issue-url:
+    description: Existing or created overdue issue
+runs:
+  using: node24
+  pre: ../src/setup.ts
+  main: ../src/check-dependency-maintenance/index.ts
