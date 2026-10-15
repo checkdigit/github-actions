@@ -1,0 +1,19 @@
+name: Check Dependencies
+description: Check dependencies and create one overdue maintenance issue with recent-contributor ownership
+inputs:
+  max-age-days:
+    description: Days since the latest dependency-update issue closed as completed
+    default: '60'
+  contributor-lookback-days:
+    description: Days of default-branch commit authorship to rank
+    default: '90'
+  fallback-assignee:
+    description: GitHub username to try after eligible recent contributors
+    default: ''
+outputs:
+  issue-url:
+    description: GitHub URL of created issue
+runs:
+  using: node24
+  pre: '../src/setup.ts'
+  main: ../src/check-dependencies/index.ts
