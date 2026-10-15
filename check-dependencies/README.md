@@ -25,7 +25,7 @@ assignee's 404 fail the action.
 name: Dependency maintenance
 on:
   schedule:
-    - cron: '0 9 * * 1'
+    - cron: '0 10 * * 1-5'
   workflow_dispatch:
 
 permissions:
