@@ -26,7 +26,7 @@ name: Check Dependencies
 on:
   schedule:
     - cron: '0 10 * * 1-5'
-  workflow_dispatch:
+  workflow_dispatch: {}
 
 permissions:
   contents: read
