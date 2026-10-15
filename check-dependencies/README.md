@@ -22,7 +22,7 @@ unassigned issue and logs a warning. API errors other than an ineligible
 assignee's 404 fail the action.
 
 ```yaml
-name: Dependency maintenance
+name: Check Dependencies
 on:
   schedule:
     - cron: '0 10 * * 1-5'
@@ -34,7 +34,7 @@ permissions:
 
 # Serialize checks to prevent overlapping runs from opening duplicate issues.
 concurrency:
-  group: dependency-maintenance
+  group: check-dependencies
   cancel-in-progress: false
 
 jobs:
@@ -42,7 +42,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: checkdigit/github-actions/check-dependencies@main
-        id: dependencies
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
