@@ -46,7 +46,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          max-age-days: '60'
+          max-age-days: '90'
           contributor-lookback-days: '90'
           fallback-assignee: ''
 ```

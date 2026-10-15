@@ -3,7 +3,7 @@ description: Check dependencies and create one overdue maintenance issue with re
 inputs:
   max-age-days:
     description: Days since the latest dependency-update issue closed as completed
-    default: '60'
+    default: '90'
   contributor-lookback-days:
     description: Days of default-branch commit authorship to rank
     default: '90'

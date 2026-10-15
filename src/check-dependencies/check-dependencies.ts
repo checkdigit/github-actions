@@ -6,6 +6,7 @@ import { Octokit } from '@octokit/rest';
 
 const log = debug('github-actions:check-dependencies');
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
+const MAX_AGE_DAYS = 90;
 const ISSUE_TITLE = 'Update dependencies';
 const ISSUE_LABEL = 'DEPENDENCY UPDATE';
 const ISSUE_MARKER = '<!-- check-dependencies -->';
@@ -108,7 +109,7 @@ async function selectAssignee(
 export default async function main(): Promise<void> {
   log('Action start');
   setOutput('issue-url', '');
-  const maxAgeDays = getDaysInput('max-age-days', 60);
+  const maxAgeDays = getDaysInput('max-age-days', MAX_AGE_DAYS);
   const lookbackDays = getDaysInput(
     'contributor-lookback-days',
     DEFAULT_LOOKBACK_DAYS,

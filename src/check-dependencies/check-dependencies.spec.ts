@@ -24,7 +24,7 @@ function issue(overrides: object = {}) {
     labels: [],
     state: 'closed',
     state_reason: 'completed',
-    closed_at: '2026-08-01T12:00:00Z',
+    closed_at: '2026-07-01T12:00:00Z',
     ...overrides,
   };
 }
