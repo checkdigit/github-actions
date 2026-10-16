@@ -19,6 +19,7 @@ const LEGACY_ISSUE_TITLES = [
 const MAX_DATE_MS = 8.64e15;
 const DEFAULT_LOOKBACK_DAYS = 90;
 const NOT_FOUND = 404;
+const UNPROCESSABLE_ENTITY = 422;
 
 function getDaysInput(name: string, defaultValue: number): number {
   const input = getInput(name) || String(defaultValue);
@@ -37,6 +38,35 @@ function getDaysInput(name: string, defaultValue: number): number {
 
 function hasStatus(error: unknown, status: number): boolean {
   return error instanceof Error && 'status' in error && error.status === status;
+}
+
+async function ensureLabel(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+): Promise<void> {
+  const parameters = { owner, repo, name: ISSUE_LABEL };
+  try {
+    await octokit.rest.issues.getLabel(parameters);
+    return;
+  } catch (error) {
+    if (!hasStatus(error, NOT_FOUND)) {
+      throw error;
+    }
+  }
+  try {
+    await octokit.rest.issues.createLabel({
+      ...parameters,
+      color: '2f1144',
+      description: 'Dependency and workflow maintenance',
+    });
+  } catch (error) {
+    // Another run may have created the label after our lookup.
+    if (!hasStatus(error, UNPROCESSABLE_ENTITY)) {
+      throw error;
+    }
+    await octokit.rest.issues.getLabel(parameters);
+  }
 }
 
 async function selectAssignee(
@@ -134,6 +164,8 @@ export default async function main(): Promise<void> {
   ) {
     throw new Error('unable to get repo');
   }
+
+  await ensureLabel(octokit, owner, repo);
 
   const now = Date.now();
   const issues = await octokit.paginate(octokit.rest.issues.listForRepo, {

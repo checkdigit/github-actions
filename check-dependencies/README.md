@@ -5,6 +5,10 @@ completed is at least `max-age-days` old. If no completed issue exists, maintena
 is due immediately. An open matching issue suppresses creation. Pull requests and
 issues closed as not planned do not reset the interval.
 
+Each run creates the repository's `DEPENDENCY UPDATE` label if it is missing,
+even when no new issue is due. Existing label settings are preserved. No
+organization default label configuration is required.
+
 New issues receive the `DEPENDENCY UPDATE` label. Matching recognizes that label
 (case insensitive), the hidden `<!-- check-dependencies -->` marker, or historical
 maintenance titles. Historical titles include `update dependencies` with optional

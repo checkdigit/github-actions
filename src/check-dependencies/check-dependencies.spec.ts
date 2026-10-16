@@ -78,6 +78,7 @@ function mockCreation(assignees: string[] = []) {
 describe('check dependencies', () => {
   let outputDirectory: string;
   let outputFile: string;
+  const labelResponse = { status: 200 };
 
   beforeEach(async () => {
     process.env = { ...originalEnvironment };
@@ -96,6 +97,11 @@ describe('check dependencies', () => {
     process.env['GITHUB_OUTPUT'] = outputFile;
     mock.timers.enable({ apis: ['Date'], now: NOW });
     nock.disableNetConnect();
+    labelResponse.status = 200;
+    nock('https://api.github.com')
+      .get(`${REPO_PATH}/labels/DEPENDENCY%20UPDATE`)
+      .optionally()
+      .reply(() => [labelResponse.status, { name: 'DEPENDENCY UPDATE' }]);
   });
 
   afterEach(async () => {
@@ -106,6 +112,61 @@ describe('check dependencies', () => {
     process.env = { ...originalEnvironment };
     await rm(outputDirectory, { recursive: true, force: true });
     assert.deepEqual(pending, []);
+  });
+
+  for (const existing of [
+    issue({ state: 'open' }),
+    issue({ closed_at: '2026-10-14T12:00:00Z' }),
+    undefined,
+  ]) {
+    it(`creates a missing label when maintenance is ${existing?.state ?? 'due'}`, async () => {
+      labelResponse.status = 404;
+      nock('https://api.github.com')
+        .post(`${REPO_PATH}/labels`, {
+          name: 'DEPENDENCY UPDATE',
+          color: '2f1144',
+          description: 'Dependency and workflow maintenance',
+        })
+        .reply(201, { name: 'DEPENDENCY UPDATE' });
+      mockIssues(existing === undefined ? [] : [existing]);
+      if (existing === undefined) {
+        mockCommits();
+        mockCreation();
+      }
+      await main();
+    });
+  }
+
+  it('continues if another run creates the label first', async () => {
+    labelResponse.status = 404;
+    nock('https://api.github.com')
+      .post(`${REPO_PATH}/labels`)
+      .reply(422)
+      .get(`${REPO_PATH}/labels/DEPENDENCY%20UPDATE`)
+      .reply(200, { name: 'DEPENDENCY UPDATE' });
+    mockIssues([issue({ state: 'open' })]);
+    await main();
+  });
+
+  it('propagates label lookup permission failures', async () => {
+    labelResponse.status = 403;
+    await assert.rejects(main, { status: 403 });
+  });
+
+  it('propagates label creation permission failures', async () => {
+    labelResponse.status = 404;
+    nock('https://api.github.com').post(`${REPO_PATH}/labels`).reply(403);
+    await assert.rejects(main, { status: 403 });
+  });
+
+  it('fails if a rejected label creation leaves the label missing', async () => {
+    labelResponse.status = 404;
+    nock('https://api.github.com')
+      .post(`${REPO_PATH}/labels`)
+      .reply(422)
+      .get(`${REPO_PATH}/labels/DEPENDENCY%20UPDATE`)
+      .reply(404);
+    await assert.rejects(main, { status: 404 });
   });
 
   [
