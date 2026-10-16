@@ -1,21 +1,9 @@
 name: Update Dependencies
 description: Prepare a signed npm dependency update PR from an authorized issue comment
 inputs:
-  scope:
-    description: patch, minor, or latest (stable versions)
-    default: minor
-  packages:
-    description: Optional comma or whitespace separated direct package names
-    default: ''
-  validation-scripts:
-    description: Required comma or whitespace separated npm scripts
-    required: true
   command:
     description: Exact authorized issue comment
     default: /update-dependencies
-  label:
-    description: Existing PR label
-    default: PATCH
 outputs:
   issue-url:
     description: Linked existing issue URL

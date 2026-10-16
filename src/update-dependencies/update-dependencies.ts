@@ -10,7 +10,6 @@ import semver from 'semver';
 
 import {
   assertUpdateBranchAvailable,
-  completeDependencyIssue,
   getDefaultBranch,
   getExistingDependencyPR,
   publishDependencyComment,
@@ -24,26 +23,15 @@ import {
 
 import { authorizeComment } from '../github-api/dependency-issue-command.ts';
 
-import { type Scope, selectVersion } from './versions.ts';
-
 interface Manifest {
   version: string;
   workspaces?: unknown;
-  dependencies?: Record<string, string>;
-  devDependencies?: Record<string, string>;
-  optionalDependencies?: Record<string, string>;
 }
 
 const execute = promisify(execFile);
 
-// Commas and whitespace separate package names, reviewers, and script names.
-const SEPARATOR = /[\s,]+/u;
-// Only plain stable versions with an optional caret or tilde are supported.
-const VERSION_SPEC = /^[~^]?\d+\.\d+\.\d+$/u;
 // Capture JSON indentation so manifest formatting is retained.
 const INDENTATION = /^(?<indent>[\t ]+)"/mu;
-// npm script names, passed as a single argument rather than shell code.
-const SCRIPT_NAME = /^[\w:.-]+$/u;
 
 async function command(program: string, arguments_: string[]): Promise<string> {
   try {
@@ -64,56 +52,6 @@ async function command(program: string, arguments_: string[]): Promise<string> {
   }
 }
 
-async function updateManifest(
-  manifest: Manifest,
-  selected: string[],
-  scope: Scope,
-): Promise<string[]> {
-  const changes: string[] = [];
-  const found = new Set<string>();
-  for (const section of [
-    'dependencies',
-    'devDependencies',
-    'optionalDependencies',
-  ] as const) {
-    const dependencies = manifest[section];
-    const entries = Object.entries(dependencies ?? {}).filter(
-      ([name]) => selected.length === 0 || selected.includes(name),
-    );
-    for (const [name, spec] of entries) {
-      found.add(name);
-      if (VERSION_SPEC.test(spec)) {
-        const result = JSON.parse(
-          // eslint-disable-next-line no-await-in-loop -- Query registries sequentially to limit request load.
-          await command('npm', ['view', name, 'versions', '--json']),
-        ) as string[] | string;
-        const next = selectVersion(
-          spec,
-          Array.isArray(result) ? result : [result],
-          scope,
-        );
-        if (next !== undefined && dependencies !== undefined) {
-          dependencies[name] = next;
-          changes.push(`- ${name} (${section}): ${spec} → ${next}`);
-        }
-      } else {
-        info(`Skipping unsupported dependency spec: ${name}@${spec}`);
-        if (selected.includes(name)) {
-          throw new Error(
-            `Unsupported version spec for selected package ${name}: ${spec}`,
-          );
-        }
-      }
-    }
-  }
-  for (const name of selected) {
-    if (!found.has(name)) {
-      throw new Error(`Selected package ${name} is not a direct dependency.`);
-    }
-  }
-  return changes;
-}
-
 export default async function main(): Promise<void> {
   if (context.eventName !== 'issue_comment') {
     throw new Error('This action requires an issue comment.');
@@ -129,10 +67,6 @@ export default async function main(): Promise<void> {
   if (issueNumber === undefined) {
     info('Ignoring unrelated or unauthorized comment.');
     return;
-  }
-  const scope = getInput('scope') || 'minor';
-  if (scope !== 'patch' && scope !== 'minor' && scope !== 'latest') {
-    throw new Error('scope must be patch, minor, or latest');
   }
   const base = await getDefaultBranch(api, repo);
   const existing = await getExistingDependencyPR(api, repo);
@@ -163,33 +97,19 @@ export default async function main(): Promise<void> {
     throw new Error('The checkout must be clean.');
   }
   const head = await command('git', ['rev-parse', 'HEAD']);
-  const selected = getInput('packages').split(SEPARATOR).filter(Boolean);
-  const changes = await updateManifest(manifest, selected, scope);
-  if (changes.length === 0) {
-    await completeDependencyIssue(api, repo, issueNumber);
-    return;
-  }
   manifest.version = semver.inc(manifest.version, 'patch') ?? manifest.version;
   const indentation = INDENTATION.exec(original)?.groups?.['indent'] ?? '  ';
   await writeFile(
     'package.json',
     `${JSON.stringify(manifest, undefined, indentation)}\n`,
   );
+  info(await command('npx', ['--yes', 'npm-check-updates', '-u']));
   await unlink('package-lock.json');
-  await command('npm', ['install', '--package-lock-only', '--ignore-scripts']);
-  await command('npm', ['ci', '--ignore-scripts']);
-  const scripts = getInput('validation-scripts', { required: true })
-    .split(SEPARATOR)
-    .filter(Boolean);
-  if (scripts.length === 0) {
-    throw new Error('At least one validation script is required.');
-  }
-  for (const script of scripts) {
-    if (!SCRIPT_NAME.test(script)) {
-      throw new Error(`Invalid npm script: ${script}`);
-    }
+  info(await command('npm', ['install', '--ignore-scripts']));
+  info(await command('npm', ['run', 'prepare', '--if-present']));
+  for (const script of ['lint:fix', 'prettier:fix', 'test']) {
     info(`Running npm run ${script}`);
-    // eslint-disable-next-line no-await-in-loop -- Validation scripts must run in order.
+    // eslint-disable-next-line no-await-in-loop -- Fixes and validation must run in order.
     info(await command('npm', ['run', script]));
   }
   const lock = JSON.parse(await readFile('package-lock.json', 'utf8')) as {
@@ -202,24 +122,16 @@ export default async function main(): Promise<void> {
   ) {
     throw new Error('Package and lockfile versions disagree.');
   }
-  const diff = await command('git', ['diff', '--name-only']);
-  const changed = diff.split('\n');
-  if (
-    changed.some(
-      (file) => file !== 'package.json' && file !== 'package-lock.json',
-    )
-  ) {
-    throw new Error('Validation modified files outside the package manifests.');
-  }
+  const changedFiles = await command('git', [
+    'ls-files',
+    '--modified',
+    '--others',
+    '--exclude-standard',
+    '-z',
+  ]);
+  const files = changedFiles.split('\0').filter(Boolean);
   await verifyDefaultBranch(api, repo, base, head);
-  await publishUpdate(
-    api,
-    repo,
-    base,
-    head,
-    manifest.version,
-    changes,
-    scripts,
-    { scope, issueNumber, label: getInput('label') || 'PATCH' },
-  );
+  await publishUpdate(api, repo, base, head, manifest.version, files, {
+    issueNumber,
+  });
 }

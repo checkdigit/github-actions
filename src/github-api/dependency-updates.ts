@@ -1,11 +1,9 @@
 // github-api/dependency-updates.ts
 /* eslint-disable camelcase -- GitHub API uses snake_case fields. */
-import { readFile } from 'node:fs/promises';
+import { lstat, readFile } from 'node:fs/promises';
 
 import { setOutput, summary } from '@actions/core';
 import { Octokit } from '@octokit/rest';
-
-import type { Scope } from '../update-dependencies/versions.ts';
 
 export async function publishUpdate(
   api: Octokit,
@@ -13,17 +11,37 @@ export async function publishUpdate(
   base: string,
   head: string,
   version: string,
-  changes: string[],
-  scripts: string[],
-  options: { scope: Scope; issueNumber: number; label?: string },
+  files: string[],
+  options: { issueNumber: number },
 ): Promise<void> {
-  const { scope, issueNumber } = options;
+  const { issueNumber } = options;
   const branch = 'automation/dependency-updates';
   // Resolve the label before creating the issue or branch.
-  const label = options.label ?? 'PATCH';
+  const label = 'PATCH';
   await api.rest.issues.getLabel({ ...repo, name: label });
   const title = `Update dependencies (${version})`;
-  const details = `${changes.join('\n')}\n\nValidation: ${scripts.join(', ')}.\nScope: ${scope}. Peer dependencies are unchanged.\nLockfile regenerated; transitive dependencies may also change.`;
+  const additions: { path: string; contents: string }[] = [];
+  const deletions: { path: string }[] = [];
+  const uniqueFiles = new Set(files);
+  for (const file of uniqueFiles) {
+    try {
+      // eslint-disable-next-line no-await-in-loop -- Validate each changed file before publishing.
+      const stat = await lstat(file);
+      if (!stat.isFile()) {
+        throw new Error(`Cannot publish a non-regular file: ${file}`);
+      }
+      additions.push({
+        path: file,
+        // eslint-disable-next-line no-await-in-loop -- Read each changed file before publishing.
+        contents: Buffer.from(await readFile(file)).toString('base64'),
+      });
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        throw error;
+      }
+      deletions.push({ path: file });
+    }
+  }
   const { data: issue } = await api.rest.issues.get({
     ...repo,
     issue_number: issueNumber,
@@ -48,14 +66,7 @@ export async function publishUpdate(
         },
         expectedHeadOid: head,
         message: { headline: title, body: `Refs #${issue.number}` },
-        fileChanges: {
-          additions: await Promise.all(
-            ['package.json', 'package-lock.json'].map(async (file) => ({
-              path: file,
-              contents: Buffer.from(await readFile(file)).toString('base64'),
-            })),
-          ),
-        },
+        fileChanges: { additions, deletions },
       },
     },
   );
@@ -68,6 +79,8 @@ export async function publishUpdate(
       `Commit is not verified. Inspect ${branch} and issue #${issue.number}; no PR was opened.`,
     );
   }
+  const details =
+    'Dependencies updated with ncu -u and the package version bumped to patch.\n\nValidation: npm run lint:fix, npm run prettier:fix, npm test.\nLockfile regenerated; lint and formatting fixes included.';
   const { data: pull } = await api.rest.pulls.create({
     ...repo,
     head: branch,
@@ -151,25 +164,6 @@ export async function publishDependencyComment(
   body: string,
 ): Promise<void> {
   await api.rest.issues.createComment({ ...repo, issue_number: number, body });
-}
-
-export async function completeDependencyIssue(
-  api: Octokit,
-  repo: { owner: string; repo: string },
-  number: number,
-): Promise<void> {
-  await publishDependencyComment(
-    api,
-    repo,
-    number,
-    'No eligible direct dependency updates were found for the configured scope.',
-  );
-  await api.rest.issues.update({
-    ...repo,
-    issue_number: number,
-    state: 'closed',
-    state_reason: 'completed',
-  });
 }
 
 export async function verifyDefaultBranch(

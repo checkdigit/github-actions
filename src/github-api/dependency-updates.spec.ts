@@ -3,7 +3,10 @@
 // update-dependencies/publish.spec.ts
 
 import { strict as assert } from 'node:assert';
-import { describe, it } from 'node:test';
+import { afterEach, beforeEach, describe, it } from 'node:test';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 
 import { summary } from '@actions/core';
 import { Octokit } from '@octokit/rest';
@@ -38,14 +41,27 @@ function prepare(isVerified: boolean) {
         variables: {
           input: {
             expectedHeadOid: string;
-            fileChanges: { additions: { path: string; contents: string }[] };
+            fileChanges: {
+              additions: { path: string; contents: string }[];
+              deletions: { path: string }[];
+            };
           };
         };
       }) => {
         assert.equal(body.variables.input.expectedHeadOid, head);
         assert.deepEqual(
           body.variables.input.fileChanges.additions.map((file) => file.path),
-          ['package.json', 'package-lock.json'],
+          ['package.json', 'package-lock.json', 'fixed.ts', 'new.ts'],
+        );
+        assert.deepEqual(body.variables.input.fileChanges.deletions, [
+          { path: 'removed.ts' },
+        ]);
+        assert.equal(
+          Buffer.from(
+            body.variables.input.fileChanges.additions[2]?.contents ?? '',
+            'base64',
+          ).toString(),
+          'formatted source',
         );
         assert.equal(Object.hasOwn(body.variables.input, 'author'), false);
         return true;
@@ -57,6 +73,24 @@ function prepare(isVerified: boolean) {
 }
 
 describe('dependency update publishing', () => {
+  const originalDirectory = process.cwd();
+  const fixture = { directory: '' };
+  beforeEach(async () => {
+    fixture.directory = await mkdtemp(
+      path.join(tmpdir(), 'dependency-publish-'),
+    );
+    await Promise.all(
+      ['package.json', 'package-lock.json', 'fixed.ts', 'new.ts'].map(
+        async (file) =>
+          writeFile(path.join(fixture.directory, file), 'formatted source'),
+      ),
+    );
+    process.chdir(fixture.directory);
+  });
+  afterEach(async () => {
+    process.chdir(originalDirectory);
+    await rm(fixture.directory, { recursive: true, force: true });
+  });
   it('opens a linked PR only after signature verification and copies current issue assignees', async (testContext) => {
     testContext.mock.method(summary, 'write', async () => summary);
 
@@ -84,9 +118,14 @@ describe('dependency update publishing', () => {
         'main',
         head,
         '1.0.1',
-        ['- example: 1.0.0 → 1.1.0'],
-        ['test'],
-        { scope: 'minor', issueNumber: 10 },
+        [
+          'package.json',
+          'package-lock.json',
+          'fixed.ts',
+          'new.ts',
+          'removed.ts',
+        ],
+        { issueNumber: 10 },
       );
       assert.ok(requests.isDone());
     } finally {
@@ -104,9 +143,14 @@ describe('dependency update publishing', () => {
           'main',
           head,
           '1.0.1',
-          ['update'],
-          ['test'],
-          { scope: 'minor', issueNumber: 10 },
+          [
+            'package.json',
+            'package-lock.json',
+            'fixed.ts',
+            'new.ts',
+            'removed.ts',
+          ],
+          { issueNumber: 10 },
         ),
         { message: /Commit is not verified/u },
       );
