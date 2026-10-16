@@ -1,4 +1,4 @@
-// github-api/dependency-issue-command.spec.ts
+// update-dependencies/issue-command.spec.ts
 /* eslint-disable camelcase -- Fixture mirrors GitHub PR event fields. */
 
 import { strict as assert } from 'node:assert';
@@ -7,7 +7,7 @@ import { describe, it } from 'node:test';
 import { Octokit } from '@octokit/rest';
 import nock from 'nock';
 
-import { authorizeComment } from './dependency-issue-command.ts';
+import { authorizeComment } from './issue-command.ts';
 
 const repo = { owner: 'checkdigit', repo: 'example' };
 const ROOT = '/repos/checkdigit/example';

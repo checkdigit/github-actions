@@ -30,18 +30,18 @@ mock.module('@actions/core', {
 mock.module('@actions/github', {
   exports: { context: { eventName: 'issue_comment', payload: {} } },
 });
-mock.module('../github-api/dependency-client.ts', {
+mock.module('./client.ts', {
   exports: {
     getDependencyClient: () => ({}),
     getDependencyRepo: async () => ({ owner: 'checkdigit', repo: 'example' }),
   },
 });
-mock.module('../github-api/dependency-issue-command.ts', {
+mock.module('./issue-command.ts', {
   exports: {
     authorizeComment: async () => (state.isAuthorized ? 10 : undefined),
   },
 });
-mock.module('../github-api/dependency-updates.ts', {
+mock.module('./publish.ts', {
   exports: {
     assertUpdateBranchAvailable: async () => undefined,
     getDefaultBranch: async () => 'main',

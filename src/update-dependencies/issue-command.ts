@@ -1,4 +1,4 @@
-// github-api/dependency-issue-command.ts
+// update-dependencies/issue-command.ts
 /* eslint-disable camelcase -- GitHub API uses snake_case fields. */
 
 import { Octokit } from '@octokit/rest';

@@ -3,12 +3,9 @@
 import { getInput, setFailed } from '@actions/core';
 import { context } from '@actions/github';
 
-import { authorizeComment } from '../github-api/dependency-issue-command.ts';
-import {
-  getDependencyClient,
-  getDependencyRepo,
-} from '../github-api/dependency-client.ts';
-import { publishDependencyComment } from '../github-api/dependency-updates.ts';
+import { authorizeComment } from './issue-command.ts';
+import { getDependencyClient, getDependencyRepo } from './client.ts';
+import { publishDependencyComment } from './publish.ts';
 import main from './update-dependencies.ts';
 
 try {

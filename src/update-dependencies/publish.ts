@@ -1,4 +1,4 @@
-// github-api/dependency-updates.ts
+// update-dependencies/publish.ts
 /* eslint-disable camelcase -- GitHub API uses snake_case fields. */
 import { lstat, readFile } from 'node:fs/promises';
 

@@ -15,13 +15,10 @@ import {
   publishDependencyComment,
   publishUpdate,
   verifyDefaultBranch,
-} from '../github-api/dependency-updates.ts';
-import {
-  getDependencyClient,
-  getDependencyRepo,
-} from '../github-api/dependency-client.ts';
+} from './publish.ts';
+import { getDependencyClient, getDependencyRepo } from './client.ts';
 
-import { authorizeComment } from '../github-api/dependency-issue-command.ts';
+import { authorizeComment } from './issue-command.ts';
 
 interface Manifest {
   version: string;
@@ -52,6 +49,46 @@ async function command(program: string, arguments_: string[]): Promise<string> {
   }
 }
 
+async function bumpPackageVersion(): Promise<string> {
+  const original = await readFile('package.json', 'utf8');
+  const manifest = JSON.parse(original) as Manifest;
+  if (manifest.workspaces !== undefined) {
+    throw new Error('npm workspaces are not supported by this action.');
+  }
+  if (
+    semver.valid(manifest.version) === null ||
+    semver.prerelease(manifest.version) !== null
+  ) {
+    throw new Error('The package must have a stable semantic version.');
+  }
+  manifest.version = semver.inc(manifest.version, 'patch') ?? manifest.version;
+  const indentation = INDENTATION.exec(original)?.groups?.['indent'] ?? '  ';
+  await writeFile(
+    'package.json',
+    `${JSON.stringify(manifest, undefined, indentation)}\n`,
+  );
+  return manifest.version;
+}
+
+async function updateDependencies(): Promise<string> {
+  const version = await bumpPackageVersion();
+  info(await command('npx', ['--yes', 'npm-check-updates', '-u']));
+  await unlink('package-lock.json');
+  info(await command('npm', ['install', '--ignore-scripts']));
+  info(await command('npm', ['run', 'prepare', '--if-present']));
+  info(await command('npm', ['run', 'lint:fix']));
+  info(await command('npm', ['run', 'prettier:fix']));
+  info(await command('npm', ['run', 'test']));
+  const lock = JSON.parse(await readFile('package-lock.json', 'utf8')) as {
+    version: string;
+    packages: Record<string, { version: string }>;
+  };
+  if (lock.version !== version || lock.packages['']?.version !== version) {
+    throw new Error('Package and lockfile versions disagree.');
+  }
+  return version;
+}
+
 export default async function main(): Promise<void> {
   if (context.eventName !== 'issue_comment') {
     throw new Error('This action requires an issue comment.');
@@ -68,6 +105,7 @@ export default async function main(): Promise<void> {
     info('Ignoring unrelated or unauthorized comment.');
     return;
   }
+
   const base = await getDefaultBranch(api, repo);
   const existing = await getExistingDependencyPR(api, repo);
   if (existing !== undefined) {
@@ -81,47 +119,13 @@ export default async function main(): Promise<void> {
     );
     return;
   }
+
   await assertUpdateBranchAvailable(api, repo);
-  const original = await readFile('package.json', 'utf8');
-  const manifest = JSON.parse(original) as Manifest;
-  if (manifest.workspaces !== undefined) {
-    throw new Error('npm workspaces are not supported by this action.');
-  }
-  if (
-    semver.valid(manifest.version) === null ||
-    semver.prerelease(manifest.version) !== null
-  ) {
-    throw new Error('The package must have a stable semantic version.');
-  }
   if ((await command('git', ['status', '--porcelain'])) !== '') {
     throw new Error('The checkout must be clean.');
   }
   const head = await command('git', ['rev-parse', 'HEAD']);
-  manifest.version = semver.inc(manifest.version, 'patch') ?? manifest.version;
-  const indentation = INDENTATION.exec(original)?.groups?.['indent'] ?? '  ';
-  await writeFile(
-    'package.json',
-    `${JSON.stringify(manifest, undefined, indentation)}\n`,
-  );
-  info(await command('npx', ['--yes', 'npm-check-updates', '-u']));
-  await unlink('package-lock.json');
-  info(await command('npm', ['install', '--ignore-scripts']));
-  info(await command('npm', ['run', 'prepare', '--if-present']));
-  for (const script of ['lint:fix', 'prettier:fix', 'test']) {
-    info(`Running npm run ${script}`);
-    // eslint-disable-next-line no-await-in-loop -- Fixes and validation must run in order.
-    info(await command('npm', ['run', script]));
-  }
-  const lock = JSON.parse(await readFile('package-lock.json', 'utf8')) as {
-    version: string;
-    packages: Record<string, { version: string }>;
-  };
-  if (
-    lock.version !== manifest.version ||
-    lock.packages['']?.version !== manifest.version
-  ) {
-    throw new Error('Package and lockfile versions disagree.');
-  }
+  const version = await updateDependencies();
   const changedFiles = await command('git', [
     'ls-files',
     '--modified',
@@ -131,7 +135,5 @@ export default async function main(): Promise<void> {
   ]);
   const files = changedFiles.split('\0').filter(Boolean);
   await verifyDefaultBranch(api, repo, base, head);
-  await publishUpdate(api, repo, base, head, manifest.version, files, {
-    issueNumber,
-  });
+  await publishUpdate(api, repo, base, head, version, files, { issueNumber });
 }

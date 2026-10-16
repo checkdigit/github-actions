@@ -1,6 +1,5 @@
-// github-api/dependency-updates.spec.ts
-/* eslint-disable camelcase -- Fixtures mirror GitHub API response fields. */
 // update-dependencies/publish.spec.ts
+/* eslint-disable camelcase -- Fixtures mirror GitHub API response fields. */
 
 import { strict as assert } from 'node:assert';
 import { afterEach, beforeEach, describe, it } from 'node:test';
@@ -12,7 +11,7 @@ import { summary } from '@actions/core';
 import { Octokit } from '@octokit/rest';
 import nock from 'nock';
 
-import { publishUpdate } from './dependency-updates.ts';
+import { publishUpdate } from './publish.ts';
 
 const API = 'https://api.github.com';
 const repo = { owner: 'checkdigit', repo: 'example' };

@@ -1,8 +1,8 @@
-// github-api/dependency-client.ts
+// update-dependencies/client.ts
 
 import { Octokit } from '@octokit/rest';
 
-import { getPullRequestContext } from './index.ts';
+import { getPullRequestContext } from '../github-api/index.ts';
 
 export function getDependencyClient(): Octokit {
   // eslint-disable-next-line n/no-process-env -- Match the existing GitHub API helper authentication convention.

@@ -1,9 +1,9 @@
-// github-api/dependency-client.spec.ts
+// update-dependencies/client.spec.ts
 
 import { strict as assert } from 'node:assert';
 import { it } from 'node:test';
 
-import { getDependencyClient } from './dependency-client.ts';
+import { getDependencyClient } from './client.ts';
 
 it('requires GITHUB_TOKEN like existing GitHub API helpers', () => {
   const original = process.env['GITHUB_TOKEN'];
