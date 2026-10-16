@@ -1,6 +1,6 @@
 {
   "name": "@checkdigit/github-actions",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "description": " Provides supporting operations for github action builds.",
   "homepage": "https://github.com/checkdigit/github-actions#readme",
   "bugs": {
@@ -43,7 +43,7 @@
     "@checkdigit/typescript-config": "^10.2.2",
     "@types/debug": "^4.1.13",
     "@types/semver": "^7.8.0",
-    "nock": "^14.0.17"
+    "nock": "^15.0.1"
   },
   "engines": {
     "node": ">=24.20.0"
