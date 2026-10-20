@@ -58,11 +58,12 @@ remain manual.
 
 ## Logging
 
-Normal logs show one progress line per update or validation command. Successful
-command output is available with GitHub Actions step debug logging enabled
-(`ACTIONS_STEP_DEBUG=true`). Failed commands retain stdout and stderr in expandable
-log groups, and validation failures are listed on the PR and issue comment.
+Normal logs show one progress line per update or validation command. Failed
+commands retain stdout and stderr in expandable log groups, and validation
+failures are listed on the PR and issue comment.
 
-Avoid `DEBUG: '*'` in the caller workflow for normal runs; it enables verbose
-logging in libraries and project scripts. Enable it temporarily when diagnosing
-a specific problem.
+Set `DEBUG: 'github-actions:update-dependencies'` in the caller step's environment
+to include successful command stdout and stderr for this action. Use
+`DEBUG: 'github-actions:*'` for all shared action debug logs, or `DEBUG: '*'`
+for all debug namespaces, including libraries and project scripts. No
+`ACTIONS_STEP_DEBUG` setting is required.

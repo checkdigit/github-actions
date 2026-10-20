@@ -22,7 +22,6 @@ const state: {
 
 mock.module('@actions/core', {
   exports: {
-    debug: () => undefined,
     startGroup: () => undefined,
     endGroup: () => undefined,
     getInput: () => '',
@@ -93,6 +92,7 @@ mock.module('node:child_process', {
           state.hasLock = true;
         }
         return {
+          stderr: '',
           stdout:
             invocation === 'git rev-parse HEAD'
               ? 'base-sha'

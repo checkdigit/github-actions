@@ -4,16 +4,10 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { readFile, unlink, writeFile } from 'node:fs/promises';
 
-import {
-  debug,
-  endGroup,
-  getInput,
-  info,
-  setOutput,
-  startGroup,
-} from '@actions/core';
+import { endGroup, getInput, info, setOutput, startGroup } from '@actions/core';
 import { context } from '@actions/github';
 import semver from 'semver';
+import debug from 'debug';
 
 import {
   assertUpdateBranchAvailable,
@@ -33,16 +27,23 @@ interface Manifest {
 }
 
 const execute = promisify(execFile);
+const log = debug('github-actions:update-dependencies');
 
 // Capture JSON indentation so manifest formatting is retained.
 const INDENTATION = /^(?<indent>[\t ]+)"/mu;
 
 async function command(program: string, arguments_: string[]): Promise<string> {
   try {
-    const { stdout } = await execute(program, arguments_, {
+    const { stdout, stderr } = await execute(program, arguments_, {
       encoding: 'utf8',
       maxBuffer: 32 * 1024 * 1024,
     });
+    if (stdout !== '') {
+      log('%s', stdout);
+    }
+    if (stderr !== '') {
+      log('%s', stderr);
+    }
     return stdout.trim();
   } catch (error) {
     const failure = error as Error & { stdout?: string; stderr?: string };
@@ -66,7 +67,7 @@ async function runCommand(
   arguments_: string[],
 ): Promise<void> {
   info(`Running ${program} ${arguments_.join(' ')}`);
-  debug(await command(program, arguments_));
+  await command(program, arguments_);
 }
 
 async function bumpPackageVersion(): Promise<string> {
