@@ -15,14 +15,20 @@ updater then:
    regenerate it and install dependencies.
 4. Runs `npm run prepare --if-present` to perform project setup explicitly.
 5. Runs `npm run lint:fix`, `npm run prettier:fix`, and `npm run test`, in order.
-6. If every command succeeds and the default branch is unchanged, creates
+6. If dependency installation succeeds and the default branch is unchanged, creates
    `automation/dependency-updates` and a signed API commit containing all tracked
    modifications, deletions, and new non-ignored files, including fixer changes.
 7. Opens a PR that closes the issue on merge, assigns it to the issue's current
    assignees, and applies the existing `PATCH` label.
 
-A failed command stops publication, leaves the issue open, and posts a link to the
-failed run. An existing update PR is returned instead of duplicated. A leftover
+Setup, lint, formatting, and test failures do not stop publication. Remaining
+validation commands still run, and the PR and issue comment list failed commands
+with a link to the workflow logs. The issue assignees take over on the PR branch
+to fix failures and rerun checks before requesting review or merging. A compile
+failure within `npm run test` is handled the same way.
+
+Dependency update, installation, lockfile consistency, and publishing failures
+still stop the action, leave the issue open, and post a link to the failed run. An existing update PR is returned instead of duplicated. A leftover
 update branch without a PR must be inspected and deleted before retrying.
 The package version is bumped even if ncu finds no newer dependencies.
 

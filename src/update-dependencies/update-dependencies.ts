@@ -70,15 +70,30 @@ async function bumpPackageVersion(): Promise<string> {
   return manifest.version;
 }
 
-async function updateDependencies(): Promise<string> {
+async function updateDependencies(): Promise<{
+  version: string;
+  validationFailures: string[];
+}> {
   const version = await bumpPackageVersion();
   info(await command('npx', ['--yes', 'npm-check-updates', '-u']));
   await unlink('package-lock.json');
   info(await command('npm', ['install', '--ignore-scripts']));
-  info(await command('npm', ['run', 'prepare', '--if-present']));
-  info(await command('npm', ['run', 'lint:fix']));
-  info(await command('npm', ['run', 'prettier:fix']));
-  info(await command('npm', ['run', 'test']));
+  const validationFailures: string[] = [];
+  for (const arguments_ of [
+    ['run', 'prepare', '--if-present'],
+    ['run', 'lint:fix'],
+    ['run', 'prettier:fix'],
+    ['run', 'test'],
+  ]) {
+    try {
+      // eslint-disable-next-line no-await-in-loop -- Run validation in order and retain fixes even when a step fails.
+      info(await command('npm', arguments_));
+    } catch {
+      const invocation = `npm ${arguments_.join(' ')}`;
+      validationFailures.push(invocation);
+      info(`${invocation} failed; publishing changes for manual repair.`);
+    }
+  }
   const lock = JSON.parse(await readFile('package-lock.json', 'utf8')) as {
     version: string;
     packages: Record<string, { version: string }>;
@@ -86,7 +101,7 @@ async function updateDependencies(): Promise<string> {
   if (lock.version !== version || lock.packages['']?.version !== version) {
     throw new Error('Package and lockfile versions disagree.');
   }
-  return version;
+  return { version, validationFailures };
 }
 
 export default async function main(): Promise<void> {
@@ -125,7 +140,7 @@ export default async function main(): Promise<void> {
     throw new Error('The checkout must be clean.');
   }
   const head = await command('git', ['rev-parse', 'HEAD']);
-  const version = await updateDependencies();
+  const { version, validationFailures } = await updateDependencies();
   const changedFiles = await command('git', [
     'ls-files',
     '--modified',
@@ -135,5 +150,8 @@ export default async function main(): Promise<void> {
   ]);
   const files = changedFiles.split('\0').filter(Boolean);
   await verifyDefaultBranch(api, repo, base, head);
-  await publishUpdate(api, repo, base, head, version, files, { issueNumber });
+  await publishUpdate(api, repo, base, head, version, files, {
+    issueNumber,
+    validationFailures,
+  });
 }

@@ -98,6 +98,11 @@ describe('dependency update publishing', () => {
         `${ROOT}/pulls`,
         (body: { body: string; head: string }) =>
           body.body.includes('Closes #10') &&
+          body.body.includes('Validation failed:') &&
+          body.body.includes('`npm run lint:fix`') &&
+          body.body.includes('`npm run test`') &&
+          body.body.includes('fix these failures on this PR branch') &&
+          body.body.includes('workflow logs') &&
           body.head === 'automation/dependency-updates',
       )
       .reply(201, {
@@ -108,7 +113,13 @@ describe('dependency update publishing', () => {
       .reply(200, [])
       .post(`${ROOT}/issues/11/assignees`, { assignees: ['alice'] })
       .reply(201, {})
-      .post(`${ROOT}/issues/10/comments`)
+      .post(
+        `${ROOT}/issues/10/comments`,
+        (body: { body: string }) =>
+          body.body.includes('Update PR:') &&
+          body.body.includes('Validation failed:') &&
+          body.body.includes('fix these failures on this PR branch'),
+      )
       .reply(201, {});
     try {
       await publishUpdate(
@@ -124,7 +135,10 @@ describe('dependency update publishing', () => {
           'new.ts',
           'removed.ts',
         ],
-        { issueNumber: 10 },
+        {
+          issueNumber: 10,
+          validationFailures: ['npm run lint:fix', 'npm run test'],
+        },
       );
       assert.ok(requests.isDone());
     } finally {

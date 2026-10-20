@@ -3,6 +3,7 @@
 import { lstat, readFile } from 'node:fs/promises';
 
 import { setOutput, summary } from '@actions/core';
+import { context } from '@actions/github';
 import { Octokit } from '@octokit/rest';
 
 export async function publishUpdate(
@@ -12,9 +13,9 @@ export async function publishUpdate(
   head: string,
   version: string,
   files: string[],
-  options: { issueNumber: number },
+  options: { issueNumber: number; validationFailures?: string[] },
 ): Promise<void> {
-  const { issueNumber } = options;
+  const { issueNumber, validationFailures = [] } = options;
   const branch = 'automation/dependency-updates';
   // Resolve the label before creating the issue or branch.
   const label = 'PATCH';
@@ -79,8 +80,15 @@ export async function publishUpdate(
       `Commit is not verified. Inspect ${branch} and issue #${issue.number}; no PR was opened.`,
     );
   }
-  const details =
-    'Dependencies updated with ncu -u and the package version bumped to patch.\n\nValidation: npm run lint:fix, npm run prettier:fix, npm test.\nLockfile regenerated; lint and formatting fixes included.';
+  const runUrl = `${context.serverUrl}/${repo.owner}/${repo.repo}/actions/runs/${context.runId}`;
+  const failedCommands = validationFailures
+    .map((invocation) => `- \`${invocation}\``)
+    .join('\n');
+  const validation =
+    validationFailures.length === 0
+      ? 'All validation commands passed.'
+      : `Validation failed:\n${failedCommands}\n\nAssignees: fix these failures on this PR branch and rerun checks before requesting review or merging. See [workflow logs](${runUrl}).`;
+  const details = `Dependencies updated with ncu -u and the package version bumped to patch.\n\n${validation}\n\nLockfile regenerated; available lint and formatting fixes included.`;
   const { data: pull } = await api.rest.pulls.create({
     ...repo,
     head: branch,
@@ -107,7 +115,7 @@ export async function publishUpdate(
   await api.rest.issues.createComment({
     ...repo,
     issue_number: issue.number,
-    body: `Update PR: ${pull.html_url}\n\nAssignees: choose reviewers once checks pass and the PR is ready.`,
+    body: `Update PR: ${pull.html_url}\n\n${validation}\n\nAssignees: choose reviewers once checks pass and the PR is ready.`,
   });
   setOutput('issue-url', issue.html_url);
   setOutput('pull-request-url', pull.html_url);

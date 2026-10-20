@@ -139,16 +139,34 @@ describe('dependency update execution', () => {
         'new.ts',
         'removed.ts',
       ],
-      { issueNumber: 10 },
+      { issueNumber: 10, validationFailures: [] },
     ]);
   });
 
-  it('does not publish when installation, a fixer, or tests fail', async () => {
+  it('publishes fixer and test failures for manual repair', async () => {
     for (const invocation of [
-      'npm install --ignore-scripts',
+      'npm run prepare --if-present',
       'npm run lint:fix',
       'npm run prettier:fix',
       'npm run test',
+    ]) {
+      reset();
+      state.failure = invocation;
+      await update();
+      assert.equal(state.publications.length, 1);
+      assert.deepEqual(state.publications[0]?.at(-1), {
+        issueNumber: 10,
+        validationFailures: [invocation],
+      });
+      assert.ok(state.commands.includes('npm run test'));
+      assert.ok(state.commands.includes('npm run prettier:fix'));
+    }
+  });
+
+  it('does not publish when dependency updates or installation fail', async () => {
+    for (const invocation of [
+      'npx --yes npm-check-updates -u',
+      'npm install --ignore-scripts',
     ]) {
       reset();
       state.failure = invocation;
