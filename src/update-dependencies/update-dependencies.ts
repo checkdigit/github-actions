@@ -4,7 +4,14 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { readFile, unlink, writeFile } from 'node:fs/promises';
 
-import { getInput, info, setOutput } from '@actions/core';
+import {
+  debug,
+  endGroup,
+  getInput,
+  info,
+  setOutput,
+  startGroup,
+} from '@actions/core';
 import { context } from '@actions/github';
 import semver from 'semver';
 
@@ -39,14 +46,27 @@ async function command(program: string, arguments_: string[]): Promise<string> {
     return stdout.trim();
   } catch (error) {
     const failure = error as Error & { stdout?: string; stderr?: string };
-    if (failure.stdout !== undefined && failure.stdout !== '') {
-      info(failure.stdout);
-    }
-    if (failure.stderr !== undefined && failure.stderr !== '') {
-      info(failure.stderr);
+    startGroup(`Failed command: ${program} ${arguments_.join(' ')}`);
+    try {
+      if (failure.stdout !== undefined && failure.stdout !== '') {
+        info(failure.stdout);
+      }
+      if (failure.stderr !== undefined && failure.stderr !== '') {
+        info(failure.stderr);
+      }
+    } finally {
+      endGroup();
     }
     throw error;
   }
+}
+
+async function runCommand(
+  program: string,
+  arguments_: string[],
+): Promise<void> {
+  info(`Running ${program} ${arguments_.join(' ')}`);
+  debug(await command(program, arguments_));
 }
 
 async function bumpPackageVersion(): Promise<string> {
@@ -75,9 +95,9 @@ async function updateDependencies(): Promise<{
   validationFailures: string[];
 }> {
   const version = await bumpPackageVersion();
-  info(await command('npx', ['--yes', 'npm-check-updates', '-u']));
+  await runCommand('npx', ['--yes', 'npm-check-updates', '-u']);
   await unlink('package-lock.json');
-  info(await command('npm', ['install', '--ignore-scripts']));
+  await runCommand('npm', ['install', '--ignore-scripts']);
   const validationFailures: string[] = [];
   for (const arguments_ of [
     ['run', 'prepare', '--if-present'],
@@ -87,7 +107,7 @@ async function updateDependencies(): Promise<{
   ]) {
     try {
       // eslint-disable-next-line no-await-in-loop -- Run validation in order and retain fixes even when a step fails.
-      info(await command('npm', arguments_));
+      await runCommand('npm', arguments_);
     } catch {
       const invocation = `npm ${arguments_.join(' ')}`;
       validationFailures.push(invocation);

@@ -22,6 +22,9 @@ const state: {
 
 mock.module('@actions/core', {
   exports: {
+    debug: () => undefined,
+    startGroup: () => undefined,
+    endGroup: () => undefined,
     getInput: () => '',
     info: () => undefined,
     setOutput: () => undefined,

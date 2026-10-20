@@ -55,3 +55,14 @@ replace the repository's PR checks or its Node 24/26 matrix. Verify that those
 checks run on the resulting PR before merging. Token-applied labels do not
 trigger label workflows automatically. Review, merge, release, and npm publishing
 remain manual.
+
+## Logging
+
+Normal logs show one progress line per update or validation command. Successful
+command output is available with GitHub Actions step debug logging enabled
+(`ACTIONS_STEP_DEBUG=true`). Failed commands retain stdout and stderr in expandable
+log groups, and validation failures are listed on the PR and issue comment.
+
+Avoid `DEBUG: '*'` in the caller workflow for normal runs; it enables verbose
+logging in libraries and project scripts. Enable it temporarily when diagnosing
+a specific problem.
