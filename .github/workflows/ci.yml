@@ -61,3 +61,13 @@ jobs:
         run: npm run ci:lint
       - name: Run Tests
         run: npm run ci:test
+
+  result:
+    name: CI
+    needs: [pullRequestBuild, branchBuild]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require successful build jobs
+        if: ${{ needs.pullRequestBuild.result != 'success' || needs.branchBuild.result != 'success' }}
+        run: exit 1
