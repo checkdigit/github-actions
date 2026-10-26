@@ -1,0 +1,15 @@
+name: Update Dependencies
+description: Prepare a signed npm dependency update PR from an authorized issue comment
+inputs:
+  command:
+    description: Exact authorized issue comment
+    default: /update-dependencies
+outputs:
+  issue-url:
+    description: Linked existing issue URL
+  pull-request-url:
+    description: Created or existing PR URL
+runs:
+  using: node24
+  pre: ../src/setup.ts
+  main: ../src/update-dependencies/index.ts
