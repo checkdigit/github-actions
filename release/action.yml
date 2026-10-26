@@ -1,0 +1,13 @@
+name: Release
+description: Tag a squash-merged pull request and publish a GitHub Release
+outputs:
+  version:
+    description: Released package.json version
+  tag:
+    description: Version tag pointing to the squash merge commit
+  release-url:
+    description: Published GitHub Release URL
+runs:
+  using: node24
+  pre: ../src/setup.ts
+  main: ../src/release/index.ts
