@@ -24,6 +24,11 @@ import { authorizeComment } from './issue-command.ts';
 interface Manifest {
   version: string;
   workspaces?: unknown;
+  dependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
+  optionalDependencies?: Record<string, string>;
+  peerDependencies?: Record<string, string>;
+  scripts?: Record<string, string>;
 }
 
 const execute = promisify(execFile);
@@ -31,6 +36,88 @@ const log = debug('github-actions:update-dependencies');
 
 // Capture JSON indentation so manifest formatting is retained.
 const INDENTATION = /^(?<indent>[\t ]+)"/mu;
+
+const SCRIPT_TOKEN =
+  // Tokenize shell quotes, escapes, command separators, whitespace, and bare words.
+  /'[^']*'|"(?:\\.|[^"\\])*"|\\.|[&|;()\n]|\s|[^\s'"\\&|;()]+/gu;
+// Recognize an npx rimraf invocation, including its optional confirmation flag.
+const NPX_RIMRAF = /^npx\s+(?:--yes\s+)?rimraf(?=\s|$)/u;
+const OBSOLETE_NODE_OPTION =
+  // Remove obsolete flags, supporting both space-separated and equals values.
+  /^(?:--experimental-strip-types|--disable-warning[=\t ]+(?:ExperimentalWarning|'ExperimentalWarning'|"ExperimentalWarning"))(?=\s|$)[\t ]*/u;
+const REMOVE_PATHS = `node -e "process.argv.slice(1).forEach((path) => require('node:fs').rmSync(path, { recursive: true, force: true }))" --`;
+
+function missingDeprecationFlags(arguments_: string): string[] {
+  const flags = new Set(['--throw-deprecation', '--pending-deprecation']);
+  for (const [token] of arguments_.matchAll(SCRIPT_TOKEN)) {
+    if ('&|;()\n'.includes(token)) {
+      break;
+    }
+    flags.delete(token);
+  }
+  return [...flags];
+}
+
+function migrateScript(name: string, script: string): string {
+  let isCommandStart = true;
+  let skipUntil = 0;
+  return script.replaceAll(SCRIPT_TOKEN, (token: string, offset: number) => {
+    if (offset < skipUntil) {
+      return '';
+    }
+    if (token !== '\n' && token.trim() === '') {
+      return token;
+    }
+    if (token.startsWith('--')) {
+      const obsolete = OBSOLETE_NODE_OPTION.exec(script.slice(offset));
+      if (obsolete !== null) {
+        skipUntil = offset + obsolete[0].length;
+        return '';
+      }
+    }
+    if ('&|;()\n'.includes(token)) {
+      isCommandStart = true;
+      return token;
+    }
+    if (isCommandStart && token === 'node' && name === 'ci:test') {
+      isCommandStart = false;
+      return [
+        token,
+        ...missingDeprecationFlags(script.slice(offset + token.length)),
+      ].join(' ');
+    }
+    if (isCommandStart && token === 'npx') {
+      const invocation = NPX_RIMRAF.exec(script.slice(offset));
+      if (invocation !== null) {
+        skipUntil = offset + invocation[0].length;
+        isCommandStart = false;
+        return REMOVE_PATHS;
+      }
+    }
+    const shouldReplace = isCommandStart && token === 'rimraf';
+    isCommandStart = false;
+    return shouldReplace ? REMOVE_PATHS : token;
+  });
+}
+
+function migrateDependencies(manifest: Manifest): void {
+  for (const dependencies of [
+    manifest.dependencies ?? {},
+    manifest.devDependencies ?? {},
+    manifest.optionalDependencies ?? {},
+    manifest.peerDependencies ?? {},
+  ]) {
+    delete dependencies['rimraf'];
+    delete dependencies['@types/koa__router'];
+  }
+  const scripts = manifest.scripts;
+  if (scripts === undefined) {
+    return;
+  }
+  for (const [name, script] of Object.entries(scripts)) {
+    scripts[name] = migrateScript(name, script);
+  }
+}
 
 async function command(program: string, arguments_: string[]): Promise<string> {
   try {
@@ -83,6 +170,7 @@ async function bumpPackageVersion(): Promise<string> {
     throw new Error('The package must have a stable semantic version.');
   }
   manifest.version = semver.inc(manifest.version, 'patch') ?? manifest.version;
+  migrateDependencies(manifest);
   const indentation = INDENTATION.exec(original)?.groups?.['indent'] ?? '  ';
   await writeFile(
     'package.json',

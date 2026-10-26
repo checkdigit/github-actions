@@ -5,7 +5,14 @@ import { describe, it, mock } from 'node:test';
 import { promisify } from 'node:util';
 
 const state: {
-  manifest: { version: string; dependencies: { example: string } };
+  manifest: {
+    version: string;
+    dependencies: { example: string } & Record<string, string>;
+    devDependencies?: Record<string, string>;
+    optionalDependencies?: Record<string, string>;
+    peerDependencies?: Record<string, string>;
+    scripts?: Record<string, string>;
+  };
   hasLock: boolean;
   commands: string[];
   failure: string | undefined;
@@ -85,6 +92,15 @@ mock.module('node:child_process', {
         }
         if (program === 'npx') {
           assert.equal(state.manifest.version, '1.2.4');
+          for (const dependencies of [
+            state.manifest.dependencies,
+            state.manifest.devDependencies,
+            state.manifest.optionalDependencies,
+            state.manifest.peerDependencies,
+          ]) {
+            assert.equal(dependencies?.['rimraf'], undefined);
+            assert.equal(dependencies?.['@types/koa__router'], undefined);
+          }
           state.manifest.dependencies.example = '^3.0.0';
         }
         if (invocation === 'npm install --ignore-scripts') {
@@ -116,6 +132,100 @@ function reset() {
 }
 
 describe('dependency update execution', () => {
+  it('removes obsolete Node flags from scripts and enables deprecation checks in ci:test', async () => {
+    reset();
+    state.manifest.scripts = {
+      'ci:test':
+        'node --disable-warning ExperimentalWarning --experimental-strip-types --test "src/**/*.spec.ts"',
+      coverage:
+        'node --experimental-strip-types --disable-warning=ExperimentalWarning --test --experimental-test-coverage',
+      prepare:
+        'node --disable-warning "ExperimentalWarning" setup.ts && node --experimental-strip-types other.ts',
+      retained: 'node --disable-warning OtherWarning --test',
+      quoted:
+        'echo "--experimental-strip-types --disable-warning ExperimentalWarning"',
+    };
+    await update();
+    assert.deepEqual(state.manifest.scripts, {
+      'ci:test':
+        'node --throw-deprecation --pending-deprecation --test "src/**/*.spec.ts"',
+      coverage: 'node --test --experimental-test-coverage',
+      prepare: 'node setup.ts && node other.ts',
+      retained: 'node --disable-warning OtherWarning --test',
+      quoted:
+        'echo "--experimental-strip-types --disable-warning ExperimentalWarning"',
+    });
+  });
+
+  it('adds only missing deprecation flags to each ci:test Node command', async () => {
+    for (const flags of [
+      '',
+      '--throw-deprecation ',
+      '--pending-deprecation ',
+      '--throw-deprecation --pending-deprecation ',
+    ]) {
+      reset();
+      state.manifest.scripts = {
+        'ci:test': `npm run build && node ${flags}--test; node --test second.ts`,
+        test: 'node --test',
+      };
+      await update();
+      const script = state.manifest.scripts['ci:test'] ?? '';
+      assert.equal(script.split('--throw-deprecation').length - 1, 2);
+      assert.equal(script.split('--pending-deprecation').length - 1, 2);
+      assert.ok(script.startsWith('npm run build && node '));
+      assert.ok(
+        script.endsWith(
+          '; node --throw-deprecation --pending-deprecation --test second.ts',
+        ),
+      );
+      assert.equal(state.manifest.scripts['test'], 'node --test');
+    }
+  });
+
+  it('removes obsolete dependencies and migrates rimraf commands in every npm script', async () => {
+    reset();
+    for (const name of [
+      'dependencies',
+      'devDependencies',
+      'optionalDependencies',
+      'peerDependencies',
+    ] as const) {
+      state.manifest[name] ??= { example: '^1.0.0' };
+      Object.assign(state.manifest[name], {
+        rimraf: '^6.0.0',
+        '@types/koa__router': '^12.0.0',
+        retained: '^1.0.0',
+      });
+    }
+    state.manifest.scripts = {
+      clean: 'rimraf dist-mjs',
+      build: 'rimraf "dist mjs" dist-cjs && tsc && rimraf temp',
+      prepare: 'npx --yes rimraf cache; npx rimraf other',
+      test: 'npm run build || rimraf failed',
+      untouched: 'echo "rimraf dist && rimraf cache" && rimraf-helper dist',
+      npx: 'npx tsc && npx --yes prettier --write .',
+    };
+    await update();
+    const remove = `node -e "process.argv.slice(1).forEach((path) => require('node:fs').rmSync(path, { recursive: true, force: true }))" --`;
+    assert.deepEqual(state.manifest.scripts, {
+      clean: `${remove} dist-mjs`,
+      build: `${remove} "dist mjs" dist-cjs && tsc && ${remove} temp`,
+      prepare: `${remove} cache; ${remove} other`,
+      test: `npm run build || ${remove} failed`,
+      untouched: 'echo "rimraf dist && rimraf cache" && rimraf-helper dist',
+      npx: 'npx tsc && npx --yes prettier --write .',
+    });
+    for (const dependencies of [
+      state.manifest.dependencies,
+      state.manifest.devDependencies,
+      state.manifest.optionalDependencies,
+      state.manifest.peerDependencies,
+    ]) {
+      assert.equal(dependencies?.['retained'], '^1.0.0');
+    }
+  });
+
   it('bumps the package patch, updates dependencies, fixes files, and tests before publishing', async () => {
     reset();
     await update();

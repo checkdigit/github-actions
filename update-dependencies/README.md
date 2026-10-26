@@ -9,6 +9,11 @@ The caller checks out the repository's default branch and sets up Node 26. The
 updater then:
 
 1. Increments the package's own version by one patch, without a Git tag or commit.
+   Removes `rimraf` and `@types/koa__router` from dependency sections and replaces
+   `rimraf` commands in npm scripts with Node's native `fs.rmSync`.
+   Removes `--disable-warning ExperimentalWarning` and `--experimental-strip-types`
+   from scripts and adds `--throw-deprecation --pending-deprecation` to Node
+   commands in `ci:test`.
 2. Runs `npx --yes npm-check-updates -u` (equivalent to `ncu -u`). Dependency
    updates may include major versions and respect the repository's ncu config.
 3. Deletes `package-lock.json` and runs `npm install --ignore-scripts` to
