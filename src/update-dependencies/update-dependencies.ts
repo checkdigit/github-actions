@@ -190,8 +190,8 @@ async function updateDependencies(): Promise<{
   const validationFailures: string[] = [];
   for (const arguments_ of [
     ['run', 'prepare', '--if-present'],
-    ['run', 'lint:fix'],
     ['run', 'prettier:fix'],
+    ['run', 'lint:fix'],
     ['run', 'test'],
   ]) {
     try {

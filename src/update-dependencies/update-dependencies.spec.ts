@@ -235,8 +235,8 @@ describe('dependency update execution', () => {
       'npx --yes npm-check-updates -u',
       'npm install --ignore-scripts',
       'npm run prepare --if-present',
-      'npm run lint:fix',
       'npm run prettier:fix',
+      'npm run lint:fix',
       'npm run test',
       'git ls-files --modified --others --exclude-standard -z',
     ]);
@@ -259,8 +259,8 @@ describe('dependency update execution', () => {
   it('publishes fixer and test failures for manual repair', async () => {
     for (const invocation of [
       'npm run prepare --if-present',
-      'npm run lint:fix',
       'npm run prettier:fix',
+      'npm run lint:fix',
       'npm run test',
     ]) {
       reset();

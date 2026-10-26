@@ -19,7 +19,7 @@ updater then:
 3. Deletes `package-lock.json` and runs `npm install --ignore-scripts` to
    regenerate it and install dependencies.
 4. Runs `npm run prepare --if-present` to perform project setup explicitly.
-5. Runs `npm run lint:fix`, `npm run prettier:fix`, and `npm run test`, in order.
+5. Runs `npm run prettier:fix`, `npm run lint:fix`, and `npm run test`, in order.
 6. If dependency installation succeeds and the default branch is unchanged, creates
    `automation/dependency-updates` and a signed API commit containing all tracked
    modifications, deletions, and new non-ignored files, including fixer changes.
@@ -29,8 +29,8 @@ updater then:
 Setup, lint, formatting, and test failures do not stop publication. Remaining
 validation commands still run, and the PR and issue comment list failed commands
 with a link to the workflow logs. The issue assignees take over on the PR branch
-to fix failures and rerun checks before requesting review or merging. A compile
-failure within `npm run test` is handled the same way.
+to fix failures, update engine version, update workflows and rerun checks before requesting review or merging.
+A compile failure within `npm run test` is handled the same way.
 
 Dependency update, installation, lockfile consistency, and publishing failures
 still stop the action, leave the issue open, and post a link to the failed run. An existing update PR is returned instead of duplicated. A leftover
@@ -39,9 +39,56 @@ The package version is bumped even if ncu finds no newer dependencies.
 
 ## Caller workflow
 
-Copy `examples/dependency-updates.yml` to `.github/workflows/` on the caller
-repository's default branch. It sets Node 26, `CI: true`, and job-level concurrency.
-No `scope`, `packages`, `label`, or `validation-scripts` input is needed.
+Add `.github/workflows/dependency-updates.yml` on the caller repository's default
+branch using this example. Replace `REPLACE_WITH_REVIEWED_COMMIT_SHA` with a reviewed
+commit SHA from `checkdigit/github-actions`.
+
+```yaml
+name: Update dependencies
+
+on:
+  issue_comment:
+    types: [created]
+
+env:
+   CI: true
+
+jobs:
+  update-dependencies:
+    if: >-
+      github.event.issue.pull_request == null &&
+      github.event.comment.body == '/update-dependencies'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    concurrency:
+      group: dependency-updates-${{ github.repository }}
+      cancel-in-progress: false
+    timeout-minutes: 30
+    steps:
+      - name: Check out the default branch
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '26.x'
+          cache: npm
+      - name: Update dependencies
+        uses: checkdigit/github-actions/update-dependencies@main
+        env:
+          CI: 'true'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          DEBUG: 'github-actions:update-dependencies'
+```
+
+No `scope`, `packages`, `label`, or `validation-scripts` input is needed. The action
+checks the commenter's permission before modifying the caller repository.
 
 The caller must have a clean checkout, a stable package version, a committed
 `package-lock.json`, and the `lint:fix`, `prettier:fix`, and `test` npm scripts.

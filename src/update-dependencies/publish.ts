@@ -84,10 +84,14 @@ export async function publishUpdate(
   const failedCommands = validationFailures
     .map((invocation) => `- \`${invocation}\``)
     .join('\n');
+  const mentions = (issue.assignees ?? [])
+    .map((assignee) => `@${assignee.login}`)
+    .join(' ');
+  const request = mentions === '' ? 'Please' : `${mentions}, please`;
   const validation =
     validationFailures.length === 0
       ? 'All validation commands passed.'
-      : `Validation failed:\n${failedCommands}\n\nAssignees: fix these failures on this PR branch and rerun checks before requesting review or merging. See [workflow logs](${runUrl}).`;
+      : `Validation failed:\n${failedCommands}\n\n${request} fix these failures on this PR branch and rerun checks before requesting review or merging. See [workflow logs](${runUrl}).`;
   const details = `Dependencies updated with ncu -u and the package version bumped to patch.\n\n${validation}\n\nLockfile regenerated; available lint and formatting fixes included.`;
   const { data: pull } = await api.rest.pulls.create({
     ...repo,
@@ -115,7 +119,7 @@ export async function publishUpdate(
   await api.rest.issues.createComment({
     ...repo,
     issue_number: issue.number,
-    body: `Update PR: ${pull.html_url}\n\n${validation}\n\nAssignees: choose reviewers once checks pass and the PR is ready.`,
+    body: `Update PR: ${pull.html_url}\n\n${validation}\n\n${request} choose reviewers once checks pass and the PR is ready.`,
   });
   setOutput('issue-url', issue.html_url);
   setOutput('pull-request-url', pull.html_url);

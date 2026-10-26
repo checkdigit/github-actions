@@ -101,7 +101,9 @@ describe('dependency update publishing', () => {
           body.body.includes('Validation failed:') &&
           body.body.includes('`npm run lint:fix`') &&
           body.body.includes('`npm run test`') &&
-          body.body.includes('fix these failures on this PR branch') &&
+          body.body.includes(
+            '@alice, please fix these failures on this PR branch',
+          ) &&
           body.body.includes('workflow logs') &&
           body.head === 'automation/dependency-updates',
       )
@@ -118,7 +120,12 @@ describe('dependency update publishing', () => {
         (body: { body: string }) =>
           body.body.includes('Update PR:') &&
           body.body.includes('Validation failed:') &&
-          body.body.includes('fix these failures on this PR branch'),
+          body.body.includes(
+            '@alice, please fix these failures on this PR branch',
+          ) &&
+          body.body.includes(
+            '@alice, please choose reviewers once checks pass',
+          ),
       )
       .reply(201, {});
     try {
