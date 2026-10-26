@@ -58,6 +58,34 @@ describe('independent issue command authorization', () => {
       nock.cleanAll();
     }
   });
+  it('ignores a commenter whose permission lookup returns 404', async () => {
+    const calls = nock('https://api.github.com')
+      .get(`${ROOT}/collaborators/alice/permission`)
+      .reply(404, { message: 'Not Found' });
+    try {
+      assert.equal(
+        await authorizeComment(api(), repo, payload, '/update-dependencies'),
+        undefined,
+      );
+      assert.ok(calls.isDone());
+    } finally {
+      nock.cleanAll();
+    }
+  });
+  it('propagates other permission lookup failures', async () => {
+    const calls = nock('https://api.github.com')
+      .get(`${ROOT}/collaborators/alice/permission`)
+      .reply(403, { message: 'Forbidden' });
+    try {
+      await assert.rejects(
+        authorizeComment(api(), repo, payload, '/update-dependencies'),
+        { status: 403 },
+      );
+      assert.ok(calls.isDone());
+    } finally {
+      nock.cleanAll();
+    }
+  });
   it('rejects a closed issue', async () => {
     const calls = nock('https://api.github.com')
       .get(`${ROOT}/collaborators/alice/permission`)

@@ -3,6 +3,7 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { readFile, unlink, writeFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 
 import { endGroup, getInput, info, setOutput, startGroup } from '@actions/core';
 import { context } from '@actions/github';
@@ -184,7 +185,10 @@ async function updateDependencies(): Promise<{
   validationFailures: string[];
 }> {
   const version = await bumpPackageVersion();
-  await runCommand('npx', ['--yes', 'npm-check-updates', '-u']);
+  const cli = fileURLToPath(
+    new URL('cli.js', import.meta.resolve('npm-check-updates')),
+  );
+  await runCommand(process.execPath, [cli, '-u']);
   await unlink('package-lock.json');
   await runCommand('npm', ['install', '--ignore-scripts']);
   const validationFailures: string[] = [];

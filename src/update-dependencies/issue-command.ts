@@ -22,12 +22,21 @@ export async function authorizeComment(
   ) {
     return undefined;
   }
-  const { data: permission } =
-    await api.rest.repos.getCollaboratorPermissionLevel({
+  let permission;
+  try {
+    const { data } = await api.rest.repos.getCollaboratorPermissionLevel({
       ...repo,
       username: payload.comment.user.login,
     });
-  if (!['write', 'maintain', 'admin'].includes(permission.permission)) {
+    permission = data.permission;
+  } catch (error) {
+    const NOT_FOUND = 404;
+    if ((error as { status?: number }).status === NOT_FOUND) {
+      return undefined;
+    }
+    throw error;
+  }
+  if (!['write', 'maintain', 'admin'].includes(permission)) {
     return undefined;
   }
   const { data: issue } = await api.rest.issues.get({

@@ -3,6 +3,12 @@
 import { strict as assert } from 'node:assert';
 import { describe, it, mock } from 'node:test';
 import { promisify } from 'node:util';
+import { fileURLToPath } from 'node:url';
+
+const NCU_CLI = fileURLToPath(
+  new URL('cli.js', import.meta.resolve('npm-check-updates')),
+);
+const UPDATE_COMMAND = `${process.execPath} ${NCU_CLI} -u`;
 
 const state: {
   manifest: {
@@ -90,7 +96,7 @@ mock.module('node:child_process', {
         if (invocation === state.failure) {
           throw new Error('Command failed');
         }
-        if (program === 'npx') {
+        if (invocation === UPDATE_COMMAND) {
           assert.equal(state.manifest.version, '1.2.4');
           for (const dependencies of [
             state.manifest.dependencies,
@@ -264,7 +270,7 @@ describe('dependency update execution', () => {
     assert.deepEqual(state.commands, [
       'git status --porcelain',
       'git rev-parse HEAD',
-      'npx --yes npm-check-updates -u',
+      UPDATE_COMMAND,
       'npm install --ignore-scripts',
       'npm run prepare --if-present',
       'npm run prettier:fix',
@@ -309,10 +315,7 @@ describe('dependency update execution', () => {
   });
 
   it('does not publish when dependency updates or installation fail', async () => {
-    for (const invocation of [
-      'npx --yes npm-check-updates -u',
-      'npm install --ignore-scripts',
-    ]) {
+    for (const invocation of [UPDATE_COMMAND, 'npm install --ignore-scripts']) {
       reset();
       state.failure = invocation;
       await assert.rejects(update(), /Command failed/u);

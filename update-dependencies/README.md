@@ -16,7 +16,7 @@ updater then:
    commands in `ci:test`.
    Sets `prettier` to `prettier . --check` and `prettier:fix` to
    `prettier . --write`, adding the scripts if missing.
-2. Runs `npx --yes npm-check-updates -u` (equivalent to `ncu -u`). Dependency
+2. Runs the action's locked `npm-check-updates` CLI with `-u` (equivalent to `ncu -u`). Dependency
    updates may include major versions and respect the repository's ncu config.
 3. Deletes `package-lock.json` and runs `npm install --ignore-scripts` to
    regenerate it and install dependencies.
@@ -42,8 +42,8 @@ The package version is bumped even if ncu finds no newer dependencies.
 ## Caller workflow
 
 Add `.github/workflows/dependency-updates.yml` on the caller repository's default
-branch using this example. Replace `REPLACE_WITH_REVIEWED_COMMIT_SHA` with a reviewed
-commit SHA from `checkdigit/github-actions`.
+branch using this example. Caller workflows reference `checkdigit/github-actions`
+on `main` to receive shared action updates.
 
 ```yaml
 name: Update dependencies
@@ -101,7 +101,7 @@ Pass the built-in `GITHUB_TOKEN` with contents, issues, and pull requests write
 permissions. The action publishes through GitHub's API, so checkout can use
 `persist-credentials: false`. No manually created write token or signing key is
 needed. Enable Actions PR creation in repository settings and ensure `PATCH`
-already exists. Pin the shared action to a reviewed SHA for rollout.
+already exists.
 
 The action's own JavaScript runtime is Node 24; npm and project scripts use the
 Node version configured by the caller. In-action tests run on Node 26 and do not
