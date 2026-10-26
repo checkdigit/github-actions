@@ -132,6 +132,34 @@ function reset() {
 }
 
 describe('dependency update execution', () => {
+  it('sets standard Prettier commands when scripts differ, match, or are missing', async () => {
+    for (const scripts of [
+      undefined,
+      { test: 'node --test' },
+      {
+        prettier: 'prettier src --check',
+        'prettier:fix': 'prettier src --write',
+        test: 'node --test',
+      },
+      {
+        prettier: 'prettier . --check',
+        'prettier:fix': 'prettier . --write',
+        test: 'node --test',
+      },
+    ]) {
+      reset();
+      if (scripts !== undefined) {
+        state.manifest.scripts = scripts;
+      }
+      await update();
+      assert.deepEqual(state.manifest.scripts, {
+        ...scripts,
+        prettier: 'prettier . --check',
+        'prettier:fix': 'prettier . --write',
+      });
+    }
+  });
+
   it('removes obsolete Node flags from scripts and enables deprecation checks in ci:test', async () => {
     reset();
     state.manifest.scripts = {
@@ -151,6 +179,8 @@ describe('dependency update execution', () => {
         'node --throw-deprecation --pending-deprecation --test "src/**/*.spec.ts"',
       coverage: 'node --test --experimental-test-coverage',
       prepare: 'node setup.ts && node other.ts',
+      prettier: 'prettier . --check',
+      'prettier:fix': 'prettier . --write',
       retained: 'node --disable-warning OtherWarning --test',
       quoted:
         'echo "--experimental-strip-types --disable-warning ExperimentalWarning"',
@@ -210,6 +240,8 @@ describe('dependency update execution', () => {
     const remove = `node -e "process.argv.slice(1).forEach((path) => require('node:fs').rmSync(path, { recursive: true, force: true }))" --`;
     assert.deepEqual(state.manifest.scripts, {
       clean: `${remove} dist-mjs`,
+      prettier: 'prettier . --check',
+      'prettier:fix': 'prettier . --write',
       build: `${remove} "dist mjs" dist-cjs && tsc && ${remove} temp`,
       prepare: `${remove} cache; ${remove} other`,
       test: `npm run build || ${remove} failed`,

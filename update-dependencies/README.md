@@ -14,6 +14,8 @@ updater then:
    Removes `--disable-warning ExperimentalWarning` and `--experimental-strip-types`
    from scripts and adds `--throw-deprecation --pending-deprecation` to Node
    commands in `ci:test`.
+   Sets `prettier` to `prettier . --check` and `prettier:fix` to
+   `prettier . --write`, adding the scripts if missing.
 2. Runs `npx --yes npm-check-updates -u` (equivalent to `ncu -u`). Dependency
    updates may include major versions and respect the repository's ncu config.
 3. Deletes `package-lock.json` and runs `npm install --ignore-scripts` to
@@ -51,7 +53,7 @@ on:
     types: [created]
 
 env:
-   CI: true
+  CI: true
 
 jobs:
   update-dependencies:

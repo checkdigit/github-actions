@@ -110,10 +110,10 @@ function migrateDependencies(manifest: Manifest): void {
     delete dependencies['rimraf'];
     delete dependencies['@types/koa__router'];
   }
+  manifest.scripts ??= {};
   const scripts = manifest.scripts;
-  if (scripts === undefined) {
-    return;
-  }
+  scripts['prettier'] = 'prettier . --check';
+  scripts['prettier:fix'] = 'prettier . --write';
   for (const [name, script] of Object.entries(scripts)) {
     scripts[name] = migrateScript(name, script);
   }
